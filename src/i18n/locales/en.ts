@@ -46,6 +46,15 @@ const en = {
   fontSizeMedium: "Medium font size",
   fontSizeLarge: "Large font size",
   minReadTemplate: "{minutes} min read",
+  // Relative time labels ("2h ago", "Just now") - see
+  // utils/format-date.ts's formatRelativeTime, which does the date math
+  // and calls t() with these rather than baking English text in directly
+  // (Intl.RelativeTimeFormat is deliberately avoided there - see that
+  // file's own comment on why).
+  justNow: "Just now",
+  minutesAgoTemplate: "{minutes}m ago",
+  hoursAgoTemplate: "{hours}h ago",
+  daysAgoTemplate: "{days}d ago",
   scrollToFirstCategory: "Scroll back to first category",
   tabSearch: "Explore",
   searchPlaceholder: "Search articles",
