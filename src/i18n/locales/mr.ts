@@ -3,6 +3,7 @@ import type en from "./en";
 // DRAFT machine-assisted translation, not reviewed by a native Marathi
 // speaker - see bn.ts's own comment for the same caveat.
 const mr: Record<keyof typeof en, string> = {
+  appName: "News Khabri",
   tabHome: "होम",
   tabProfile: "प्रोफाइल",
   tabPreferences: "सेटिंग्ज",

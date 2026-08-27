@@ -7,6 +7,7 @@ import type en from "./en";
 // quality even more than its siblings do - see bn.ts's own comment for the
 // general caveat this shares with them.
 const or: Record<keyof typeof en, string> = {
+  appName: "News Khabri",
   tabHome: "ହୋମ୍",
   tabProfile: "ପ୍ରୋଫାଇଲ୍",
   tabPreferences: "ସେଟିଂସ୍",

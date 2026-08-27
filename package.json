@@ -64,7 +64,8 @@
       "./jest.setup.js"
     ],
     "moduleNameMapper": {
-      "\\.css$": "<rootDir>/jest.css-stub.js"
+      "\\.css$": "<rootDir>/jest.css-stub.js",
+      "^@/assets/(.*)$": "<rootDir>/assets/$1"
     },
     "collectCoverageFrom": [
       "src/**/*.{ts,tsx}",

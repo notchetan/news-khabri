@@ -1,3 +1,4 @@
+import { usePathname, useRouter } from 'expo-router';
 import {
   Tabs,
   TabList,
@@ -6,12 +7,14 @@ import {
   TabTriggerSlotProps,
   TabListProps,
 } from 'expo-router/ui';
-import { Pressable, View, StyleSheet } from 'react-native';
+import { SymbolView } from 'expo-symbols';
+import { Image, Pressable, View, StyleSheet } from 'react-native';
 
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
 import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from '@/i18n/translations';
 import { concentricRadius } from '@/utils/corner-radius';
 
@@ -34,9 +37,6 @@ export default function AppTabs() {
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <TabTrigger name="search" href={"/search" as any} asChild>
             <TabButton>{t('tabSearch')}</TabButton>
-          </TabTrigger>
-          <TabTrigger name="profile" href="/profile" asChild>
-            <TabButton>{t('tabProfile')}</TabButton>
           </TabTrigger>
           <TabTrigger name="preferences" href="/preferences" asChild>
             <TabButton>{t('tabPreferences')}</TabButton>
@@ -66,15 +66,64 @@ export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps
   );
 }
 
+// Which tab's own title to show on the left (see the header comment below)
+// for the screen currently on top - checked by prefix so a pushed screen
+// further into a tab's own stack (e.g. /preferences/language, an article
+// under /search/article/:id) still shows that tab's name, not nothing.
+// Profile is no longer a tab (see below), but still gets its own title here
+// since it's still a real screen this bar sits on top of.
+function titleKeyForPathname(pathname: string) {
+  if (pathname.startsWith('/search')) return 'tabSearch' as const;
+  if (pathname.startsWith('/preferences')) return 'tabPreferences' as const;
+  if (pathname.startsWith('/profile')) return 'profileTitle' as const;
+  return 'appName' as const;
+}
+
 export function CustomTabList(props: TabListProps) {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const router = useRouter();
+  const pathname = usePathname();
+
   return (
     <View {...props} style={styles.tabListContainer}>
       <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <ThemedText type="smallBold" style={styles.brandText}>
-          News Khabri
-        </ThemedText>
+        {/* The app's own mark plus the current tab's name, replacing the
+            static "News Khabri" brand text this used to always show -
+            mirrors app-header.tsx's native equivalent, just inside this
+            bar instead of a separate one underneath it (this bar already
+            lives at the top of the screen on web, unlike the bottom native
+            tab bar). */}
+        <View style={styles.titleGroup}>
+          <Image
+            source={require('@/assets/images/tab-home-icon.png')}
+            style={styles.logo}
+            resizeMode="contain"
+            accessibilityIgnoresInvertColors
+          />
+          <ThemedText type="smallBold" numberOfLines={1}>
+            {t(titleKeyForPathname(pathname))}
+          </ThemedText>
+        </View>
 
         {props.children}
+
+        {/* Profile is no longer a tab (see AppTabs above) - this button
+            replaces it, in the same trailing position, pushing the same
+            /profile screen rather than switching tabs to it. */}
+        <Pressable
+          onPress={() => router.push('/profile')}
+          accessibilityRole="button"
+          accessibilityLabel={t('tabProfile')}
+        >
+          <SymbolView
+            name="person.crop.circle"
+            size={22}
+            weight="regular"
+            tintColor={theme.text}
+            fallback={<ThemedText style={styles.profileFallback}>◍</ThemedText>}
+          />
+        </Pressable>
       </ThemedView>
     </View>
   );
@@ -107,9 +156,14 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     maxWidth: MaxContentWidth,
   },
-  brandText: {
+  titleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
     marginRight: 'auto',
   },
+  logo: { width: 22, height: 22 },
+  profileFallback: { fontSize: 22 },
   pressed: {
     opacity: 0.7,
   },

@@ -1,6 +1,7 @@
 import type en from "./en";
 
 const gu: Record<keyof typeof en, string> = {
+  appName: "News Khabri",
   tabHome: "હોમ",
   tabProfile: "પ્રોફાઇલ",
   // Same loanword convention as topStoriesShort's "ટોપ" below - "સેટિંગ્સ"

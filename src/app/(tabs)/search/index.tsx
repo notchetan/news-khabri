@@ -1,4 +1,5 @@
 import { fetchCategories } from "@/api/articles";
+import AppHeader from "@/components/app-header";
 import ArticleList from "@/components/article-list";
 import Squircle from "@/components/squircle";
 import { useQuery } from "@tanstack/react-query";
@@ -179,6 +180,7 @@ export default function SearchScreen() {
         backgroundColor: theme.background,
       }}
     >
+      <AppHeader title={t("tabSearch")} />
       {/* KeyboardAvoidingView (not a plain View) specifically so the resize
           when the keyboard shows/hides is animated using the keyboard's own
           reported duration/easing, matching its native motion, rather than

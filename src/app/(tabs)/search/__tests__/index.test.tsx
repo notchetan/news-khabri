@@ -86,6 +86,14 @@ describe("SearchScreen", () => {
     expect(focusSpy).toHaveBeenCalled();
   });
 
+  it("shows 'Search' at the top, via the shared AppHeader", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    expect(screen.getByText("Search")).toBeTruthy();
+  });
+
   it("renders a category grid by default (empty search)", async () => {
     await act(async () => {
       renderScreen();

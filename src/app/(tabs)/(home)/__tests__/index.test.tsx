@@ -97,6 +97,14 @@ describe("HomeScreen", () => {
     mockFetchStoryFeed.mockResolvedValue([]);
   });
 
+  it("shows the app's own name at the top, via the shared AppHeader", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    expect(screen.getByText("News Khabri")).toBeTruthy();
+  });
+
   it("renders a 'Top Stories' pill (pinned, default) plus each discovered category, title-cased", async () => {
     mockFetchCategories.mockResolvedValue(["national", "business"]);
 

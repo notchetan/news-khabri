@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import AppHeader from "@/components/app-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { LANGUAGE_ENDONYMS } from "@/constants/languages";
@@ -96,8 +97,12 @@ export default function PreferencesScreen() {
     setPreviewHeight(event.nativeEvent.layout.height);
   };
 
+  // No extra top gap beyond the inset itself, matching Home/Search - that
+  // gap used to exist here specifically to give the old inline "Preferences"
+  // title some breathing room before it; AppHeader (below) now owns that
+  // spacing instead, the same way it does on those other two tabs.
   const topPadding = Platform.select({
-    default: insets.top + Spacing.three,
+    default: insets.top,
     web: Spacing.six,
   });
 
@@ -110,11 +115,8 @@ export default function PreferencesScreen() {
 
   return (
     <ThemedView style={[styles.container, { paddingTop: topPadding }]}>
+      <AppHeader title={t("tabPreferences")} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <ThemedText type="subtitle" style={styles.title} accessibilityRole="header">
-          {t("preferencesTitle")}
-        </ThemedText>
-
         <View style={styles.toggleRow}>
           <ThemedText type="default" accessibilityRole="header">{t("appearance")}</ThemedText>
           <View style={styles.iconRow}>
@@ -318,7 +320,6 @@ export default function PreferencesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.four },
-  title: { marginBottom: Spacing.four },
   sectionSpacing: { marginTop: Spacing.three },
   divider: { height: StyleSheet.hairlineWidth, marginBottom: Spacing.three },
   toggleRow: {
