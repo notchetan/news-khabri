@@ -310,10 +310,17 @@ export default function PreferencesScreen() {
         style={[
           styles.legalFooter,
           {
-            paddingBottom: Platform.select({
-              web: 0,
-              default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
-            }),
+            // Spacing.three (the same base gap as everywhere else - divider
+            // to scroll content above, and every other major gap in the
+            // app) plus the tab-bar reservation, which is a *functional*
+            // reservation for the physical bar, not part of the visible
+            // gap itself - see NATIVE_TAB_BAR_HEIGHT's own comment.
+            paddingBottom:
+              Spacing.three +
+              Platform.select({
+                web: 0,
+                default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
+              }),
           },
         ]}
       >
@@ -395,12 +402,15 @@ const styles = StyleSheet.create({
   // One centered line with a dot between each link - gap on the row applies
   // uniformly between every child (link, dot, link, dot, link), the same
   // "let flexbox gap own the spacing" approach used in category-pills.tsx,
-  // rather than mismatched per-element margins.
+  // rather than mismatched per-element margins. No paddingVertical of its
+  // own - that used to stack with the divider's marginBottom above it into
+  // a bigger gap there (24) than below it (8, before legalFooter's own
+  // paddingBottom took over), so both sides now come from the divider and
+  // legalFooter alone instead.
   legalLinksRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     gap: Spacing.two,
-    paddingVertical: Spacing.two,
   },
 });
