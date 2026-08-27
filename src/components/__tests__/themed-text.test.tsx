@@ -65,4 +65,23 @@ describe("ThemedText", () => {
       expect.arrayContaining([expect.objectContaining({ color: "#1C1A17" })])
     );
   });
+
+  it.each(["title", "subtitle"] as const)(
+    "gives type=%s a generous lineHeight, not Apple's own tighter Dynamic Type ratio",
+    async (type) => {
+      // Regression test: title/subtitle used lineHeight ratios (44/40,
+      // 41/34 - both ~1.1-1.2x fontSize) copied from Apple's own Dynamic
+      // Type scale, tuned for Latin text - real article/story headlines in
+      // Devanagari/Tamil/etc. clipped at the top under that ratio. Asserts
+      // the invariant (>=1.3x, comfortably above Apple's own ratio) rather
+      // than the exact current multiplier, so this doesn't need updating
+      // every time the multiplier itself is retuned - just that it stays
+      // generous.
+      await renderWithTheme(<ThemedText type={type}>Hello</ThemedText>);
+      const node = screen.getByText("Hello");
+      const flatStyle = [node.props.style].flat();
+      const { fontSize, lineHeight } = Object.assign({}, ...flatStyle);
+      expect(lineHeight / fontSize).toBeGreaterThanOrEqual(1.3);
+    }
+  );
 });
