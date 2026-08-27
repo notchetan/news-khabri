@@ -174,8 +174,13 @@ this exact codebase. Read this before touching anything similar.
 
 ## Repo state
 
-- This is **not currently a git repository** (no `.git`). There's no
-  commit history to lean on for "what changed" or to revert against —
-  be extra careful with anything destructive, and mention to the user if
-  `git init` would help before doing something that's hard to undo by
-  hand.
+- Hosted at `github.com/notchetan/news-khabri`, public, `main`
+  branch-protected (PR-only, no direct pushes, even for the repo
+  owner). Work on a feature/fix branch and open a PR - a direct push to
+  `main` will be rejected. CI (`.github/workflows/ci.yml`) runs `npx
+  tsc --noEmit` and `npx jest --ci` on every PR push - keep both green;
+  don't introduce a devDependency or ambient type that only happens to
+  resolve locally (see `@types/node` in `package.json`/`tsconfig.json`
+  for a real instance of this: it worked locally as an undeclared
+  transitive dependency for a long time, then failed in CI the moment a
+  clean `npm ci` didn't hoist it the same way local `npm install` had).

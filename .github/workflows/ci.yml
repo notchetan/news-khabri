@@ -1,0 +1,35 @@
+name: CI
+
+# Runs on every push to a PR branch (so it reports per-commit, not just
+# once at merge time) and on main itself. See AGENTS.md's "Testing &
+# verification discipline" - this is exactly the same two-step check
+# (typecheck + full test suite) that's expected locally after every
+# change, just enforced automatically instead of relying on it happening
+# by hand.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Typecheck & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # postinstall runs patch-package automatically (see AGENTS.md's note
+      # on patches/react-native-render-html+6.3.4.patch).
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npx jest --ci

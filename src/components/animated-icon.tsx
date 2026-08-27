@@ -91,7 +91,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   splashOverlay: {
-    ...StyleSheet.absoluteFill,
+    // absoluteFillObject specifically, not absoluteFill - the latter is
+    // typed as an opaque RegisteredStyle (a StyleSheet.create() id, not a
+    // plain object), so TypeScript can't spread it. absoluteFillObject is
+    // the same {position:'absolute', top/left/right/bottom:0} as a real
+    // ViewStyle object, made exactly for cases like this.
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,
