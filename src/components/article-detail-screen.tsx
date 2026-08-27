@@ -90,8 +90,19 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   // animating case AGENTS.md warns against for measurement probes.
   const [headerHeight, setHeaderHeight] = useState(0);
 
+  // Deliberately *not* spread across the same HEADER_COLLAPSE_DISTANCE as
+  // the width shrink below - cross-fading both over the same range meant
+  // numberOfLines={1} kept re-truncating the label against its own
+  // shrinking maxWidth for most of the scroll, which read as the text
+  // getting replaced letter by letter before finally vanishing. A
+  // near-zero input range makes the fade an effectively instant swap right
+  // at the very start of the scroll - full opacity only while at the very
+  // top (scrollY exactly 0), gone for any scroll at all - so the label is
+  // already invisible well before the shrinking width would visibly clip
+  // it. Same technique, same reasoning, as category-pills.tsx's own
+  // PinnedPill fullOpacity/collapsedOpacity.
   const headerLabelOpacity = scrollY.interpolate({
-    inputRange: [0, HEADER_COLLAPSE_DISTANCE],
+    inputRange: [0, 1],
     outputRange: [1, 0],
     extrapolate: "clamp",
   });
@@ -319,7 +330,7 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
           </GlassView>
 
           <GlassView style={styles.brandGlass} glassEffectStyle="regular">
-            <View style={styles.brandRow}>
+            <View testID="article-brand-row" style={styles.brandRow}>
               <Image
                 testID="article-brand-logo"
                 source={require("@/assets/images/tab-home-icon.png")}
@@ -651,18 +662,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
   },
-  // flex-end (not center) so the label sits against the icon/logo's own
-  // bottom edge rather than optically centered against it - a label's
-  // natural line-height box has real headroom above the glyph itself for
-  // Devanagari/Tamil/etc.'s taller ascenders/matras (see backGlyph's own
-  // comment), so centering that box against a small fixed-size icon put
-  // the *glyph* noticeably higher than the icon's own center, and for the
-  // tallest scripts the old hard height:20 clip on the label wrapper
-  // (removed below) cut into that headroom directly, clipping the top of
-  // the glyph. Anchoring to the bottom instead means that headroom simply
-  // extends upward past the icon, harmlessly, whatever its size ends up
-  // being for a given script.
-  backPressableRow: { flexDirection: "row", alignItems: "flex-end" },
+  // center, not flex-end - the pill previously anchored the icon and label
+  // to their shared bottom edge (to keep a since-removed hard height:20
+  // clip on the label wrapper from cutting into cross-script ascenders/
+  // matras), but that clip is long gone: the label wrapper now sizes
+  // purely from backGlyph's own generous lineHeight below, so this row's
+  // cross-axis height already *is* that lineHeight, with real headroom on
+  // both sides. Centering the icon within it is what actually reads as
+  // vertically centered in the pill - bottom-anchoring instead visibly sat
+  // the icon low, since the label's own headroom was all above it.
+  backPressableRow: { flexDirection: "row", alignItems: "center" },
   // A generous lineHeight (not equal to fontSize) - same reasoning as the
   // font-size preview glyph fix in preferences/index.tsx: Devanagari/
   // Tamil/etc. glyphs need real headroom above fontSize itself or they
@@ -680,9 +689,11 @@ const styles = StyleSheet.create({
   backLabel: { flexShrink: 0 },
   // Same shape as backGlass, on the opposite side.
   brandGlass: { alignSelf: "flex-start", borderRadius: Radius.full, overflow: "hidden" },
+  // center - see backPressableRow's own comment for why (same shape, same
+  // reasoning, mirrored for the logo instead of the chevron).
   brandRow: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "center",
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
   },
