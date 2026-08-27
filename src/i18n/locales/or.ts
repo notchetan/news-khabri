@@ -20,7 +20,7 @@ const or: Record<keyof typeof en, string> = {
   imageFailedToLoad: "ଛବି ଲୋଡ୍ ହୋଇପାରିଲା ନାହିଁ",
   noImage: "କୌଣସି ଛବି ନାହିଁ",
   profileTitle: "ପ୍ରୋଫାଇଲ୍",
-  profileComingSoon: "ସାଇନ୍-ଇନ୍ ଏବଂ ବ୍ୟକ୍ତିଗତକରଣ ଶୀଘ୍ର ଆସୁଛି।",
+  profileComingSoon: "ସାଇନ୍-ଇନ୍ ଏବଂ ବ୍ୟକ୍ତିଗତକରଣ ଶୀଘ୍ର ଆସୁଛି",
   preferencesTitle: "ସେଟିଂସ୍",
   appearance: "ରୂପ",
   appearanceAutomaticDesc: "ଆପଣଙ୍କ ଡିଭାଇସର ସିଷ୍ଟମ୍ ସେଟିଂ ସହିତ ମେଳ କରନ୍ତୁ",
@@ -58,6 +58,7 @@ const or: Record<keyof typeof en, string> = {
   tabSearch: "ଏକ୍ସପ୍ଲୋର୍ କରନ୍ତୁ",
   searchPlaceholder: "ପ୍ରବନ୍ଧ ଖୋଜନ୍ତୁ",
   noArticlesFound: "କୌଣସି ପ୍ରବନ୍ଧ ମିଳିଲା ନାହିଁ।",
+  noResultsForTemplate: "{query} ପାଇଁ କୌଣସି ଫଳାଫଳ ମିଳିଲା ନାହିଁ",
   topStories: "ପ୍ରମୁଖ ଖବର",
   // "ଟପ୍" - same common-loanword convention as the Hindi locale's "टॉप".
   topStoriesShort: "ଟପ୍",

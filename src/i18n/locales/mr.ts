@@ -16,7 +16,7 @@ const mr: Record<keyof typeof en, string> = {
   imageFailedToLoad: "प्रतिमा लोड होऊ शकली नाही",
   noImage: "प्रतिमा नाही",
   profileTitle: "प्रोफाइल",
-  profileComingSoon: "साइन-इन आणि वैयक्तिकरण लवकरच येत आहे.",
+  profileComingSoon: "साइन-इन आणि वैयक्तिकरण लवकरच येत आहे",
   preferencesTitle: "सेटिंग्ज",
   appearance: "स्वरूप",
   appearanceAutomaticDesc: "तुमच्या डिव्हाइसच्या सिस्टम सेटिंगशी जुळवा",
@@ -54,6 +54,7 @@ const mr: Record<keyof typeof en, string> = {
   tabSearch: "एक्सप्लोर करा",
   searchPlaceholder: "लेख शोधा",
   noArticlesFound: "कोणतेही लेख आढळले नाहीत.",
+  noResultsForTemplate: "{query} साठी कोणतेही परिणाम आढळले नाहीत",
   topStories: "प्रमुख बातम्या",
   // "टॉप" - same common-loanword convention as the Hindi locale's "टॉप".
   topStoriesShort: "टॉप",

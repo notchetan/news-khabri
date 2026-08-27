@@ -78,6 +78,17 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   // category-pills.tsx's own scroll-linked pinned-pill transition.
   const scrollY = useRef(new Animated.Value(0)).current;
   const scrollRef = useRef<ScrollView>(null);
+  // Measured height of the floating back/brand pill row (backRow below),
+  // including its own topPadding (status bar inset + gap) - used so the
+  // hero image starts *below* the header on initial load instead of
+  // immediately behind it, per explicit request: the header should only
+  // start overlaying content once the user actually scrolls, not from the
+  // very first frame. The row's own height is otherwise stable (only the
+  // labels' *width* animates via headerLabelOpacity/backLabelWidth/
+  // brandLabelWidth above, never the row's own height), so measuring it
+  // once via onLayout is safe here - unlike the ancestor-is-itself-
+  // animating case AGENTS.md warns against for measurement probes.
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   const headerLabelOpacity = scrollY.interpolate({
     inputRange: [0, HEADER_COLLAPSE_DISTANCE],
@@ -157,13 +168,15 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
     default: insets.top + Spacing.two,
     web: Spacing.six,
   });
-  // The scrollable content itself only needs to clear the status bar (not
-  // the floating back button too) - it's fine, and intended, for the
-  // button to float semi-transparently over the very top of the hero image
-  // once content starts; it's only the status bar strip above that that
-  // must never show article content.
+  // On mount, the hero image should sit fully below the floating header,
+  // not behind it - it's only once the user actually scrolls that content
+  // is meant to pass underneath the header (see headerHeight's own
+  // comment above). Before the header row's first onLayout measurement
+  // lands, fall back to a generous estimate (topPadding plus a typical
+  // pill height) so the image never briefly pokes out above the header
+  // for that one frame either.
   const contentTopPadding = Platform.select({
-    default: insets.top,
+    default: (headerHeight || topPadding + 44) + Spacing.two,
     web: Spacing.six,
   });
   // Same base gap (Spacing.three) plus tab-bar reservation formula used in
@@ -267,7 +280,9 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
             labels collapse together, in step with scroll position (see
             headerLabelOpacity/backLabelWidth/brandLabelWidth above). */}
         <View
+          testID="article-header-row"
           style={[styles.backRow, { paddingTop: topPadding }]}
+          onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
           pointerEvents="box-none"
         >
           <GlassView style={styles.backGlass} glassEffectStyle="regular">
@@ -331,7 +346,7 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
         </View>
 
         {isLoading ? (
-          <ArticleDetailSkeleton />
+          <ArticleDetailSkeleton headerHeight={headerHeight} topPadding={topPadding} />
         ) : error || !data ? (
           <View style={styles.centerFill}>
             <ThemedText themeColor="textSecondary">
@@ -542,12 +557,22 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   );
 }
 
-function ArticleDetailSkeleton() {
+function ArticleDetailSkeleton({
+  headerHeight,
+  topPadding,
+}: {
+  headerHeight: number;
+  topPadding: number;
+}) {
   const opacity = useRef(new Animated.Value(0.4)).current;
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  // Same header-clearing formula as the real ScrollView above (see
+  // contentTopPadding's own comment there) - the skeleton's first block
+  // stands in for the hero image, so it needs to start below the header
+  // too, not just clear the status bar.
   const contentTopPadding = Platform.select({
-    default: insets.top,
+    default: (headerHeight || topPadding + 44) + Spacing.two,
     web: Spacing.six,
   });
   const contentBottomPadding =

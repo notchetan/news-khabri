@@ -7,6 +7,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
+import * as SystemUI from "expo-system-ui";
+import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -79,6 +81,25 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const { resolvedScheme } = useThemePreference();
+
+  // Belt-and-suspenders alongside AppLightTheme/AppDarkTheme above: those
+  // only recolor the JS-level Stack transition backdrop
+  // (@react-navigation/native's Theme, read by
+  // native-stack/.../NativeStackView.native.tsx's own contentStyle). The
+  // *native* root view sits one layer further down, underneath React
+  // Navigation entirely, and defaults to plain white regardless of that
+  // theme - react-native-screens' push/pop transitions (Fragment
+  // transactions on Android, UIViewController transitions on iOS) can
+  // briefly reveal that native backdrop at a screen's edges before its own
+  // content view has finished compositing over it, which is exactly the
+  // "white surrounding" flash reported on article/language-select
+  // navigation even after the Theme fix. Keeping this synced with the
+  // resolved theme closes that gap at the layer the JS theme can't reach.
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(
+      resolvedScheme === "dark" ? Colors.dark.background : Colors.light.background
+    );
+  }, [resolvedScheme]);
 
   return (
     <ThemeProvider value={resolvedScheme === "dark" ? AppDarkTheme : AppLightTheme}>

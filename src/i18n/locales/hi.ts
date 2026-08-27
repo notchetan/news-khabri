@@ -18,7 +18,7 @@ const hi: Record<keyof typeof en, string> = {
   imageFailedToLoad: "छवि लोड नहीं हो सकी",
   noImage: "कोई छवि नहीं",
   profileTitle: "प्रोफ़ाइल",
-  profileComingSoon: "साइन-इन और वैयक्तिकरण जल्द ही आ रहे हैं।",
+  profileComingSoon: "साइन-इन और वैयक्तिकरण जल्द ही आ रहे हैं",
   preferencesTitle: "सेटिंग्स",
   appearance: "दिखावट",
   appearanceAutomaticDesc: "आपके डिवाइस की सिस्टम सेटिंग से मेल खाएं",
@@ -56,6 +56,7 @@ const hi: Record<keyof typeof en, string> = {
   tabSearch: "एक्सप्लोर करें",
   searchPlaceholder: "लेख खोजें",
   noArticlesFound: "कोई लेख नहीं मिला।",
+  noResultsForTemplate: "{query} के लिए कोई परिणाम नहीं मिला",
   topStories: "प्रमुख ख़बरें",
   // "टॉप" (a common, widely-understood loanword in Hindi news media, e.g.
   // "टॉप न्यूज़") rather than a literal translation - "प्रमुख" alone reads

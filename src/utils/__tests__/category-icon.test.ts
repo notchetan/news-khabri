@@ -12,8 +12,8 @@ describe("getCategoryIcon", () => {
   });
 
   it.each([
-    ["Sports", "🏆"],
-    ["स्पोर्ट्स", "🏆"],
+    ["Sports", "⚽"],
+    ["स्पोर्ट्स", "⚽"],
     ["Cricket", "🏏"],
     ["क्रिकेट", "🏏"],
     ["Business", "💼"],
@@ -24,9 +24,9 @@ describe("getCategoryIcon", () => {
     ["बॉलीवुड", "🎬"],
     ["World", "🌍"],
     ["विदेश", "🌍"],
-    ["Politics", "🏛️"],
-    ["देश", "🏛️"],
-    ["India", "🏛️"],
+    ["Politics", "🇮🇳"],
+    ["देश", "🇮🇳"],
+    ["India", "🇮🇳"],
     ["Science", "🔬"],
     ["विज्ञान", "🔬"],
     // The backend's own taxonomy folds "health wellness" into "lifestyle"
@@ -43,8 +43,8 @@ describe("getCategoryIcon", () => {
   });
 
   it("matches case-insensitively", () => {
-    expect(getCategoryIcon("SPORTS")).toBe("🏆");
-    expect(getCategoryIcon("sPoRtS")).toBe("🏆");
+    expect(getCategoryIcon("SPORTS")).toBe("⚽");
+    expect(getCategoryIcon("sPoRtS")).toBe("⚽");
   });
 
   it("matches a keyword found anywhere within a longer category string", () => {
@@ -53,7 +53,7 @@ describe("getCategoryIcon", () => {
 
   it("returns the first matching rule when multiple keywords could apply", () => {
     // "sport" is checked before "business" in the rule list.
-    expect(getCategoryIcon("sport business")).toBe("🏆");
+    expect(getCategoryIcon("sport business")).toBe("⚽");
   });
 
   it("does not fold cricket into the general sports icon", () => {

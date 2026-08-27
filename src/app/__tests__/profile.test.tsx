@@ -44,7 +44,7 @@ describe("ProfileScreen", () => {
 
     expect(screen.getByRole("header", { name: "Profile" })).toBeTruthy();
     expect(
-      screen.getByText("Sign-in and personalization are coming soon.")
+      screen.getByText("Sign-in and personalization are coming soon")
     ).toBeTruthy();
   });
 
