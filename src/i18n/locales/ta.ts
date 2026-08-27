@@ -3,6 +3,7 @@ import type en from "./en";
 // DRAFT machine-assisted translation, not reviewed by a native Tamil
 // speaker - see bn.ts's own comment for the same caveat.
 const ta: Record<keyof typeof en, string> = {
+  appName: "News Khabri",
   tabHome: "முகப்பு",
   tabProfile: "சுயவிவரம்",
   tabPreferences: "அமைப்புகள்",

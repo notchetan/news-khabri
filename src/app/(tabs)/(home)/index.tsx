@@ -1,4 +1,5 @@
 import { fetchCategories } from "@/api/articles";
+import AppHeader from "@/components/app-header";
 import ArticleList from "@/components/article-list";
 import CategoryPills from "@/components/category-pills";
 import StoryList from "@/components/story-list";
@@ -68,6 +69,7 @@ export default function HomeScreen() {
         backgroundColor: theme.background,
       }}
     >
+      <AppHeader title={t("appName")} />
       <CategoryPills
         categories={pillValues}
         selected={category}

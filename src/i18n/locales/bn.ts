@@ -7,6 +7,7 @@ import type en from "./en";
 // than leaving the language unsupported, but this should get real native
 // review before being treated as production-quality.
 const bn: Record<keyof typeof en, string> = {
+  appName: "News Khabri",
   tabHome: "হোম",
   tabProfile: "প্রোফাইল",
   tabPreferences: "সেটিংস",

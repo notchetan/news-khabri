@@ -81,6 +81,17 @@ for the API surface (`src/routes/`).
   `patch-package` on `postinstall`. If a dependency reinstall ever wipes
   out an expected behavior in rendered HTML content, check here before
   assuming the library changed.
+- `require("@/assets/...")` (image assets, not source) needs its own
+  entry in `package.json`'s `jest.moduleNameMapper`
+  (`"^@/assets/(.*)$": "<rootDir>/assets/$1"`) - jest-expo auto-derives a
+  mapping for `@/*` from `tsconfig.json`'s `paths`, but only picks up the
+  general `@/*` -> `src/*` entry, not the more specific `@/assets/*` ->
+  `assets/*` one also declared there. `app-tabs.tsx` had been
+  `require()`-ing an asset this way for a while with no test ever
+  exercising it, so this only surfaced once a *tested* component
+  (`app-header.tsx`) needed the same asset - if a new component that
+  `require()`s something under `assets/` suddenly fails jest with
+  "Could not locate module... mapped as .../src/$1", this is why.
 
 ## Hard-won `Animated` / `onLayout` / layout lessons
 

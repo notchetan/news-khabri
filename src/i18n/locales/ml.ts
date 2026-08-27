@@ -3,6 +3,7 @@ import type en from "./en";
 // DRAFT machine-assisted translation, not reviewed by a native Malayalam
 // speaker - see bn.ts's own comment for the same caveat.
 const ml: Record<keyof typeof en, string> = {
+  appName: "News Khabri",
   tabHome: "ഹോം",
   tabProfile: "പ്രൊഫൈൽ",
   tabPreferences: "ക്രമീകരണങ്ങൾ",

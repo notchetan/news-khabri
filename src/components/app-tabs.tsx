@@ -21,27 +21,28 @@ export default function AppTabs() {
       // Home), so it's disabled rather than left in a broken/inconsistent
       // state.
       minimizeBehavior="never">
+      {/* Labels are kept (not omitted) but hidden - each tab's own name now
+          shows at the top of its screen instead (see app-header.tsx), so
+          repeating it under the icon here would be redundant. `hidden`
+          rather than dropping <Label> entirely so the text is still there
+          for accessibility (a screen reader still gets a real name for
+          each tab), just not painted. */}
       <NativeTabs.Trigger name="(home)">
-        <Label>{t('tabHome')}</Label>
-        {/* The app's own mark instead of a generic house glyph - a brand
-            logo, not a state-dependent icon, so the same image covers both
-            default/selected (iconColor above still tints the label text,
-            just not this full-color image). */}
-        <Icon src={require('@/assets/images/tab-home-icon.png')} />
+        <Label hidden>{t('tabHome')}</Label>
+        {/* A generic house glyph, not the app's own mark - that logo now
+            shows in the header instead (see app-header.tsx), so this only
+            needs to read as "the Home tab" the way every other tab's icon
+            reads as its own destination. */}
+        <Icon sf={{ default: 'house', selected: 'house.fill' }} />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="search">
-        <Label>{t('tabSearch')}</Label>
+        <Label hidden>{t('tabSearch')}</Label>
         <Icon sf="magnifyingglass" />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="profile">
-        <Label>{t('tabProfile')}</Label>
-        <Icon sf={{ default: 'person', selected: 'person.fill' }} />
-      </NativeTabs.Trigger>
-
       <NativeTabs.Trigger name="preferences">
-        <Label>{t('tabPreferences')}</Label>
+        <Label hidden>{t('tabPreferences')}</Label>
         <Icon sf={{ default: 'gearshape', selected: 'gearshape.fill' }} />
       </NativeTabs.Trigger>
     </NativeTabs>

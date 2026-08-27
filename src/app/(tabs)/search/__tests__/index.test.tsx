@@ -86,6 +86,14 @@ describe("SearchScreen", () => {
     expect(focusSpy).toHaveBeenCalled();
   });
 
+  it("shows 'Search' at the top, via the shared AppHeader", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    expect(screen.getByText("Search")).toBeTruthy();
+  });
+
   it("renders a category grid by default (empty search)", async () => {
     await act(async () => {
       renderScreen();
@@ -131,9 +139,9 @@ describe("SearchScreen", () => {
       });
     });
 
-    // (814 - 32 padding - 32 row-gaps) / 5 reference rows = 150.
+    // (814 - 32 padding - 64 row-gaps) / 5 reference rows = 143.6.
     for (let i = 0; i < 5; i++) {
-      expect(screen.getByTestId(`grid-row-${i}`)).toHaveStyle({ height: 150 });
+      expect(screen.getByTestId(`grid-row-${i}`)).toHaveStyle({ height: 143.6 });
     }
   });
 
@@ -153,10 +161,10 @@ describe("SearchScreen", () => {
       });
     });
 
-    // Same 150 as the 10-category case above - a language with only one
+    // Same 143.6 as the 10-category case above - a language with only one
     // row of categories gets the same card size as one with five, not a
     // row stretched to fill all the leftover space.
-    expect(screen.getByTestId("grid-row-0")).toHaveStyle({ height: 150 });
+    expect(screen.getByTestId("grid-row-0")).toHaveStyle({ height: 143.6 });
     expect(screen.queryByTestId("grid-row-1")).toBeNull();
   });
 

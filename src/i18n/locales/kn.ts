@@ -3,6 +3,7 @@ import type en from "./en";
 // DRAFT machine-assisted translation, not reviewed by a native Kannada
 // speaker - see bn.ts's own comment for the same caveat.
 const kn: Record<keyof typeof en, string> = {
+  appName: "News Khabri",
   tabHome: "ಹೋಮ್",
   tabProfile: "ಪ್ರೊಫೈಲ್",
   tabPreferences: "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",

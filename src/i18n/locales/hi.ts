@@ -1,6 +1,7 @@
 import type en from "./en";
 
 const hi: Record<keyof typeof en, string> = {
+  appName: "News Khabri",
   tabHome: "होम",
   tabProfile: "प्रोफ़ाइल",
   // "सेटिंग्स" (Settings, a common loanword) rather than the stiffer literal

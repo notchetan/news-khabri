@@ -1,4 +1,9 @@
 const en = {
+  // The app's own name - shown at the top of the Home tab (see
+  // app-header.tsx), deliberately not translated per-locale below like
+  // every other string here: a proper noun/brand name, same convention as
+  // not translating publisher names.
+  appName: "News Khabri",
   tabHome: "Home",
   tabProfile: "Profile",
   tabPreferences: "Preferences",

@@ -3,6 +3,7 @@ import type en from "./en";
 // DRAFT machine-assisted translation, not reviewed by a native Telugu
 // speaker - see bn.ts's own comment for the same caveat.
 const te: Record<keyof typeof en, string> = {
+  appName: "News Khabri",
   tabHome: "హోమ్",
   tabProfile: "ప్రొఫైల్",
   tabPreferences: "సెట్టింగ్‌లు",

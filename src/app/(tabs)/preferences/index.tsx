@@ -14,10 +14,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import AppHeader from "@/components/app-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { LANGUAGE_ENDONYMS } from "@/constants/languages";
-import { Radius, Spacing } from "@/constants/theme";
+import { NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
 import { useDebugPreference } from "@/contexts/debug-preference";
 import {
   FontSizePreference,
@@ -96,8 +97,12 @@ export default function PreferencesScreen() {
     setPreviewHeight(event.nativeEvent.layout.height);
   };
 
+  // No extra top gap beyond the inset itself, matching Home/Search - that
+  // gap used to exist here specifically to give the old inline "Preferences"
+  // title some breathing room before it; AppHeader (below) now owns that
+  // spacing instead, the same way it does on those other two tabs.
   const topPadding = Platform.select({
-    default: insets.top + Spacing.three,
+    default: insets.top,
     web: Spacing.six,
   });
 
@@ -110,11 +115,12 @@ export default function PreferencesScreen() {
 
   return (
     <ThemedView style={[styles.container, { paddingTop: topPadding }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <ThemedText type="subtitle" style={styles.title} accessibilityRole="header">
-          {t("preferencesTitle")}
-        </ThemedText>
-
+      <AppHeader title={t("tabPreferences")} />
+      <ScrollView
+        testID="preferences-scroll"
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.toggleRow}>
           <ThemedText type="default" accessibilityRole="header">{t("appearance")}</ThemedText>
           <View style={styles.iconRow}>
@@ -289,11 +295,45 @@ export default function PreferencesScreen() {
         <ThemedText themeColor="textSecondary" style={styles.description}>
           {t("debugModeDescription")}
         </ThemedText>
+      </ScrollView>
 
+      {/* Pinned above the tab bar rather than scrolling with everything
+          else above - a fixed reference point (like iOS Settings' own app
+          version footer) rather than something that scrolls out of view
+          along with whichever toggle the user was actually there to
+          change. Needs its own NATIVE_TAB_BAR_HEIGHT reservation since it's
+          no longer inside the ScrollView, which never needed one itself
+          (content simply scrolls past/under the tab bar until this footer
+          existed to actually anchor something there). */}
+      <View
+        testID="preferences-legal-footer"
+        style={[
+          styles.legalFooter,
+          {
+            // Spacing.three (the same base gap as everywhere else - divider
+            // to scroll content above, and every other major gap in the
+            // app) plus the tab-bar reservation, which is a *functional*
+            // reservation for the physical bar, not part of the visible
+            // gap itself - see NATIVE_TAB_BAR_HEIGHT's own comment.
+            paddingBottom:
+              Spacing.three +
+              Platform.select({
+                web: 0,
+                default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
+              }),
+          },
+        ]}
+      >
         <View
-          style={[styles.divider, styles.sectionSpacing, { backgroundColor: theme.backgroundSelected }]}
+          testID="preferences-legal-footer-divider"
+          // textSecondary here specifically (not backgroundSelected, like
+          // the section dividers above) - matches the color already used
+          // for the divider/back-arrow on the home page's category strip
+          // (see category-pills.tsx), since this divider sits directly
+          // above a persistent, always-visible footer rather than marking
+          // a boundary between two scrollable sections.
+          style={[styles.divider, styles.sectionSpacing, { backgroundColor: theme.textSecondary }]}
         />
-
         <View style={styles.legalLinksRow}>
           {LEGAL_LINKS.map((link, index) => (
             <Fragment key={link.href}>
@@ -310,17 +350,23 @@ export default function PreferencesScreen() {
             </Fragment>
           ))}
         </View>
-      </ScrollView>
+      </View>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.four },
-  title: { marginBottom: Spacing.four },
+  // flex:1 (not just contentContainerStyle) is what actually bounds the
+  // ScrollView to the space remaining after AppHeader and legalFooter below
+  // it - without it, the ScrollView sizes to its own content instead of
+  // being constrained by its parent, the same lesson learned the hard way
+  // in search/index.tsx's own gridScrollView.
+  scrollView: { flex: 1 },
+  scrollContent: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.three },
   sectionSpacing: { marginTop: Spacing.three },
   divider: { height: StyleSheet.hairlineWidth, marginBottom: Spacing.three },
+  legalFooter: { paddingHorizontal: Spacing.four },
   toggleRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -363,12 +409,15 @@ const styles = StyleSheet.create({
   // One centered line with a dot between each link - gap on the row applies
   // uniformly between every child (link, dot, link, dot, link), the same
   // "let flexbox gap own the spacing" approach used in category-pills.tsx,
-  // rather than mismatched per-element margins.
+  // rather than mismatched per-element margins. No paddingVertical of its
+  // own - that used to stack with the divider's marginBottom above it into
+  // a bigger gap there (24) than below it (8, before legalFooter's own
+  // paddingBottom took over), so both sides now come from the divider and
+  // legalFooter alone instead.
   legalLinksRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     gap: Spacing.two,
-    paddingVertical: Spacing.two,
   },
 });
