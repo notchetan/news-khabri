@@ -299,18 +299,34 @@ describe("ArticleDetailScreen", () => {
     expect(screen.getByText(" News Khabri")).toBeTruthy();
   });
 
-  it("collapses both the back label and the brand label together as the real scroll position moves, and re-expands on any scroll up - not just a scroll all the way back to the top", async () => {
-    // Regression test: the previous version drove this off a boolean
-    // (isScrolled) flipped past a fixed threshold, itself driving a
-    // separate imperative Animated.timing in a useEffect - a rapid
-    // scroll-up gesture that didn't fully settle back at y<=threshold
-    // could leave the timing animation re-triggered mid-flight repeatedly,
-    // visually reading as "only re-expands once scrolled all the way back
-    // to the top". This now drives both labels directly off the live
-    // scroll offset (see HEADER_COLLAPSE_DISTANCE), which can't get stuck
-    // in an intermediate state the way a re-triggered discrete animation
-    // could - reversing scroll direction at *any* point should immediately
-    // start reversing the opacity too.
+  it("vertically centers the chevron/logo against their label, instead of anchoring to the label's bottom edge", async () => {
+    // Regression test: these rows used to anchor to alignItems: "flex-end"
+    // (to avoid a since-removed hard height clip on the label wrapper),
+    // which visibly sat the icon low - all of the label's own headroom
+    // sat above it instead of split evenly.
+    mockFetchArticleDetail.mockResolvedValue(makeDetail());
+    await act(async () => {
+      renderScreen();
+    });
+    await waitFor(() => screen.getByText("Main article title"));
+
+    const backRow = screen.getByRole("button", { name: "Back" });
+    const brandRow = screen.getByTestId("article-brand-row");
+
+    expect(backRow).toHaveStyle({ alignItems: "center" });
+    expect(brandRow).toHaveStyle({ alignItems: "center" });
+  });
+
+  it("swaps both labels' opacity almost instantly at the very start of scroll, well before their width finishes shrinking", async () => {
+    // Regression test: the labels used to cross-fade across the *same*
+    // distance the width shrinks over (HEADER_COLLAPSE_DISTANCE, 60), so
+    // during a slow scroll numberOfLines={1} kept re-truncating each label
+    // against its own shrinking maxWidth - visually that read as the text
+    // getting replaced letter by letter before finally disappearing. The
+    // opacity swap now happens over a near-zero distance instead (see
+    // headerLabelOpacity's own comment - same technique as category-pills'
+    // own PinnedPill), so it's effectively done before the width has
+    // shrunk enough to ever visibly clip anything.
     mockFetchArticleDetail.mockResolvedValue(makeDetail());
     await act(async () => {
       renderScreen();
@@ -329,39 +345,93 @@ describe("ArticleDetailScreen", () => {
     expect(opacityOf(backLabel)).toBe(1);
     expect(opacityOf(brandLabel)).toBe(1);
 
-    // Fully collapsed at/past HEADER_COLLAPSE_DISTANCE (60).
+    // A small scroll, well short of HEADER_COLLAPSE_DISTANCE (60) - the
+    // width is still mostly full at this point, but both labels should
+    // already have faded out entirely.
+    await act(async () => {
+      fireEvent.scroll(scrollView, { nativeEvent: { contentOffset: { y: 5 } } });
+    });
+    expect(opacityOf(backLabel)).toBe(0);
+    expect(opacityOf(brandLabel)).toBe(0);
+
     await act(async () => {
       fireEvent.scroll(scrollView, { nativeEvent: { contentOffset: { y: 60 } } });
     });
     expect(opacityOf(backLabel)).toBe(0);
     expect(opacityOf(brandLabel)).toBe(0);
 
+    // Scrolling back to exactly the top brings both back at once.
+    await act(async () => {
+      fireEvent.scroll(scrollView, { nativeEvent: { contentOffset: { y: 0 } } });
+    });
+    expect(opacityOf(backLabel)).toBe(1);
+    expect(opacityOf(brandLabel)).toBe(1);
+  });
+
+  it("keeps shrinking and re-growing both labels' width smoothly across the full scroll distance, independent of the near-instant opacity swap", async () => {
+    // Regression test: the previous version drove the collapse off a
+    // boolean (isScrolled) flipped past a fixed threshold, itself driving
+    // a separate imperative Animated.timing in a useEffect - a rapid
+    // scroll-up gesture that didn't fully settle back at y<=threshold
+    // could leave the timing animation re-triggered mid-flight repeatedly,
+    // visually reading as "only re-expands once scrolled all the way back
+    // to the top". Width is still driven directly off the live scroll
+    // offset (unlike opacity above, which intentionally swaps almost
+    // instantly - see headerLabelOpacity's own comment), so it can't get
+    // stuck in an intermediate state the way a re-triggered discrete
+    // animation could - reversing scroll direction at *any* point should
+    // immediately start reversing the width too.
+    mockFetchArticleDetail.mockResolvedValue(makeDetail());
+    await act(async () => {
+      renderScreen();
+    });
+    await waitFor(() => screen.getByText("Main article title"));
+
+    const backLabel = screen.getByText(" Back");
+    const brandLabel = screen.getByText(" News Khabri");
+    const scrollView = screen.getByTestId("article-scroll-view");
+
+    const maxWidthOf = (label: typeof backLabel) => {
+      const style = [label.parent?.props.style].flat();
+      return style.find((s) => s && "maxWidth" in s)?.maxWidth;
+    };
+
+    expect(maxWidthOf(backLabel)).toBe(80);
+    expect(maxWidthOf(brandLabel)).toBe(100);
+
+    // Fully collapsed at/past HEADER_COLLAPSE_DISTANCE (60).
+    await act(async () => {
+      fireEvent.scroll(scrollView, { nativeEvent: { contentOffset: { y: 60 } } });
+    });
+    expect(maxWidthOf(backLabel)).toBe(0);
+    expect(maxWidthOf(brandLabel)).toBe(0);
+
     // Scroll back up, but only partway (40, not all the way to 0) - both
-    // labels should already be partially visible again, not stuck at 0.
+    // labels' width should already be partially back, not stuck at 0.
     await act(async () => {
       fireEvent.scroll(scrollView, { nativeEvent: { contentOffset: { y: 40 } } });
     });
-    const partialBack = opacityOf(backLabel) as number;
-    const partialBrand = opacityOf(brandLabel) as number;
+    const partialBack = maxWidthOf(backLabel) as number;
+    const partialBrand = maxWidthOf(brandLabel) as number;
     expect(partialBack).toBeGreaterThan(0);
-    expect(partialBack).toBeLessThan(1);
+    expect(partialBack).toBeLessThan(80);
     expect(partialBrand).toBeGreaterThan(0);
-    expect(partialBrand).toBeLessThan(1);
+    expect(partialBrand).toBeLessThan(100);
 
     // Scroll up a little further, still not at the top (20) - should keep
     // increasing, not stay flat until y reaches 0.
     await act(async () => {
       fireEvent.scroll(scrollView, { nativeEvent: { contentOffset: { y: 20 } } });
     });
-    expect(opacityOf(backLabel) as number).toBeGreaterThan(partialBack);
-    expect(opacityOf(brandLabel) as number).toBeGreaterThan(partialBrand);
+    expect(maxWidthOf(backLabel) as number).toBeGreaterThan(partialBack);
+    expect(maxWidthOf(brandLabel) as number).toBeGreaterThan(partialBrand);
 
     // Fully back at the top.
     await act(async () => {
       fireEvent.scroll(scrollView, { nativeEvent: { contentOffset: { y: 0 } } });
     });
-    expect(opacityOf(backLabel)).toBe(1);
-    expect(opacityOf(brandLabel)).toBe(1);
+    expect(maxWidthOf(backLabel)).toBe(80);
+    expect(maxWidthOf(brandLabel)).toBe(100);
   });
 
   it("starts the scroll content below the measured header height, so the hero image loads below the header instead of behind it", async () => {
