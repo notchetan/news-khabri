@@ -174,7 +174,7 @@ this exact codebase. Read this before touching anything similar.
 
 ## Repo state
 
-- Hosted at `github.com/notchetan/news-khabri`, public, `main`
+- Hosted at `github.com/notchetan/news-khabri-frontend`, public, `main`
   branch-protected (PR-only, no direct pushes, even for the repo
   owner). Work on a feature/fix branch and open a PR - a direct push to
   `main` will be rejected. CI (`.github/workflows/ci.yml`) runs `npx
