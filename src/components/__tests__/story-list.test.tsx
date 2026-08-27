@@ -7,6 +7,7 @@ import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
 import StoryList from "../story-list";
+import { __resetGuardedNavigateForTests } from "@/utils/navigation-guard";
 
 jest.mock("@/hooks/use-color-scheme", () => ({
   useColorScheme: () => "light",
@@ -78,6 +79,12 @@ describe("StoryList", () => {
     jest.clearAllMocks();
     await AsyncStorage.clear();
     mockFetchStoryFeed.mockResolvedValue([]);
+    // FeedCard's onPress goes through guardedNavigate now, a module-scoped
+    // real-time cooldown shared across every card - without resetting it,
+    // a card press in one test can be silently dropped because a *different*
+    // test's own press (in this same file, sharing the same module) landed
+    // within the real 800ms cooldown window just before it.
+    __resetGuardedNavigateForTests();
   });
 
   it("shows a loading skeleton, then story cards once they resolve", async () => {
@@ -131,6 +138,38 @@ describe("StoryList", () => {
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/story/[id]",
       params: { id: "42" },
+    });
+  });
+
+  it("only navigates once when two different cards are tapped quickly, one after the other", async () => {
+    // Regression test for the actual reported bug: tapping a second, *different*
+    // card right after the first shouldn't also navigate, or it stacks two
+    // detail screens on top of each other. A per-card debounce alone
+    // wouldn't catch this - it has to be shared across cards (see
+    // guardedNavigate's own comment).
+    mockFetchStoryFeed.mockResolvedValue([
+      makeStory({ id: 1, title: "First story", articleCount: 1, sourceCount: 1 }),
+      makeStory({ id: 2, title: "Second story", articleCount: 4, sourceCount: 3 }),
+    ]);
+
+    await act(async () => {
+      renderList();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("First story")).toBeTruthy();
+    });
+    expect(screen.getByText("Second story")).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(screen.getByRole("button", { name: /First story/ }));
+      fireEvent.press(screen.getByRole("button", { name: /Second story/ }));
+    });
+
+    expect(mockPush).toHaveBeenCalledTimes(1);
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/article/[id]",
+      params: { id: "10" },
     });
   });
 

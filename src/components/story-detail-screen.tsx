@@ -58,7 +58,7 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
     }
   };
 
-  const updatedLabel = data ? formatRelativeTime(data.latestPublishedAt) : null;
+  const updatedLabel = data ? formatRelativeTime(data.latestPublishedAt, t) : null;
 
   // A story itself has no single canonical URL (it's an aggregate of every
   // member article) - the representative article's own link is the closest

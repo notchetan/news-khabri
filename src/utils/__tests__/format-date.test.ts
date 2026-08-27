@@ -1,4 +1,20 @@
+import en from "@/i18n/locales/en";
+import type { TranslationKey } from "@/i18n/translations";
 import { formatPublishedDate, formatRelativeTime } from "../format-date";
+
+// A minimal stand-in for the real t() - formatRelativeTime is
+// translation-agnostic (see its own comment), so this test only needs to
+// prove it calls through correctly, using the real English strings as the
+// fixture rather than duplicating them ad hoc.
+function t(key: TranslationKey, vars?: Record<string, string>): string {
+  let text: string = en[key];
+  if (vars) {
+    for (const [name, value] of Object.entries(vars)) {
+      text = text.replace(`{${name}}`, value);
+    }
+  }
+  return text;
+}
 
 describe("formatPublishedDate", () => {
   it("returns null for a null input", () => {
@@ -48,30 +64,43 @@ describe("formatRelativeTime", () => {
   });
 
   it("returns null for a null input", () => {
-    expect(formatRelativeTime(null)).toBeNull();
+    expect(formatRelativeTime(null, t)).toBeNull();
   });
 
   it("returns null for an unparsable date string", () => {
-    expect(formatRelativeTime("not a date")).toBeNull();
+    expect(formatRelativeTime("not a date", t)).toBeNull();
   });
 
   it("formats minutes ago", () => {
-    expect(formatRelativeTime("2026-08-26T11:35:00Z")).toBe("25m ago");
+    expect(formatRelativeTime("2026-08-26T11:35:00Z", t)).toBe("25m ago");
   });
 
   it("formats hours ago", () => {
-    expect(formatRelativeTime("2026-08-26T09:00:00Z")).toBe("3h ago");
+    expect(formatRelativeTime("2026-08-26T09:00:00Z", t)).toBe("3h ago");
   });
 
   it("formats days ago", () => {
-    expect(formatRelativeTime("2026-08-24T12:00:00Z")).toBe("2d ago");
+    expect(formatRelativeTime("2026-08-24T12:00:00Z", t)).toBe("2d ago");
   });
 
   it("shows 'Just now' for very recent timestamps", () => {
-    expect(formatRelativeTime("2026-08-26T11:59:50Z")).toBe("Just now");
+    expect(formatRelativeTime("2026-08-26T11:59:50Z", t)).toBe("Just now");
   });
 
   it("clamps a future date (e.g. clock skew) to 'Just now' instead of a negative value", () => {
-    expect(formatRelativeTime("2026-08-26T12:05:00Z")).toBe("Just now");
+    expect(formatRelativeTime("2026-08-26T12:05:00Z", t)).toBe("Just now");
+  });
+
+  it("calls through the given t() rather than hardcoding English - proves this is actually localizable", () => {
+    const trackedCalls: [string, Record<string, string> | undefined][] = [];
+    const trackingT = (key: TranslationKey, vars?: Record<string, string>) => {
+      trackedCalls.push([key, vars]);
+      return `translated:${key}`;
+    };
+
+    expect(formatRelativeTime("2026-08-26T11:35:00Z", trackingT)).toBe(
+      "translated:minutesAgoTemplate"
+    );
+    expect(trackedCalls).toEqual([["minutesAgoTemplate", { minutes: "25" }]]);
   });
 });

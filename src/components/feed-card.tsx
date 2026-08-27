@@ -5,6 +5,7 @@ import Squircle from "@/components/squircle";
 import { Radius } from "@/constants/theme";
 import { concentricRadius } from "@/utils/corner-radius";
 import { useTheme } from "@/hooks/use-theme";
+import { guardedNavigate } from "@/utils/navigation-guard";
 
 const CARD_PADDING = 12;
 const IMAGE_RADIUS = concentricRadius(Radius.large, CARD_PADDING);
@@ -41,7 +42,13 @@ export default function FeedCard({
     <Squircle
       radius={Radius.large}
       backgroundColor={theme.backgroundElement}
-      onPress={onPress}
+      // guardedNavigate (not onPress directly) - see its own comment.
+      // Shared across every card (this component backs both StoryList and
+      // ArticleList), so tapping this card just after tapping a *different*
+      // one, before the first navigation visibly happened, doesn't also
+      // push this one - without it, a fast double-tap across two cards
+      // could stack two detail screens on top of each other.
+      onPress={() => guardedNavigate(onPress)}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       style={styles.card}

@@ -97,7 +97,7 @@ export default function StoryList({ category }: Props) {
       style={{ backgroundColor: theme.background }}
       contentContainerStyle={styles.listContent}
       renderItem={({ item }) => {
-        const updatedLabel = formatRelativeTime(item.latestPublishedAt);
+        const updatedLabel = formatRelativeTime(item.latestPublishedAt, t);
         // A "story" that only one source/article ever joined isn't really a
         // cluster - it's just an article that happened to go through the
         // clustering pipeline solo. "1 sources · 1 articles" is noise, not

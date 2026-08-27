@@ -7,6 +7,7 @@ import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
 import ArticleList from "../article-list";
+import { __resetGuardedNavigateForTests } from "@/utils/navigation-guard";
 
 jest.mock("@/hooks/use-color-scheme", () => ({
   useColorScheme: () => "light",
@@ -61,6 +62,12 @@ describe("ArticleList", () => {
     jest.clearAllMocks();
     await AsyncStorage.clear();
     mockFetchArticles.mockResolvedValue([]);
+    // FeedCard's onPress goes through guardedNavigate now, a module-scoped
+    // real-time cooldown shared across every card - without resetting it,
+    // a card press in one test can be silently dropped because a *different*
+    // test's own press (in this same file, sharing the same module) landed
+    // within the real 800ms cooldown window just before it.
+    __resetGuardedNavigateForTests();
   });
 
   it("shows a loading skeleton, then the article list once articles resolve", async () => {
