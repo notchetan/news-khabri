@@ -5,6 +5,7 @@ import * as WebBrowser from "expo-web-browser";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
+  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -23,7 +24,7 @@ import { fetchArticleDetail } from "@/api/articles";
 import ArticleImage from "@/components/article-image";
 import Squircle from "@/components/squircle";
 import { ThemedText } from "@/components/themed-text";
-import { Radius, Spacing } from "@/constants/theme";
+import { NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
 import { useFontSizePreference } from "@/contexts/font-size-preference";
 import { useTheme } from "@/hooks/use-theme";
 import { formatPublishedDate } from "@/utils/format-date";
@@ -31,6 +32,18 @@ import { useTranslation } from "@/i18n/translations";
 import { useQuery } from "@tanstack/react-query";
 
 const SWIPE_THRESHOLD = 60;
+// How much scroll the header labels' collapse is spread across - a
+// distance, not a delay or fixed-duration animation, so scrubbing slowly
+// moves through it slowly and flicking moves through it fast, matching the
+// scroll gesture 1:1. Same value/reasoning as category-pills.tsx's own
+// PINNED_PILL_COLLAPSE_DISTANCE.
+const HEADER_COLLAPSE_DISTANCE = 60;
+// Natural width of each label at its current font/weight, used as the
+// collapsed<->expanded endpoint for its own Animated.View below - eyeballed
+// against the real strings (not measured via an onLayout probe), the same
+// pragmatic choice already made for the back label before this change.
+const BACK_LABEL_WIDTH = 80;
+const BRAND_LABEL_WIDTH = 100;
 
 type Props = {
   basePath: "/article" | "/search/article";
@@ -49,10 +62,38 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   const [activeId, setActiveId] = useState(Number(id));
   const [sequence, setSequence] = useState<number[]>([]);
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
-  const [isScrolled, setIsScrolled] = useState(false);
   const swipeIndicatorOpacity = useRef(new Animated.Value(0)).current;
-  const backLabelAnim = useRef(new Animated.Value(1)).current;
+  // Drives both header labels' collapse (back button's " Back" and the
+  // brand pill's "News Khabri") continuously off the real scroll position,
+  // not a discrete threshold + imperative Animated.timing toggle - the
+  // previous version (a boolean isScrolled flipped past a fixed y, driving
+  // a separate Animated.timing in a useEffect) only reliably re-expanded
+  // once scrolling all the way back to the top, not on every scroll-up:
+  // rapid direction changes near the threshold could re-trigger the
+  // timing animation mid-flight repeatedly, and the *next* real value
+  // change would always win, so a rapid scroll-up gesture could leave it
+  // looking stuck collapsed until the scroll fully settled at y<=threshold.
+  // A pure interpolation of the live scroll offset can't get stuck in an
+  // intermediate state like that - same fix shape as
+  // category-pills.tsx's own scroll-linked pinned-pill transition.
+  const scrollY = useRef(new Animated.Value(0)).current;
   const scrollRef = useRef<ScrollView>(null);
+
+  const headerLabelOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_COLLAPSE_DISTANCE],
+    outputRange: [1, 0],
+    extrapolate: "clamp",
+  });
+  const backLabelWidth = scrollY.interpolate({
+    inputRange: [0, HEADER_COLLAPSE_DISTANCE],
+    outputRange: [BACK_LABEL_WIDTH, 0],
+    extrapolate: "clamp",
+  });
+  const brandLabelWidth = scrollY.interpolate({
+    inputRange: [0, HEADER_COLLAPSE_DISTANCE],
+    outputRange: [BRAND_LABEL_WIDTH, 0],
+    extrapolate: "clamp",
+  });
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["article", activeId],
@@ -72,30 +113,17 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
 
   useEffect(() => {
     setShowCaption(false);
-    setIsScrolled(false);
-    backLabelAnim.setValue(1);
+    scrollY.setValue(0);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
-  }, [activeId, backLabelAnim]);
+  }, [activeId, scrollY]);
 
-  useEffect(() => {
-    Animated.timing(backLabelAnim, {
-      toValue: isScrolled ? 0 : 1,
-      duration: 260,
-      useNativeDriver: false,
-    }).start();
-  }, [isScrolled, backLabelAnim]);
-
-  const SCROLL_COLLAPSE_THRESHOLD = 20;
-  const handleScroll = (event: {
-    nativeEvent: { contentOffset: { y: number } };
-  }) => {
-    const y = event.nativeEvent.contentOffset.y;
-    setIsScrolled((prev) => {
-      if (!prev && y > SCROLL_COLLAPSE_THRESHOLD) return true;
-      if (prev && y <= SCROLL_COLLAPSE_THRESHOLD) return false;
-      return prev;
-    });
-  };
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    // false: width/maxWidth (see labelStyle below) is a layout property the
+    // native driver can't animate - everything here already runs once per
+    // scroll frame on the JS thread regardless (scrollEventThrottle).
+    { useNativeDriver: false }
+  );
 
   const goToRelative = (direction: 1 | -1) => {
     if (sequence.length < 2) return;
@@ -138,6 +166,15 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
     default: insets.top,
     web: Spacing.six,
   });
+  // Same base gap (Spacing.three) plus tab-bar reservation formula used in
+  // search/index.tsx and preferences/index.tsx - see NATIVE_TAB_BAR_HEIGHT's
+  // own comment for why insets.bottom alone isn't enough.
+  const contentBottomPadding =
+    Spacing.three +
+    Platform.select({
+      web: 0,
+      default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
+    });
 
   const openOriginal = () => {
     if (data?.link) WebBrowser.openBrowserAsync(data.link);
@@ -221,6 +258,14 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
             ]}
           />
         )}
+        {/* Same left-label/right-label shape as AppHeader (see
+            app-header.tsx) on Home/Search/Preferences, adapted for this
+            screen: back button (not the app mark) on the left, the app
+            mark (not a profile button) on the right - and floating over
+            scrolling content via GlassView rather than sitting in normal
+            flow, matching how the back button already worked here. Both
+            labels collapse together, in step with scroll position (see
+            headerLabelOpacity/backLabelWidth/brandLabelWidth above). */}
         <View
           style={[styles.backRow, { paddingTop: topPadding }]}
           pointerEvents="box-none"
@@ -243,11 +288,8 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
               />
               <Animated.View
                 style={{
-                  opacity: backLabelAnim,
-                  maxWidth: backLabelAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, 80],
-                  }),
+                  opacity: headerLabelOpacity,
+                  maxWidth: backLabelWidth,
                   height: 20,
                   overflow: "hidden",
                 }}
@@ -260,6 +302,33 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
                 </ThemedText>
               </Animated.View>
             </Pressable>
+          </GlassView>
+
+          <GlassView style={styles.brandGlass} glassEffectStyle="regular">
+            <View style={styles.brandRow}>
+              <Image
+                testID="article-brand-logo"
+                source={require("@/assets/images/tab-home-icon.png")}
+                style={styles.brandLogo}
+                resizeMode="contain"
+                accessibilityIgnoresInvertColors
+              />
+              <Animated.View
+                style={{
+                  opacity: headerLabelOpacity,
+                  maxWidth: brandLabelWidth,
+                  height: 20,
+                  overflow: "hidden",
+                }}
+              >
+                <ThemedText
+                  numberOfLines={1}
+                  style={[styles.backGlyph, styles.brandLabel]}
+                >
+                  {` ${t("appName")}`}
+                </ThemedText>
+              </Animated.View>
+            </View>
           </GlassView>
         </View>
 
@@ -277,7 +346,7 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
             testID="article-scroll-view"
             contentContainerStyle={[
               styles.scrollContent,
-              { paddingTop: contentTopPadding },
+              { paddingTop: contentTopPadding, paddingBottom: contentBottomPadding },
             ]}
             onScroll={handleScroll}
             scrollEventThrottle={16}
@@ -381,7 +450,11 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
 
             <TouchableOpacity
               onPress={openOriginal}
-              style={[styles.readOriginal, { borderColor: theme.backgroundSelected }]}
+              // textSecondary, not backgroundSelected - matches the
+              // preferences footer divider's own color (see
+              // preferences/index.tsx), not the subtler tone the related-
+              // articles rows below still use for their own separators.
+              style={[styles.readOriginal, { borderColor: theme.textSecondary }]}
               accessibilityRole="link"
               accessibilityLabel={t("readOnTemplate", { source: data.source })}
             >
@@ -479,6 +552,12 @@ function ArticleDetailSkeleton() {
     default: insets.top,
     web: Spacing.six,
   });
+  const contentBottomPadding =
+    Spacing.three +
+    Platform.select({
+      web: 0,
+      default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
+    });
 
   useEffect(() => {
     const pulse = Animated.loop(
@@ -496,7 +575,10 @@ function ArticleDetailSkeleton() {
 
   return (
     <View
-      style={[styles.scrollContent, { paddingTop: contentTopPadding }]}
+      style={[
+        styles.scrollContent,
+        { paddingTop: contentTopPadding, paddingBottom: contentBottomPadding },
+      ]}
       accessible
       accessibilityRole="progressbar"
       accessibilityLabel={t("loadingArticle")}
@@ -530,6 +612,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     paddingHorizontal: Spacing.four,
     paddingBottom: Spacing.two,
   },
@@ -546,8 +631,18 @@ const styles = StyleSheet.create({
   backPressableRow: { flexDirection: "row", alignItems: "center" },
   backGlyph: { fontSize: 16, fontWeight: "600" },
   backLabel: { flexShrink: 0 },
+  // Same shape as backGlass, on the opposite side.
+  brandGlass: { alignSelf: "flex-start", borderRadius: Radius.full, overflow: "hidden" },
+  brandRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+  },
+  brandLogo: { width: 20, height: 20 },
+  brandLabel: { flexShrink: 0 },
   centerFill: { flex: 1, alignItems: "center", justifyContent: "center" },
-  scrollContent: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.six },
+  scrollContent: { paddingHorizontal: Spacing.four },
   swipeIndicator: {
     position: "absolute",
     top: "45%",
@@ -612,13 +707,17 @@ const styles = StyleSheet.create({
   metaTextBlock: { gap: 2 },
   meta: {},
   noContent: { marginTop: Spacing.two },
+  // marginTop matches relatedSection's own below - both Spacing.three, the
+  // same app-wide "gap between distinct blocks" standard used throughout
+  // home/search/preferences (see AGENTS.md), not the larger, mismatched
+  // values (four/five) this screen used before.
   readOriginal: {
-    marginTop: Spacing.four,
+    marginTop: Spacing.three,
     paddingVertical: Spacing.three,
     borderTopWidth: 1,
     alignItems: "center",
   },
-  relatedSection: { marginTop: Spacing.five },
+  relatedSection: { marginTop: Spacing.three },
   relatedHeading: { letterSpacing: 0.5, marginBottom: Spacing.two },
   relatedRow: {
     flexDirection: "row",
