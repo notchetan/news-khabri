@@ -19,11 +19,10 @@ import { Radius, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 
-// LayoutAnimation needs an explicit opt-in on Android (iOS has it enabled by
-// default) - still used below for the divider<->back-arrow swap, a genuine
-// discrete "one element replaces another" change unlike the pinned pill's
-// own text/width transition (see PinnedPill), which now tracks scroll
-// position continuously instead.
+// LayoutAnimation needs an explicit opt-in on Android - used below only for
+// the divider<->back-arrow swap (a discrete change); the pinned pill's own
+// transition tracks scroll position continuously instead (see
+// docs/animated-scroll-collapse.md).
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -48,13 +47,8 @@ type Props = {
 };
 
 const SCROLL_BACK_THRESHOLD = 8;
-// How much horizontal scroll the pinned pill's full<->collapsed transition
-// is spread across - not a delay or a fixed-duration animation, a distance:
-// scrollX (below) drives the interpolation directly, so scrubbing the strip
-// slowly moves through the transition slowly and flicking it moves through
-// fast, matching the scroll gesture 1:1 the way iOS's own collapsing
-// titles/toolbars do, rather than a LayoutAnimation snap triggered once a
-// threshold is crossed (the previous design).
+// Distance (not a duration) the pinned pill's full<->collapsed transition
+// is spread across - see docs/animated-scroll-collapse.md.
 const PINNED_PILL_COLLAPSE_DISTANCE = 60;
 
 export default function CategoryPills({
@@ -70,11 +64,8 @@ export default function CategoryPills({
   const scrollRef = useRef<ScrollView>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const scrollBackAnimation = useRef<Animated.CompositeAnimation | null>(null);
-  // The pinned pill's own full/collapsed label widths, measured here (not
-  // inside PinnedPill itself) and passed down as plain props - see the two
-  // MeasureProbes rendered below, and their own comment, for why this
-  // measurement deliberately lives completely outside PinnedPill's animated
-  // subtree.
+  // Measured below via MeasureProbe and passed down as plain props, not
+  // measured inside PinnedPill itself - see docs/animated-scroll-collapse.md.
   const [pinnedFullWidth, setPinnedFullWidth] = useState<number | null>(null);
   const [pinnedCollapsedWidth, setPinnedCollapsedWidth] = useState<number | null>(null);
 
@@ -95,38 +86,25 @@ export default function CategoryPills({
 
   const pinnedFullLabel = getLabel(pinned);
 
+  // Drives scrollX and isScrolled back explicitly rather than relying on
+  // real onScroll events firing during this programmatic scroll - see
+  // docs/animated-scroll-collapse.md.
   const scrollToStart = () => {
     scrollRef.current?.scrollTo({ x: 0, animated: true });
-    // scrollX (and therefore the pinned pill's width/text interpolation)
-    // is driven entirely by real onScroll native events - but those aren't
-    // guaranteed to keep firing reliably for a *programmatic* animated
-    // scroll like this one on every platform (a well-known RN gotcha, and
-    // this button's whole purpose is exactly this kind of scroll). Without
-    // this, tapping the back arrow could visually return the strip to x:0
-    // while scrollX itself stays stuck at whatever it last was, freezing
-    // the pinned pill mid-collapse - drive it back explicitly, in step
-    // with the same animated scroll, instead of hoping the native bridge
-    // cooperates.
     scrollBackAnimation.current = Animated.timing(scrollX, {
       toValue: 0,
       duration: 300,
       useNativeDriver: false,
     });
     scrollBackAnimation.current.start();
-    // Same reasoning applies to isScrolled (the divider<->back-arrow swap):
-    // it's normally set from the same real onScroll events, so it needs
-    // the same explicit nudge here rather than waiting on them.
     if (isScrolled) {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setIsScrolled(false);
     }
   };
 
-  // The divider<->back-arrow swap is still a discrete, threshold-based
-  // change (a genuinely different element appearing/disappearing, not a
-  // continuous property) - scrollX above handles the pinned pill's own
-  // continuous transition independently via Animated.event's listener
-  // option below, both driven by the same onScroll.
+  // Discrete threshold-based change, unlike scrollX's own continuous
+  // interpolation above - see docs/animated-scroll-collapse.md.
   const handleScrollThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const nextIsScrolled = event.nativeEvent.contentOffset.x > SCROLL_BACK_THRESHOLD;
     if (nextIsScrolled !== isScrolled) {
@@ -157,19 +135,8 @@ export default function CategoryPills({
         />
       </View>
 
-      {/* Both probes live here, siblings of PinnedPill rather than inside
-          it, and are entirely independent of each other (no shared
-          wrapper) - deliberately outside PinnedPill's own animated,
-          shrinking, overflow:"hidden" width so neither measurement can
-          ever be affected by it. A previous version measured them *inside*
-          that same animated container: correct on first mount, but wrong
-          specifically after a scroll-and-back cycle - this removes that
-          shared ancestry entirely rather than trying to reason out exactly
-          why. Each is position:"absolute" with no inset props (so it
-          self-measures via onLayout without affecting this row's own
-          layout at all) and opacity:0 (paint-time only, so it never
-          constrains its own child's real measured size the way a
-          height:0/overflow:"hidden" clip could). */}
+      {/* Siblings of PinnedPill, not descendants - see
+          docs/animated-scroll-collapse.md for why. */}
       {pinnedCollapsedLabel != null && (
         <>
           <MeasureProbe
@@ -187,24 +154,12 @@ export default function CategoryPills({
 
       {scrollable.length > 0 && (
         <>
-          {/* Both the divider and the back arrow live in this one
-              fixed-width slot, rather than each being its own bare flex
-              item, so swapping between them (a 2px-wide divider vs. a
-              ~20px-wide icon) never itself changes the row's total width -
-              that mismatch was what caused the ScrollView after it to
-              visibly jump sideways on every swap. The slot's own width
-              never changes, only what's centered inside it does. */}
+          {/* Fixed-width slot shared by the divider and back arrow - see
+              docs/category-pills-layout.md. */}
           <View testID="category-pills-divider-slot" style={styles.dividerSlot}>
             {!isScrolled && (
               <View
                 testID="category-pills-divider"
-                // textSecondary - the same color the back arrow's own icon
-                // uses (see tintColor below) - so the two things that occupy
-                // this exact same slot read as one consistent element, not
-                // two different colors depending on scroll state. Still the
-                // *current* scheme's own token (not the other scheme's, as
-                // this once mistakenly used), so it stays guaranteed to
-                // contrast against its own background either way.
                 style={[styles.divider, { backgroundColor: theme.textSecondary }]}
               />
             )}
@@ -235,23 +190,9 @@ export default function CategoryPills({
             testID="category-pills-scroll-view"
             horizontal
             showsHorizontalScrollIndicator={false}
-            // The pinned pill's collapse is driven by real contentOffset.x
-            // values over a fixed [0, PINNED_PILL_COLLAPSE_DISTANCE] range,
-            // regardless of how much is actually scrollable - fine normally
-            // (extrapolate: "clamp" keeps anything past that range steady),
-            // but a fast fling's native rubber-band bounce can overshoot
-            // past the real end and spring back several times before
-            // settling, generating oscillating contentOffset.x values. For
-            // a language with few categories (a short scrollable range,
-            // e.g. Marathi's 4), that overshoot-and-settle repeatedly
-            // sweeps back through the *whole* [0, 60] range instead of
-            // safely past it, visibly making the pinned pill's width/text
-            // jitter each bounce cycle - not reproducible with more
-            // categories (English's 10), where the same bounce still
-            // happens but far past 60, already fully clamped. Disabling
-            // the bounce/overscroll effect here removes the oscillating
-            // input at its source, rather than trying to make the
-            // interpolation itself robust against arbitrarily large swings.
+            // Prevents fast-fling scroll-bounce from jittering the pinned
+            // pill's collapse on short lists (e.g. Marathi's 4 categories) -
+            // see docs/animated-scroll-collapse.md.
             bounces={false}
             overScrollMode="never"
             onScroll={handleScroll}
@@ -291,8 +232,7 @@ function PinnedPill({
   fullLabel: string;
   collapsedLabel?: string;
   // Measured by the caller (see the two MeasureProbes in CategoryPills'
-  // own render, and their comment) rather than here - this component no
-  // longer measures anything itself.
+  // own render) rather than here.
   fullWidth: number | null;
   collapsedWidth: number | null;
   scrollX: Animated.Value;
@@ -312,15 +252,8 @@ function PinnedPill({
         })
       : undefined;
 
-  // The text swap is intentionally *not* spread across the same distance
-  // as the width shrink above - cross-fading both over PINNED_PILL_COLLAPSE_
-  // DISTANCE meant that for most of a slow scroll, the box was some
-  // in-between width while both labels were partway visible, and neither
-  // one actually fit that width, so they visibly overlapped/collided. A
-  // near-zero input range makes this an effectively instant swap right at
-  // the very start of the scroll - "Top Stories" only while the pill is at
-  // its full width (scrollX exactly 0), "Top" for any scroll at all - while
-  // the width itself keeps shrinking smoothly over the full distance.
+  // Near-instant swap, deliberately not spread across the same distance as
+  // the width shrink above - see docs/animated-scroll-collapse.md.
   const fullOpacity = scrollX.interpolate({
     inputRange: [0, 1],
     outputRange: [1, 0],
@@ -377,10 +310,9 @@ function PinnedPill({
   );
 }
 
-// Measures one label's own natural pill width via onLayout, entirely
-// independent of any other probe or of PinnedPill's own animated width -
-// see the render comment in CategoryPills for why that independence
-// matters here specifically.
+// Measures one label's own natural pill width via onLayout, independent of
+// any other probe or of PinnedPill's own animated width - see
+// docs/animated-scroll-collapse.md.
 function MeasureProbe({
   testID,
   label,
@@ -452,24 +384,9 @@ function Pill({
   );
 }
 
-// The screen-edge padding (pinned pill's left edge, and the scroll strip's
-// trailing right edge) - kept at Spacing.three specifically so the pinned
-// pill's left edge lines up with the article/story cards' own left edge
-// below it, both starting from the same token. Deliberately a *different*
-// value from PILL_ITEM_GAP below: that edge alignment is a fixed design
-// constraint, while the space between the pills themselves is just a
-// visual density choice, and 16px there read as too much white space.
+// Screen-edge padding vs. the gap between items within the row - see
+// docs/category-pills-layout.md for why these are two different constants.
 const PILL_GAP = Spacing.three;
-// The gap between items within the row: pinned pill -> divider (unscrolled)
-// or back arrow (scrolled - the divider hides once the arrow appears,
-// since the arrow already separates the pinned pill from the scrollable
-// ones just as clearly, and showing both just burns an extra gap's worth
-// of width for no added meaning), divider/back arrow -> first scrollable
-// pill, and between each scrollable pill thereafter. Driven by `row`'s own
-// `gap` below rather than scattered margin/padding on each individual
-// piece - that per-piece approach is what let the actual gaps drift apart
-// (the back arrow's own touch-padding was stacking with the divider's
-// margin on one side while providing less than a full gap on the other).
 const PILL_ITEM_GAP = 14;
 
 const styles = StyleSheet.create({
@@ -482,15 +399,8 @@ const styles = StyleSheet.create({
     gap: PILL_ITEM_GAP,
   },
   pinnedContainer: { paddingLeft: PILL_GAP },
-  // Fixed width so swapping between the divider and the back arrow never
-  // itself changes the row's layout (see the render comment above). This
-  // was 20 (the icon's own `size` prop) at first, but that's the icon's
-  // bounding box, not its actual rendered ink - a left-chevron glyph is
-  // narrower than it is tall, so most of that 20px was dead space the
-  // *divider* then also got centered inside, on top of its own row gap,
-  // reading as a much bigger gap around the divider specifically than
-  // everywhere else in the row. 14 is a closer (still estimated, not
-  // measured) fit for the chevron's own true width.
+  // Fixed width, not the icon's own 20px size prop - see
+  // docs/category-pills-layout.md.
   dividerSlot: { width: 14, alignItems: "center", justifyContent: "center" },
   divider: { width: 2, height: 24, borderRadius: 1 },
   // No horizontal padding - hitSlop below already gives this a comfortable
@@ -533,14 +443,7 @@ const styles = StyleSheet.create({
   // reads as one label smoothly turning into the other, not two texts
   // sliding past each other.
   pinnedPillOverlayText: { position: "absolute" },
-  // position: "absolute" (with no top/left/right/bottom) takes each probe
-  // fully out of this row's own flex layout - it self-measures via
-  // onLayout independently, but never affects (or is affected by) any
-  // sibling's size, unlike the shared, in-flow wrapper a previous version
-  // used, which is what caused this whole feature's very first bug (two
-  // probes stretched to the same resolved width by their column parent's
-  // default alignItems: "stretch"). opacity: 0 (not height: 0 +
-  // overflow: "hidden") hides it purely at paint time, so nothing here
-  // ever constrains the probe's own natural size either.
+  // Out of flow and paint-time-only hidden, so nothing here can affect (or
+  // be affected by) a sibling's size - see docs/animated-scroll-collapse.md.
   measureProbe: { position: "absolute", opacity: 0 },
 });

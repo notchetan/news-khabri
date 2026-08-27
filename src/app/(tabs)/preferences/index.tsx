@@ -82,25 +82,14 @@ export default function PreferencesScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  // Measured once from the hidden probe below, at the largest font scale
-  // regardless of what's currently selected - reserved as a fixed height
-  // for the *visible* preview text so switching between any pair of sizes
-  // (small<->medium, medium<->large, small<->large) never changes how much
-  // room it takes, instead of guessing a fixed minHeight that happened to
-  // fit some sizes but not others (small's own 1-line height was already
-  // well under the old guess, but was still recomputed on every switch,
-  // which is what actually produced the visible shift - only reserving the
-  // true worst case, once, fixes it for every pair, not just the one this
-  // was tuned against).
+  // See "Font-size preview height" in docs/preferences-screen.md.
   const [previewHeight, setPreviewHeight] = useState<number | null>(null);
   const handlePreviewProbeLayout = (event: LayoutChangeEvent) => {
     setPreviewHeight(event.nativeEvent.layout.height);
   };
 
-  // No extra top gap beyond the inset itself, matching Home/Search - that
-  // gap used to exist here specifically to give the old inline "Preferences"
-  // title some breathing room before it; AppHeader (below) now owns that
-  // spacing instead, the same way it does on those other two tabs.
+  // No extra top gap beyond the inset itself, matching Home/Search -
+  // AppHeader below owns that spacing instead.
   const topPadding = Platform.select({
     default: insets.top,
     web: Spacing.six,
@@ -190,21 +179,8 @@ export default function PreferencesScreen() {
                       styles.fontSizeSampleGlyph,
                       {
                         fontSize: option.glyphSize,
-                        // A generous lineHeight (not equal to fontSize) is
-                        // what actually centers this - Devanagari, Tamil,
-                        // Telugu, etc. glyphs sit noticeably off-center
-                        // otherwise, even though the *button* itself is
-                        // centered via flexbox: each script's default line
-                        // box has different built-in vertical padding above/
-                        // below the glyph, which alignItems/justifyContent
-                        // center relative to the box, not the visible glyph.
-                        // A first attempt set lineHeight == fontSize exactly,
-                        // which was tight enough to clip the top of taller
-                        // scripts' ascenders/matras (Hindi especially, at
-                        // medium/large) - 1.4x leaves real headroom above and
-                        // below the glyph on every script tried, Latin
-                        // included, while still comfortably fitting the
-                        // 40px circle at every size (13/17/21 -> ~18/24/29).
+                        // See "Font-size sample glyph centering" in
+                        // docs/preferences-screen.md.
                         lineHeight: Math.ceil(option.glyphSize * 1.4),
                         color: selected ? theme.tintText : theme.text,
                       },
@@ -218,11 +194,8 @@ export default function PreferencesScreen() {
           </View>
         </View>
         <View>
-          {/* Invisible probe, always rendered at the largest font scale
-              regardless of the current selection - laid out normally (so it
-              measures the true wrap width) but clipped to zero height by
-              its wrapper, so it never affects visible layout itself. See
-              previewHeight's own comment above for why this exists. */}
+          {/* Hidden probe, always at the largest font scale - see
+              docs/preferences-screen.md. */}
           <View style={styles.previewProbeWrapper} pointerEvents="none">
             <ThemedText
               onLayout={handlePreviewProbeLayout}
@@ -297,24 +270,14 @@ export default function PreferencesScreen() {
         </ThemedText>
       </ScrollView>
 
-      {/* Pinned above the tab bar rather than scrolling with everything
-          else above - a fixed reference point (like iOS Settings' own app
-          version footer) rather than something that scrolls out of view
-          along with whichever toggle the user was actually there to
-          change. Needs its own NATIVE_TAB_BAR_HEIGHT reservation since it's
-          no longer inside the ScrollView, which never needed one itself
-          (content simply scrolls past/under the tab bar until this footer
-          existed to actually anchor something there). */}
+      {/* Pinned above the tab bar, not scrolling with the rest - see
+          "Legal footer pinned above the tab bar" in
+          docs/preferences-screen.md. */}
       <View
         testID="preferences-legal-footer"
         style={[
           styles.legalFooter,
           {
-            // Spacing.three (the same base gap as everywhere else - divider
-            // to scroll content above, and every other major gap in the
-            // app) plus the tab-bar reservation, which is a *functional*
-            // reservation for the physical bar, not part of the visible
-            // gap itself - see NATIVE_TAB_BAR_HEIGHT's own comment.
             paddingBottom:
               Spacing.three +
               Platform.select({
@@ -326,12 +289,8 @@ export default function PreferencesScreen() {
       >
         <View
           testID="preferences-legal-footer-divider"
-          // textSecondary here specifically (not backgroundSelected, like
-          // the section dividers above) - matches the color already used
-          // for the divider/back-arrow on the home page's category strip
-          // (see category-pills.tsx), since this divider sits directly
-          // above a persistent, always-visible footer rather than marking
-          // a boundary between two scrollable sections.
+          // textSecondary, not backgroundSelected like the section dividers
+          // above - see docs/preferences-screen.md.
           style={[styles.divider, styles.sectionSpacing, { backgroundColor: theme.textSecondary }]}
         />
         <View style={styles.legalLinksRow}>
@@ -357,16 +316,10 @@ export default function PreferencesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  // flex:1 (not just contentContainerStyle) is what actually bounds the
-  // ScrollView to the space remaining after AppHeader and legalFooter below
-  // it - without it, the ScrollView sizes to its own content instead of
-  // being constrained by its parent, the same lesson learned the hard way
-  // in search/index.tsx's own gridScrollView.
+  // Explicit flex:1 - see AGENTS.md's ScrollView-needs-explicit-flex lesson.
   scrollView: { flex: 1 },
-  // Spacing.three (not four) specifically - matches AppHeader's own
-  // paddingHorizontal (see app-header.tsx), so every row's left/right edge
-  // lines up with the logo on the left and the profile icon on the right
-  // instead of sitting 8px further in than both.
+  // Spacing.three matches AppHeader's own paddingHorizontal, so every row's
+  // edges line up with the logo/profile icon above.
   scrollContent: { paddingHorizontal: Spacing.three, paddingBottom: Spacing.three },
   sectionSpacing: { marginTop: Spacing.three },
   divider: { height: StyleSheet.hairlineWidth, marginBottom: Spacing.three },
@@ -387,20 +340,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   iconGlyph: { fontSize: 18 },
+  // See docs/cross-script-text-rendering.md.
   fontSizeSampleGlyph: Platform.select({
-    // Android's default font metrics reserve extra vertical padding above/
-    // below the glyph on top of lineHeight (historically for accent marks)
-    // - includeFontPadding strips that, and textAlignVertical:"center"
-    // makes the remaining box center on the actual glyph rather than its
-    // baseline. iOS has no equivalent quirk once lineHeight is set (above).
     android: { includeFontPadding: false, textAlignVertical: "center" },
     default: {},
   }),
   description: { marginTop: Spacing.one },
-  // Zero-height, clipped - lets the probe Text inside it lay out normally
-  // (so onLayout measures its real wrapped height at the full content
-  // width) without taking up any visible space itself. See previewHeight's
-  // own comment above.
+  // Zero-height, clipped - see "Font-size preview height" in
+  // docs/preferences-screen.md.
   previewProbeWrapper: { height: 0, overflow: "hidden" },
   legalRow: {
     flexDirection: "row",
@@ -410,14 +357,7 @@ const styles = StyleSheet.create({
   },
   legalChevronFallback: { fontSize: 18, fontWeight: "600" },
   languagePickerValue: { flexDirection: "row", alignItems: "center", gap: Spacing.one },
-  // One centered line with a dot between each link - gap on the row applies
-  // uniformly between every child (link, dot, link, dot, link), the same
-  // "let flexbox gap own the spacing" approach used in category-pills.tsx,
-  // rather than mismatched per-element margins. No paddingVertical of its
-  // own - that used to stack with the divider's marginBottom above it into
-  // a bigger gap there (24) than below it (8, before legalFooter's own
-  // paddingBottom took over), so both sides now come from the divider and
-  // legalFooter alone instead.
+  // One centered line, dot-separated - see docs/preferences-screen.md.
   legalLinksRow: {
     flexDirection: "row",
     justifyContent: "center",

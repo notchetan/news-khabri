@@ -10,9 +10,7 @@ import {
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-// How rounded the corners feel between "plain circular arc" (0) and a full
-// superellipse (1) - 0.6 matches the smoothing most iOS UI (not app icons,
-// which go higher) actually uses.
+// See docs/squircle-component.md.
 const CORNER_SMOOTHING = 0.6;
 const PRESSED_OPACITY = 0.85;
 
@@ -31,26 +29,8 @@ type Props = {
   accessibilityLabel?: string;
 };
 
-// Renders `children` over a continuous-curvature ("squircle") background
-// shape instead of relying on React Native's plain circular-arc
-// borderRadius - used for the app's genuinely partially-rounded rectangles
-// (cards, images, inputs). Fully-round elements (buttons, badges, capsule
-// pills) don't need this: a circle and a squircle are the same shape once
-// the radius reaches half the box's shortest side, so those keep plain
-// borderRadius (see Radius.full in constants/theme.ts).
-//
-// SVG needs concrete pixel dimensions to generate a path (unlike
-// borderRadius, which works at any size) - onLayout measures the box on
-// first render; until then this renders a plain rounded View at the same
-// radius so there's no flash of an unrounded box.
-//
-// `onPress` renders a Pressable as the root (rather than the more common
-// pattern of a TouchableOpacity wrapping a separately-positioned
-// background) specifically so the press-opacity applies to the SVG
-// background too - TouchableOpacity's dimming only affects its own
-// subtree, and the squircle background here would otherwise be a sibling
-// layer that never dims, leaving only the content on top fading while the
-// card's own surface color stayed fully opaque.
+// Continuous-curvature ("squircle") background instead of React Native's
+// plain circular-arc borderRadius - see docs/squircle-component.md.
 export default function Squircle({
   radius,
   backgroundColor,

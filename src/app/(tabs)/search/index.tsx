@@ -28,38 +28,14 @@ import { getCategoryIcon } from "@/utils/category-icon";
 const SEARCH_DEBOUNCE_MS = 300;
 const SEARCH_MIN_LENGTH = 2;
 
-// English has 10 categories (5 rows of 2) - every language's card grid is
-// sized against that, not its own category count, so a language with fewer
-// categories (some have as few as 3-4 right now) gets shorter rows worth of
-// scroll space rather than the same rows flex-stretching taller to fill the
-// leftover room. That stretching was the previous design (flex:1 on every
-// row) - it made the grid fill the screen for any category count, but at
-// the cost of card size actually depending on how many categories a
-// language happens to have, which reads as inconsistent/distorted next to
-// every other language's cards.
+// See docs/search-category-grid.md for the grid-sizing rationale below.
 const REFERENCE_GRID_ROWS = 5;
-// The two non-card-height pieces of the grid's total measured height:
-// contentContainerStyle's own top+bottom padding, and the gaps between
-// REFERENCE_GRID_ROWS rows - kept as named constants (not requiring the
-// exact styles.gridContent/gridRow values below) so this math stays
-// correct if those spacing tokens ever change.
 const GRID_VERTICAL_PADDING = Spacing.three * 2;
-// Matches gridContent's own row gap below (Spacing.three) - was
-// Spacing.two, a smaller value than the grid's own column gap and every
-// other major gap in the app, which read as visibly tighter between rows
-// than between columns for no real reason. Keep this in sync with
-// styles.gridContent.gap if that ever changes again.
 const GRID_ROW_GAPS = Spacing.three * (REFERENCE_GRID_ROWS - 1);
 
 // Groups a flat list into pairs for a 2-column grid - [1,2,3,4,5] ->
-// [[1,2],[3,4],[5]]. A plain function rather than FlatList's own
-// numColumns/columnWrapperStyle: that combination doesn't actually forward
-// flex-grow to the row wrappers it creates (confirmed empirically - every
-// row stayed flexGrow:0 despite columnWrapperStyle setting flex:1), which
-// is exactly what's needed for the grid to fill whatever vertical space is
-// actually available. Rendering the rows directly here means this file
-// controls every element's style itself - nothing left to that indirection
-// to lose.
+// [[1,2],[3,4],[5]]. See docs/search-category-grid.md for why not
+// FlatList's own numColumns/columnWrapperStyle.
 function chunkIntoPairs<T>(items: T[]): T[][] {
   const pairs: T[][] = [];
   for (let i = 0; i < items.length; i += 2) {
@@ -78,14 +54,8 @@ export default function SearchScreen() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const searchInputRef = useRef<TextInput>(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
-  // The grid's own measured height while the keyboard is *closed* only -
-  // this is what REFERENCE_GRID_ROWS divides into a fixed row height
-  // below, and it's deliberately never overwritten by a layout pass fired
-  // while the keyboard is open (see handleGridLayout's own guard). The
-  // grid used to remember a separate measurement per keyboard state and
-  // switch between them, which meant every keyboard show/hide visibly
-  // resized the cards - the request was for the cards to just stay the
-  // fixed size they are with the keyboard closed, always.
+  // Frozen to the keyboard-closed measurement only - see
+  // docs/search-category-grid.md.
   const [closedHeight, setClosedHeight] = useState<number | null>(null);
 
   // Focus the search box (and raise the keyboard) every time this tab gains
@@ -110,19 +80,14 @@ export default function SearchScreen() {
   }, []);
 
   const handleGridLayout = (event: LayoutChangeEvent) => {
-    // A layout pass fired while the keyboard is showing reports the
-    // keyboard-shrunk available height, not the grid's real (closed) size -
-    // ignoring it here, rather than remembering it under its own key, is
-    // what keeps the cards from ever resizing on keyboard show/hide.
     if (keyboardVisible) return;
     setClosedHeight(event.nativeEvent.layout.height);
   };
 
-  // Before the first closed-keyboard layout pass reports a real number
-  // (e.g. this tab was focused with the keyboard already up, from the
-  // auto-focus below), cardRowHeight is undefined and gridRow falls back
-  // to flex:1 (see its style below) - a brief, harmless default, never a
-  // visible jump since it only affects an already-empty grid.
+  // Before the first closed-keyboard layout pass reports a real number,
+  // cardRowHeight is undefined and gridRow falls back to flex:1 (see its
+  // style below) - a brief, harmless default, never a visible jump since
+  // it only affects an already-empty grid.
   const cardRowHeight = closedHeight
     ? Math.max(
         (closedHeight - GRID_VERTICAL_PADDING - GRID_ROW_GAPS) / REFERENCE_GRID_ROWS,
@@ -151,17 +116,9 @@ export default function SearchScreen() {
   });
 
   return (
-    // The tab-bar reservation lives on this outer View, deliberately not on
-    // KeyboardAvoidingView's own style below - React Native's "padding"
-    // behavior does `StyleSheet.compose(style, {paddingBottom: bottomHeight})`
-    // internally (see KeyboardAvoidingView.js), and RN styles resolve
-    // last-write-wins on a shared key, so any paddingBottom passed in its
-    // own `style` gets silently replaced by the keyboard-driven value - 0
-    // whenever the keyboard is closed, which is exactly when the tab-bar
-    // reservation matters most. Earlier attempts at this all put the
-    // reservation directly on KeyboardAvoidingView's style and were each
-    // overwritten the same way; a separate outer element it can't touch is
-    // the only way both paddings actually apply at once.
+    // Tab-bar reservation lives on this outer View, not on
+    // KeyboardAvoidingView's own style - see AGENTS.md's
+    // KeyboardAvoidingView paddingBottom lesson.
     <View
       style={{
         flex: 1,
@@ -176,12 +133,8 @@ export default function SearchScreen() {
       }}
     >
       <AppHeader title={t("tabSearch")} />
-      {/* KeyboardAvoidingView (not a plain View) specifically so the resize
-          when the keyboard shows/hides is animated using the keyboard's own
-          reported duration/easing, matching its native motion, rather than
-          snapping instantly - "padding" behavior shrinks/grows this view's
-          bottom edge as the keyboard rises/falls, which is exactly the
-          category grid's available height below the search bar. */}
+      {/* KeyboardAvoidingView, not a plain View, so the resize animates
+          using the keyboard's own reported duration/easing. */}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.keyboardAvoidingView}
@@ -266,14 +219,8 @@ const styles = StyleSheet.create({
   // (Spacing.three), and the two were stacking into a visibly bigger gap
   // here than anywhere else in the app.
   searchBarRow: { paddingHorizontal: Spacing.three },
-  // A genuine capsule, not Squircle - real iOS search fields (Safari,
-  // Messages, Settings) are fully-round pills, not a modest rounded-rect.
-  // At this bar's height a squircle radius small enough to read as a
-  // rounded-rect corner reads instead as an ambiguous, half-capsule shape;
-  // Radius.full sidesteps that entirely and also means this doesn't need
-  // Squircle at all (a circle and a squircle are identical once the radius
-  // reaches half the box's shortest side - see squircle.tsx's own header
-  // comment).
+  // A genuine capsule (Radius.full), not Squircle - real iOS search fields
+  // are fully-round pills, not a modest rounded-rect.
   searchInput: {
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.two,
@@ -284,20 +231,12 @@ const styles = StyleSheet.create({
     // a no-op on native, which has no such default to suppress.
     outlineWidth: 0,
   },
-  // flex:1 on the ScrollView's own outer style (not just flexGrow on its
-  // contentContainerStyle below) is what makes the ScrollView itself
-  // actually get constrained to the KeyboardAvoidingView's available
-  // height, tab-bar reservation included - without an explicit outer flex,
-  // the ScrollView's own frame sizes to its content instead of being
-  // bounded by its parent, so onLayout (see handleGridLayout) was measuring
-  // a height that didn't reflect that reservation at all, and English's
-  // reference 5 rows could still run past the visible area even though the
-  // math dividing that measurement by REFERENCE_GRID_ROWS was already
-  // correct.
+  // Explicit outer flex:1, not just flexGrow on contentContainerStyle - see
+  // AGENTS.md's ScrollView-needs-explicit-flex lesson; without it,
+  // handleGridLayout measured a height that didn't reflect the tab-bar
+  // reservation at all.
   gridScrollView: { flex: 1 },
-  // Row gap matches gridRow's own column gap below (both Spacing.three) -
-  // see GRID_ROW_GAPS's own comment above for why this needs to stay in
-  // sync with that constant.
+  // gap must stay in sync with GRID_ROW_GAPS above.
   gridContent: { flexGrow: 1, padding: Spacing.three, gap: Spacing.three },
   gridRow: { flexDirection: "row", gap: Spacing.three },
   // Only used for the one frame before the first onLayout measurement

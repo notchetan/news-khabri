@@ -42,12 +42,7 @@ export default function FeedCard({
     <Squircle
       radius={Radius.large}
       backgroundColor={theme.backgroundElement}
-      // guardedNavigate (not onPress directly) - see its own comment.
-      // Shared across every card (this component backs both StoryList and
-      // ArticleList), so tapping this card just after tapping a *different*
-      // one, before the first navigation visibly happened, doesn't also
-      // push this one - without it, a fast double-tap across two cards
-      // could stack two detail screens on top of each other.
+      // guardedNavigate, not onPress directly - see navigation-guard.ts.
       onPress={() => guardedNavigate(onPress)}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}

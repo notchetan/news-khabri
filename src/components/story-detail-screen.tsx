@@ -81,13 +81,7 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
     }
   };
 
-  // A story that only one source/article ever joined isn't really a
-  // cluster - the list screen already routes straight to the article for
-  // these (see story-list.tsx), but this screen is still reachable directly
-  // (a deep link, a push notification, cached navigation state), so it
-  // needs its own guard: bounce straight to the article rather than show a
-  // "1 sources · 1 articles" page with nothing to add over the article
-  // itself. replace (not push) so the back gesture doesn't return here.
+  // See docs/story-detail-screen.md.
   const isSingleton = data ? data.articleCount <= 1 && data.sourceCount <= 1 : false;
   const representativeArticleId = data?.representativeArticle?.id;
   useEffect(() => {

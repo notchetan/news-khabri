@@ -24,22 +24,8 @@ import {
 
 SplashScreen.preventAutoHideAsync();
 
-// @react-navigation/native's own DefaultTheme/DarkTheme use their own stock
-// colors (DefaultTheme.background is rgb(242,242,242), a light gray - not
-// this app's own warm cream #FAF7F2; DarkTheme.background is rgb(1,1,1),
-// not this app's own #17140F) - this Theme is what every Stack (this root
-// one, and every nested one, e.g. preferences/_layout.tsx's own, since they
-// all read from this same single ThemeProvider ancestor) uses as a
-// screen's *native* default background, underneath whatever the screen's
-// own React content paints. A push/pop transition briefly reveals that
-// native layer before the screen's own content finishes painting over it -
-// with the stock colors, that's a visible flash of the wrong color (reads
-// as "white" in light mode against this app's cream, since rgb(242,242,242)
-// is close enough to white to look like a mismatch) on every single
-// transition. Overriding background (and card, used by some transition
-// presets for the same purpose) to this app's own tokens fixes the color
-// actually shown during that brief frame, rather than trying to eliminate
-// the frame itself.
+// Overrides React Navigation's own stock Theme colors with this app's own
+// tokens - see docs/navigation-white-flash.md.
 const AppLightTheme = {
   ...DefaultTheme,
   colors: {
@@ -66,14 +52,11 @@ const AppDarkTheme = {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // The default (0) refetches on every mount, so navigating away from
-      // and back to a list (e.g. into an article and back) re-fetches it
-      // every time even though nothing has changed - the backend only
-      // ingests new articles every 15 minutes (see the backend's cron), so
-      // treating data as fresh for a couple of minutes avoids that
-      // redundant network round-trip without perceptibly staling the feed.
-      // Pull-to-refresh (onRefresh -> refetch()) still bypasses this and
-      // always hits the network.
+      // The default (0) refetches on every mount, re-fetching a list every
+      // time you navigate back into it even though nothing changed - the
+      // backend only ingests new articles every 15 minutes, so a couple of
+      // minutes of freshness avoids that round-trip. Pull-to-refresh still
+      // bypasses this and always hits the network.
       staleTime: 2 * 60 * 1000,
     },
   },
@@ -82,19 +65,8 @@ const queryClient = new QueryClient({
 function AppContent() {
   const { resolvedScheme } = useThemePreference();
 
-  // Belt-and-suspenders alongside AppLightTheme/AppDarkTheme above: those
-  // only recolor the JS-level Stack transition backdrop
-  // (@react-navigation/native's Theme, read by
-  // native-stack/.../NativeStackView.native.tsx's own contentStyle). The
-  // *native* root view sits one layer further down, underneath React
-  // Navigation entirely, and defaults to plain white regardless of that
-  // theme - react-native-screens' push/pop transitions (Fragment
-  // transactions on Android, UIViewController transitions on iOS) can
-  // briefly reveal that native backdrop at a screen's edges before its own
-  // content view has finished compositing over it, which is exactly the
-  // "white surrounding" flash reported on article/language-select
-  // navigation even after the Theme fix. Keeping this synced with the
-  // resolved theme closes that gap at the layer the JS theme can't reach.
+  // Belt-and-suspenders alongside AppLightTheme/AppDarkTheme above - see
+  // docs/navigation-white-flash.md.
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(
       resolvedScheme === "dark" ? Colors.dark.background : Colors.light.background
