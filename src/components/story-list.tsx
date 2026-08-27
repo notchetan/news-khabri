@@ -98,13 +98,8 @@ export default function StoryList({ category }: Props) {
       contentContainerStyle={styles.listContent}
       renderItem={({ item }) => {
         const updatedLabel = formatRelativeTime(item.latestPublishedAt, t);
-        // A "story" that only one source/article ever joined isn't really a
-        // cluster - it's just an article that happened to go through the
-        // clustering pipeline solo. "1 sources · 1 articles" is noise, not
-        // information, and the story detail screen (source/article counts,
-        // a members list of exactly one) has nothing to add over the
-        // article itself - so this renders and navigates exactly like a
-        // plain ArticleList card instead.
+        // Renders/navigates like a plain ArticleList card for a singleton
+        // story - see docs/story-detail-screen.md.
         const isSingleton = item.articleCount <= 1 && item.sourceCount <= 1;
         const metaText = isSingleton
           ? [item.representativeArticle?.source, updatedLabel].filter(Boolean).join(" · ")

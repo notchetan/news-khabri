@@ -82,14 +82,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.three,
     gap: Spacing.two,
   },
-  // flex-end (not center) so the title sits against the logo's own bottom
-  // edge rather than optically centered against it - a title's natural
-  // line-height box has real headroom above the glyph itself for
-  // Devanagari/Tamil/etc.'s taller ascenders/matras (see title's own
-  // comment), and centering that box against the logo was clipping the
-  // top of those glyphs on Home/Search/Preferences. Anchoring to the
-  // bottom instead means that headroom simply extends upward past the
-  // logo, harmlessly, whatever its size ends up being for a given script.
+  // flex-end, not center - see docs/cross-script-text-rendering.md.
   titleGroup: {
     flexDirection: "row",
     alignItems: "flex-end",
@@ -99,10 +92,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   logo: { width: 28, height: 28 },
-  // A generous lineHeight (not equal to fontSize) - same reasoning as the
-  // font-size preview glyph fix in preferences/index.tsx: Devanagari/
-  // Tamil/etc. glyphs need real headroom above fontSize itself or they
-  // clip.
+  // See docs/cross-script-text-rendering.md.
   title: {
     fontSize: 20,
     fontWeight: "700",

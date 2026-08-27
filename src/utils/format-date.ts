@@ -25,15 +25,11 @@ export function formatPublishedDate(dateString: string | null): string | null {
   return `${datePart} ${timePart} IST`;
 }
 
-// Used for story-card metadata ("Updated 25m ago"). The date math here is
-// deliberately hand-rolled rather than Intl.RelativeTimeFormat - that API's
-// support is inconsistent across the Hermes builds this app actually runs
-// on (it's thrown at runtime on some), unlike Intl.DateTimeFormat above
-// which is reliably available. The *text* itself, unlike
-// formatPublishedDate's hardcoded "IST" above, does go through the app's
-// translation system - takes the caller's own t() (every call site already
-// has one via useTranslation()) rather than importing the hook here, since
-// this file has no React context of its own to call it from.
+// Used for story-card metadata ("Updated 25m ago"). Hand-rolled rather
+// than Intl.RelativeTimeFormat, whose support is inconsistent across the
+// Hermes builds this app runs on (throws at runtime on some). Takes the
+// caller's own t() rather than importing useTranslation() here, since this
+// file has no React context of its own to call it from.
 export function formatRelativeTime(
   dateString: string | null,
   t: (key: TranslationKey, vars?: Record<string, string>) => string

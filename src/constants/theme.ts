@@ -74,13 +74,11 @@ export const Spacing = {
   six: 64,
 } as const;
 
-// One shared corner-radius scale instead of ad hoc numbers scattered per
-// component. `full` is a "rounded-full" sentinel (bigger than any box this
-// app renders) rather than a real radius value - RN clips any borderRadius
-// past half the shortest side to a perfect capsule/circle, so this always
-// produces a fully-round shape regardless of the element's actual size.
-// See utils/corner-radius.ts's concentricRadius for deriving a nested
-// element's radius from its container instead of hardcoding a value here.
+// One shared corner-radius scale instead of ad hoc numbers per component.
+// `full` is a "rounded-full" sentinel, not a real radius - RN clips any
+// borderRadius past half the shortest side to a perfect capsule/circle.
+// See utils/corner-radius.ts's concentricRadius for a nested element's
+// radius derived from its container instead.
 export const Radius = {
   tiny: 4,
   small: 8,
@@ -91,14 +89,7 @@ export const Radius = {
 
 export const MaxContentWidth = 800;
 
-// useSafeAreaInsets().bottom is only the home-indicator/gesture-area inset -
-// it says nothing about the native tab bar itself (see app-tabs.tsx's
-// NativeTabs), which this app's unstable-native-tabs implementation exposes
-// no JS API to measure. These are Apple/Material's own long-documented
-// standard tab bar content heights (49pt iOS, 56dp Android) - any screen
-// that needs to reserve real space above the tab bar (so its own bottom
-// content isn't rendered underneath it) adds this *on top of*
-// insets.bottom, not instead of it, since that inset is a separate,
-// already-correct piece (0 on older non-notched devices, ~34pt on notched
-// ones) that this hardcoded bar height must not replace.
+// Standard tab bar content heights (49pt iOS, 56dp Android) - added *on
+// top of* insets.bottom, not instead of it. See AGENTS.md's own
+// useSafeAreaInsets()-doesn't-include-the-tab-bar lesson.
 export const NATIVE_TAB_BAR_HEIGHT = Platform.select({ ios: 49, android: 56, default: 0 });

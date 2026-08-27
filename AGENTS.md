@@ -16,6 +16,19 @@ The backend that this app talks to lives in a sibling repo,
 its own `AGENTS.md` with backend-specific notes. See that repo's README
 for the API surface (`src/routes/`).
 
+## Comment convention
+
+Keep inline comments short - a line or two of "why", right next to the
+code it explains. A comment that would run 5+ lines (a bug's full
+backstory, a design tradeoff with real alternatives considered, a
+calibration/investigation narrative) belongs in its own file under
+`docs/` instead, with a one-line pointer left in the code
+(`// See docs/whatever.md.`). Skip comments that only restate what a past
+bug was and that it's fixed now - that belongs in the PR/commit history,
+not the code. `docs/` is organized by topic, not 1:1 with source files -
+check whether an existing doc already covers the area before creating a
+new one.
+
 ## Architecture at a glance
 
 - Expo SDK 54, `expo-router` (file-based routing under `src/app/`),

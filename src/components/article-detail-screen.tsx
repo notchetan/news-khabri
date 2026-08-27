@@ -32,16 +32,11 @@ import { useTranslation } from "@/i18n/translations";
 import { useQuery } from "@tanstack/react-query";
 
 const SWIPE_THRESHOLD = 60;
-// How much scroll the header labels' collapse is spread across - a
-// distance, not a delay or fixed-duration animation, so scrubbing slowly
-// moves through it slowly and flicking moves through it fast, matching the
-// scroll gesture 1:1. Same value/reasoning as category-pills.tsx's own
-// PINNED_PILL_COLLAPSE_DISTANCE.
+// Distance (not a duration) the header labels' collapse is spread across -
+// see docs/animated-scroll-collapse.md.
 const HEADER_COLLAPSE_DISTANCE = 60;
-// Natural width of each label at its current font/weight, used as the
-// collapsed<->expanded endpoint for its own Animated.View below - eyeballed
-// against the real strings (not measured via an onLayout probe), the same
-// pragmatic choice already made for the back label before this change.
+// Natural width of each label, eyeballed against the real strings rather
+// than measured via an onLayout probe.
 const BACK_LABEL_WIDTH = 80;
 const BRAND_LABEL_WIDTH = 100;
 
@@ -63,44 +58,16 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   const [sequence, setSequence] = useState<number[]>([]);
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
   const swipeIndicatorOpacity = useRef(new Animated.Value(0)).current;
-  // Drives both header labels' collapse (back button's " Back" and the
-  // brand pill's "News Khabri") continuously off the real scroll position,
-  // not a discrete threshold + imperative Animated.timing toggle - the
-  // previous version (a boolean isScrolled flipped past a fixed y, driving
-  // a separate Animated.timing in a useEffect) only reliably re-expanded
-  // once scrolling all the way back to the top, not on every scroll-up:
-  // rapid direction changes near the threshold could re-trigger the
-  // timing animation mid-flight repeatedly, and the *next* real value
-  // change would always win, so a rapid scroll-up gesture could leave it
-  // looking stuck collapsed until the scroll fully settled at y<=threshold.
-  // A pure interpolation of the live scroll offset can't get stuck in an
-  // intermediate state like that - same fix shape as
-  // category-pills.tsx's own scroll-linked pinned-pill transition.
+  // Continuous scroll-position-driven collapse, not a discrete threshold -
+  // see docs/animated-scroll-collapse.md.
   const scrollY = useRef(new Animated.Value(0)).current;
   const scrollRef = useRef<ScrollView>(null);
-  // Measured height of the floating back/brand pill row (backRow below),
-  // including its own topPadding (status bar inset + gap) - used so the
-  // hero image starts *below* the header on initial load instead of
-  // immediately behind it, per explicit request: the header should only
-  // start overlaying content once the user actually scrolls, not from the
-  // very first frame. The row's own height is otherwise stable (only the
-  // labels' *width* animates via headerLabelOpacity/backLabelWidth/
-  // brandLabelWidth above, never the row's own height), so measuring it
-  // once via onLayout is safe here - unlike the ancestor-is-itself-
-  // animating case AGENTS.md warns against for measurement probes.
+  // Measured height of the floating back/brand pill row (backRow below) -
+  // see docs/article-header-layout.md.
   const [headerHeight, setHeaderHeight] = useState(0);
 
-  // Deliberately *not* spread across the same HEADER_COLLAPSE_DISTANCE as
-  // the width shrink below - cross-fading both over the same range meant
-  // numberOfLines={1} kept re-truncating the label against its own
-  // shrinking maxWidth for most of the scroll, which read as the text
-  // getting replaced letter by letter before finally vanishing. A
-  // near-zero input range makes the fade an effectively instant swap right
-  // at the very start of the scroll - full opacity only while at the very
-  // top (scrollY exactly 0), gone for any scroll at all - so the label is
-  // already invisible well before the shrinking width would visibly clip
-  // it. Same technique, same reasoning, as category-pills.tsx's own
-  // PinnedPill fullOpacity/collapsedOpacity.
+  // Near-instant opacity swap, deliberately not spread across the same
+  // distance as the width shrink below - see docs/animated-scroll-collapse.md.
   const headerLabelOpacity = scrollY.interpolate({
     inputRange: [0, 1],
     outputRange: [1, 0],
@@ -141,9 +108,8 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    // false: width/maxWidth (see labelStyle below) is a layout property the
-    // native driver can't animate - everything here already runs once per
-    // scroll frame on the JS thread regardless (scrollEventThrottle).
+    // false: the animated maxWidth below is a layout property the native
+    // driver can't animate.
     { useNativeDriver: false }
   );
 
@@ -179,13 +145,7 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
     default: insets.top + Spacing.two,
     web: Spacing.six,
   });
-  // On mount, the hero image should sit fully below the floating header,
-  // not behind it - it's only once the user actually scrolls that content
-  // is meant to pass underneath the header (see headerHeight's own
-  // comment above). Before the header row's first onLayout measurement
-  // lands, fall back to a generous estimate (topPadding plus a typical
-  // pill height) so the image never briefly pokes out above the header
-  // for that one frame either.
+  // See docs/article-header-layout.md.
   const contentTopPadding = Platform.select({
     default: (headerHeight || topPadding + 44) + Spacing.two,
     web: Spacing.six,
@@ -282,14 +242,8 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
             ]}
           />
         )}
-        {/* Same left-label/right-label shape as AppHeader (see
-            app-header.tsx) on Home/Search/Preferences, adapted for this
-            screen: back button (not the app mark) on the left, the app
-            mark (not a profile button) on the right - and floating over
-            scrolling content via GlassView rather than sitting in normal
-            flow, matching how the back button already worked here. Both
-            labels collapse together, in step with scroll position (see
-            headerLabelOpacity/backLabelWidth/brandLabelWidth above). */}
+        {/* Same left-label/right-label shape as AppHeader - see
+            docs/article-header-layout.md. */}
         <View
           testID="article-header-row"
           style={[styles.backRow, { paddingTop: topPadding }]}
@@ -578,10 +532,8 @@ function ArticleDetailSkeleton({
   const opacity = useRef(new Animated.Value(0.4)).current;
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  // Same header-clearing formula as the real ScrollView above (see
-  // contentTopPadding's own comment there) - the skeleton's first block
-  // stands in for the hero image, so it needs to start below the header
-  // too, not just clear the status bar.
+  // Same header-clearing formula as the real ScrollView - see
+  // docs/article-header-layout.md.
   const contentTopPadding = Platform.select({
     default: (headerHeight || topPadding + 44) + Spacing.two,
     web: Spacing.six,
@@ -629,10 +581,7 @@ function ArticleDetailSkeleton({
 }
 
 const styles = StyleSheet.create({
-  // Scrolling content is deliberately allowed to flow behind the floating
-  // back button (see backRow below), but it should never show through the
-  // status bar itself - this opaque strip pins to exactly the status bar's
-  // height so the clock/battery/carrier text always has a solid backdrop.
+  // See "Status bar scrim" in docs/article-header-layout.md.
   statusBarScrim: {
     position: "absolute",
     top: 0,
@@ -652,31 +601,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingBottom: Spacing.two,
   },
-  // Fully-round, plain circular (not squircle) on purpose - this clips a
-  // native GlassView blur, which can't be shaped by our SVG squircle path
-  // without a deeper native integration; a circle here is visually
-  // identical to a squircle anyway since the radius already exceeds half
-  // the pill's height.
+  // See "Pill shape" in docs/article-header-layout.md.
   backGlass: { alignSelf: "flex-start", borderRadius: Radius.full, overflow: "hidden" },
   backPressable: {
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
   },
-  // center, not flex-end - the pill previously anchored the icon and label
-  // to their shared bottom edge (to keep a since-removed hard height:20
-  // clip on the label wrapper from cutting into cross-script ascenders/
-  // matras), but that clip is long gone: the label wrapper now sizes
-  // purely from backGlyph's own generous lineHeight below, so this row's
-  // cross-axis height already *is* that lineHeight, with real headroom on
-  // both sides. Centering the icon within it is what actually reads as
-  // vertically centered in the pill - bottom-anchoring instead visibly sat
-  // the icon low, since the label's own headroom was all above it.
+  // See docs/cross-script-text-rendering.md.
   backPressableRow: { flexDirection: "row", alignItems: "center" },
-  // A generous lineHeight (not equal to fontSize) - same reasoning as the
-  // font-size preview glyph fix in preferences/index.tsx: Devanagari/
-  // Tamil/etc. glyphs need real headroom above fontSize itself or they
-  // clip, and the label wrapper above no longer has its own fixed height
-  // to clip them regardless (see backPressableRow's own comment).
   backGlyph: {
     fontSize: 16,
     fontWeight: "600",
@@ -687,10 +619,7 @@ const styles = StyleSheet.create({
     }),
   },
   backLabel: { flexShrink: 0 },
-  // Same shape as backGlass, on the opposite side.
   brandGlass: { alignSelf: "flex-start", borderRadius: Radius.full, overflow: "hidden" },
-  // center - see backPressableRow's own comment for why (same shape, same
-  // reasoning, mirrored for the logo instead of the chevron).
   brandRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -739,9 +668,8 @@ const styles = StyleSheet.create({
   },
   imageCaptionText: { color: "#fff", fontSize: 13, lineHeight: 19 },
   title: { marginTop: Spacing.three },
-  // No longer alignSelf/marginTop'd for standalone placement - this now
-  // lives inside metaRow, on the right, the same position/role as
-  // story-detail-screen.tsx's own share button.
+  // See "Matching story-detail-screen's meta layout" in
+  // docs/article-header-layout.md.
   shareButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -752,9 +680,8 @@ const styles = StyleSheet.create({
   },
   shareButtonText: { fontSize: 14, fontWeight: "600" },
   shareGlyphFallback: { fontSize: 14, fontWeight: "700" },
-  // Matches story-detail-screen.tsx's own metaRow/metaTextBlock exactly:
-  // source above, date/time (+ read time, folded into the same line) below,
-  // on the left; share button on the right.
+  // See "Matching story-detail-screen's meta layout" in
+  // docs/article-header-layout.md.
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -765,10 +692,8 @@ const styles = StyleSheet.create({
   metaTextBlock: { gap: 2 },
   meta: {},
   noContent: { marginTop: Spacing.two },
-  // marginTop matches relatedSection's own below - both Spacing.three, the
-  // same app-wide "gap between distinct blocks" standard used throughout
-  // home/search/preferences (see AGENTS.md), not the larger, mismatched
-  // values (four/five) this screen used before.
+  // See "Spacing consistency with the rest of the app" in
+  // docs/article-header-layout.md.
   readOriginal: {
     marginTop: Spacing.three,
     paddingVertical: Spacing.three,
