@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 
+import { Colors } from "@/constants/theme";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { FontSizePreferenceProvider } from "@/contexts/font-size-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
@@ -226,6 +227,16 @@ describe("PreferencesScreen", () => {
     expect(within(footer).getByRole("button", { name: "About" })).toBeTruthy();
     expect(within(footer).getByRole("button", { name: "Privacy Policy" })).toBeTruthy();
     expect(within(footer).getByRole("button", { name: "Terms of Service" })).toBeTruthy();
+  });
+
+  it("colors the footer divider the same as the home page's own divider/back-arrow, not the section dividers' subtler color", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    expect(screen.getByTestId("preferences-legal-footer-divider")).toHaveStyle({
+      backgroundColor: Colors.light.textSecondary,
+    });
   });
 
   it.each([

@@ -325,7 +325,14 @@ export default function PreferencesScreen() {
         ]}
       >
         <View
-          style={[styles.divider, styles.sectionSpacing, { backgroundColor: theme.backgroundSelected }]}
+          testID="preferences-legal-footer-divider"
+          // textSecondary here specifically (not backgroundSelected, like
+          // the section dividers above) - matches the color already used
+          // for the divider/back-arrow on the home page's category strip
+          // (see category-pills.tsx), since this divider sits directly
+          // above a persistent, always-visible footer rather than marking
+          // a boundary between two scrollable sections.
+          style={[styles.divider, styles.sectionSpacing, { backgroundColor: theme.textSecondary }]}
         />
         <View style={styles.legalLinksRow}>
           {LEGAL_LINKS.map((link, index) => (
