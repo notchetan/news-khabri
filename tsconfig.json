@@ -2,8 +2,15 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    // "node" is needed for test files that reference Node/Jest globals
+    // like `global` (see @/api/__tests__/articles.test.ts) - it used to
+    // resolve only because @types/node happened to be hoisted as an
+    // undeclared transitive dependency of something else, which a clean
+    // `npm ci` (as opposed to whatever local node_modules had accumulated)
+    // doesn't reliably do the same way. Now an explicit devDependency too.
     "types": [
-      "jest"
+      "jest",
+      "node"
     ],
     "paths": {
       "@/*": [
