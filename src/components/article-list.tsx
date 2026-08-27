@@ -1,0 +1,126 @@
+import { ARTICLES_PAGE_SIZE, cursorFor, fetchArticles } from "@/api/articles";
+import FeedCard from "@/components/feed-card";
+import ArticleListSkeleton from "@/components/article-list-skeleton";
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import { useEffect, useRef } from "react";
+import { ActivityIndicator, FlatList, StyleSheet, Text } from "react-native";
+
+import { Spacing } from "@/constants/theme";
+import { useDebugPreference } from "@/contexts/debug-preference";
+import { useLanguagePreference } from "@/contexts/language-preference";
+import { useTheme } from "@/hooks/use-theme";
+import { useTranslation } from "@/i18n/translations";
+
+type Props = {
+  category?: string;
+  search?: string;
+  basePath: "/article" | "/search/article";
+};
+
+export default function ArticleList({ category, search, basePath }: Props) {
+  const { language } = useLanguagePreference();
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const router = useRouter();
+  const { debugEnabled } = useDebugPreference();
+  const listRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [category, search]);
+
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    isRefetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["articles", language, category, search],
+    queryFn: ({ pageParam }) =>
+      fetchArticles(language, category, pageParam as string | undefined, search),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) =>
+      lastPage.length === ARTICLES_PAGE_SIZE
+        ? cursorFor(lastPage[lastPage.length - 1])
+        : undefined,
+    placeholderData: keepPreviousData,
+  });
+
+  // Belt-and-braces: de-dupe by id in case any page still overlaps (e.g. a
+  // filter switch racing with an in-flight fetch), since FlatList requires
+  // unique keys.
+  const seenIds = new Set<number>();
+  const articles = (data?.pages.flat() ?? []).filter((article) => {
+    if (seenIds.has(article.id)) return false;
+    seenIds.add(article.id);
+    return true;
+  });
+
+  if (isLoading) return <ArticleListSkeleton />;
+
+  if (error) {
+    return (
+      <Text style={[styles.message, { color: theme.text }]}>
+        {t("articlesLoadError")}
+      </Text>
+    );
+  }
+
+  return (
+    <FlatList
+      ref={listRef}
+      testID="article-list"
+      data={articles}
+      keyExtractor={(item) => item.id.toString()}
+      onRefresh={refetch}
+      refreshing={isRefetching}
+      onEndReached={() => {
+        if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+      }}
+      onEndReachedThreshold={0.5}
+      ListEmptyComponent={
+        <Text style={[styles.message, { color: theme.textSecondary }]}>
+          {t("noArticlesFound")}
+        </Text>
+      }
+      ListFooterComponent={
+        isFetchingNextPage ? (
+          <ActivityIndicator style={styles.footer} accessibilityLabel={t("loadingMore")} />
+        ) : null
+      }
+      style={{ backgroundColor: theme.background }}
+      contentContainerStyle={styles.listContent}
+      renderItem={({ item }) => (
+        <FeedCard
+          title={item.title}
+          metaText={item.source}
+          imageUrl={item.image_url}
+          category={item.category}
+          accessibilityLabel={`${item.title}, ${item.source}`}
+          debugScore={debugEnabled && item.ranking_score != null ? item.ranking_score : undefined}
+          debugTestID="ranking-debug-pill"
+          onPress={() =>
+            // basePath is built from a prop, so typed routes can't verify
+            // it statically like a literal pathname.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (router.push as any)({
+              pathname: `${basePath}/[id]`,
+              params: { id: String(item.id) },
+            })
+          }
+        />
+      )}
+    />
+  );
+}
+
+const styles = StyleSheet.create({
+  message: { padding: 16 },
+  footer: { paddingVertical: Spacing.four },
+  listContent: { padding: Spacing.three, gap: Spacing.three },
+});

@@ -1,0 +1,251 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+
+import { ARTICLES_PAGE_SIZE, fetchArticles, type Article } from "@/api/articles";
+import { DebugPreferenceProvider } from "@/contexts/debug-preference";
+import { LanguagePreferenceProvider } from "@/contexts/language-preference";
+import { ThemePreferenceProvider } from "@/contexts/theme-preference";
+import ArticleList from "../article-list";
+
+jest.mock("@/hooks/use-color-scheme", () => ({
+  useColorScheme: () => "light",
+}));
+
+jest.mock("@/api/articles", () => ({
+  ...jest.requireActual("@/api/articles"),
+  fetchArticles: jest.fn(),
+}));
+
+const mockPush = jest.fn();
+jest.mock("expo-router", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
+const mockFetchArticles = fetchArticles as jest.Mock;
+
+function makeArticle(overrides: Partial<Article> = {}): Article {
+  return {
+    id: 1,
+    title: "Test article title",
+    link: "https://example.com/1",
+    source: "Test Source",
+    category: "national",
+    published_at: "2026-01-15T18:30:00Z",
+    image_url: null,
+    fetched_at: "2026-01-15T18:31:00Z",
+    language: "en",
+    ...overrides,
+  };
+}
+
+function renderList(props: Partial<React.ComponentProps<typeof ArticleList>> = {}) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <ThemePreferenceProvider>
+        <LanguagePreferenceProvider>
+          <DebugPreferenceProvider>
+            <ArticleList basePath="/article" {...props} />
+          </DebugPreferenceProvider>
+        </LanguagePreferenceProvider>
+      </ThemePreferenceProvider>
+    </QueryClientProvider>
+  );
+}
+
+describe("ArticleList", () => {
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    await AsyncStorage.clear();
+    mockFetchArticles.mockResolvedValue([]);
+  });
+
+  it("shows a loading skeleton, then the article list once articles resolve", async () => {
+    mockFetchArticles.mockResolvedValue([
+      makeArticle({ id: 1, title: "First article", source: "NDTV" }),
+      makeArticle({ id: 2, title: "Second article", source: "Aaj Tak" }),
+    ]);
+
+    await act(async () => {
+      renderList();
+    });
+
+    expect(screen.getByRole("progressbar")).toBeTruthy();
+
+    await waitFor(() => {
+      expect(screen.getByText("First article")).toBeTruthy();
+    });
+    expect(screen.getByText("Second article")).toBeTruthy();
+    expect(screen.getByText("NDTV")).toBeTruthy();
+  });
+
+  it("shows an error message when the articles request fails", async () => {
+    mockFetchArticles.mockRejectedValue(new Error("network down"));
+
+    await act(async () => {
+      renderList();
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Something went wrong loading articles.")
+      ).toBeTruthy();
+    });
+  });
+
+  it("shows an empty state when there are no matching articles", async () => {
+    mockFetchArticles.mockResolvedValue([]);
+
+    await act(async () => {
+      renderList({ search: "nonexistent" });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("No articles found.")).toBeTruthy();
+    });
+  });
+
+  it("passes category and search through to fetchArticles", async () => {
+    await act(async () => {
+      renderList({ category: "business", search: "market" });
+    });
+
+    await waitFor(() => {
+      expect(mockFetchArticles).toHaveBeenCalledWith(
+        "en",
+        "business",
+        undefined,
+        "market"
+      );
+    });
+  });
+
+  it("requests the next page with the last article's cursor when end-reached fires", async () => {
+    const firstPage = Array.from({ length: ARTICLES_PAGE_SIZE }, (_, i) =>
+      makeArticle({
+        id: i + 1,
+        title: `Article ${i + 1}`,
+        fetched_at: `2026-01-15T18:${String(i).padStart(2, "0")}:00Z`,
+      })
+    );
+    mockFetchArticles.mockResolvedValueOnce(firstPage).mockResolvedValueOnce([]);
+
+    await act(async () => {
+      renderList();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Article 1")).toBeTruthy();
+    });
+
+    await act(async () => {
+      screen.getByTestId("article-list").props.onEndReached();
+    });
+
+    await waitFor(() => {
+      expect(mockFetchArticles).toHaveBeenCalledTimes(2);
+    });
+    // The cursor for the next page is derived from the last article of the
+    // page just loaded (fetched_at|id).
+    expect(mockFetchArticles).toHaveBeenLastCalledWith(
+      "en",
+      undefined,
+      "2026-01-15T18:19:00Z|20",
+      undefined
+    );
+  });
+
+  it("stops paginating once a page comes back shorter than the page size", async () => {
+    const shortPage = [makeArticle({ id: 1, title: "Only article" })];
+    mockFetchArticles.mockResolvedValueOnce(shortPage);
+
+    await act(async () => {
+      renderList();
+    });
+    await waitFor(() => {
+      expect(screen.getByText("Only article")).toBeTruthy();
+    });
+
+    mockFetchArticles.mockClear();
+    await act(async () => {
+      screen.getByTestId("article-list").props.onEndReached();
+    });
+
+    // A short first page means there is no next page - onEndReached should
+    // be a no-op rather than requesting more.
+    expect(mockFetchArticles).not.toHaveBeenCalled();
+  });
+
+  it("navigates to the article detail screen at basePath when a card is tapped", async () => {
+    mockFetchArticles.mockResolvedValue([
+      makeArticle({ id: 42, title: "Tap me", source: "NDTV" }),
+    ]);
+
+    await act(async () => {
+      renderList({ basePath: "/search/article" });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Tap me")).toBeTruthy();
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByRole("button", { name: "Tap me, NDTV" }));
+    });
+
+    expect(mockPush).toHaveBeenCalledWith({
+      pathname: "/search/article/[id]",
+      params: { id: "42" },
+    });
+  });
+
+  it("shows the ranking score as a debug pill on each card when debug mode is enabled", async () => {
+    await AsyncStorage.setItem("debugPreference", "true");
+    mockFetchArticles.mockResolvedValue([
+      makeArticle({ id: 1, title: "An article", ranking_score: 0.734 }),
+    ]);
+
+    await act(async () => {
+      renderList();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("ranking-debug-pill")).toBeTruthy();
+    });
+    expect(screen.getByText("0.73")).toBeTruthy();
+  });
+
+  it("hides the debug pill when debug mode is off, even with ranking data present", async () => {
+    mockFetchArticles.mockResolvedValue([
+      makeArticle({ id: 1, title: "An article", ranking_score: 0.5 }),
+    ]);
+
+    await act(async () => {
+      renderList();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("An article")).toBeTruthy();
+    });
+    expect(screen.queryByTestId("ranking-debug-pill")).toBeNull();
+  });
+
+  it("hides the debug pill when no ranking data is present, even with debug mode on", async () => {
+    await AsyncStorage.setItem("debugPreference", "true");
+    mockFetchArticles.mockResolvedValue([
+      makeArticle({ id: 1, title: "An article without a score" }),
+    ]);
+
+    await act(async () => {
+      renderList();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("An article without a score")).toBeTruthy();
+    });
+    expect(screen.queryByTestId("ranking-debug-pill")).toBeNull();
+  });
+});

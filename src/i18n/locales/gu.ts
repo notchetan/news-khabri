@@ -1,0 +1,90 @@
+import type en from "./en";
+
+const gu: Record<keyof typeof en, string> = {
+  tabHome: "હોમ",
+  tabProfile: "પ્રોફાઇલ",
+  // Same loanword convention as topStoriesShort's "ટોપ" below - "સેટિંગ્સ"
+  // (Settings) rather than the stiffer literal "પસંદગીઓ", and this screen
+  // genuinely is a settings screen (appearance/font/language + legal links).
+  tabPreferences: "સેટિંગ્સ",
+  articlesLoadError: "લેખ લોડ કરવામાં સમસ્યા આવી.",
+  back: "પાછળ",
+  articleLoadError: "આ લેખ લોડ થઈ શક્યો નહીં.",
+  articleContentError: "આ લેખનું સંપૂર્ણ લખાણ લોડ થઈ શક્યું નહીં.",
+  readOnTemplate: "{source} પર વાંચો",
+  relatedArticles: "સંબંધિત લેખો",
+  imageFailedToLoad: "છબી લોડ થઈ શકી નહીં",
+  noImage: "કોઈ છબી નથી",
+  profileTitle: "પ્રોફાઇલ",
+  profileComingSoon: "સાઇન-ઇન અને વ્યક્તિગતકરણ ટૂંક સમયમાં આવી રહ્યા છે.",
+  preferencesTitle: "સેટિંગ્સ",
+  appearance: "દેખાવ",
+  appearanceAutomaticDesc: "તમારા ડિવાઇસની સિસ્ટમ સેટિંગ સાથે મેળ ખાય",
+  appearanceDayDesc: "હંમેશા હળવો દેખાવ વાપરો",
+  appearanceNightDesc: "હંમેશા ઘાટો દેખાવ વાપરો",
+  articleFontSize: "લેખનું ફોન્ટ કદ",
+  fontPreviewText: "આ ફોન્ટ કદ દર્શાવતું એક નમૂના વાક્ય છે.",
+  language: "ભાષા",
+  languageDescription: "લેખો અને એપ્લિકેશન ટેક્સ્ટ માટે તમારી પસંદગીની ભાષા પસંદ કરો",
+  languageEnglish: "English",
+  languageHindi: "હિન્દી",
+  languageGujarati: "ગુજરાતી",
+  languageBengali: "બંગાળી",
+  languageKannada: "કન્નડ",
+  languageMarathi: "મરાઠી",
+  languageMalayalam: "મલયાલમ",
+  languageTamil: "તમિલ",
+  languageTelugu: "તેલુગુ",
+  languageOdia: "ઓડિયા",
+  articleImageAlt: "લેખની છબી",
+  showPhotoCredit: "ફોટો ક્રેડિટ બતાવો",
+  hidePhotoCredit: "ફોટો ક્રેડિટ છુપાવો",
+  loadingMore: "વધુ લેખો લોડ થઈ રહ્યા છે…",
+  loadingArticles: "લેખો લોડ થઈ રહ્યા છે…",
+  loadingArticle: "લેખ લોડ થઈ રહ્યો છે…",
+  fontSizeSmall: "નાનું ફોન્ટ કદ",
+  fontSizeMedium: "મધ્યમ ફોન્ટ કદ",
+  fontSizeLarge: "મોટું ફોન્ટ કદ",
+  minReadTemplate: "{minutes} મિનિટમાં વાંચો",
+  scrollToFirstCategory: "પ્રથમ શ્રેણી પર પાછા જાઓ",
+  tabSearch: "શોધો",
+  searchPlaceholder: "લેખ શોધો",
+  noArticlesFound: "કોઈ લેખ મળ્યો નહીં.",
+  topStories: "મુખ્ય સમાચાર",
+  // Same loanword convention as the Hindi locale's "टॉप" - "મુખ્ય" alone
+  // reads as an unfinished word without "સમાચાર" following it.
+  topStoriesShort: "ટોપ",
+  // These match the existing raw category values this app already stores
+  // for Gujarati sources (ઈન્ડિયા/બિઝનેસ/સ્પોર્ટ્સ/વર્લ્ડ/એન્ટરટેઇનમેન્ટ -
+  // see category-aliases.js on the backend), so translating through this
+  // key set is a no-op for content that was already Gujarati, and a real
+  // translation for content whose raw category is the shared English key.
+  categoryIndia: "ઈન્ડિયા",
+  categoryWorld: "વર્લ્ડ",
+  categoryBusiness: "બિઝનેસ",
+  categorySports: "સ્પોર્ટ્સ",
+  categoryCricket: "ક્રિકેટ",
+  categoryEntertainment: "એન્ટરટેઇનમેન્ટ",
+  categoryTech: "ટેક",
+  categoryLifestyle: "લાઇફસ્ટાઇલ",
+  categoryEducation: "શિક્ષણ",
+  categoryScience: "વિજ્ઞાન",
+  fontSizeSampleGlyph: "અ",
+  debugMode: "ડિબગ મોડ",
+  debugModeDescription:
+    "વેઇટિંગ લોજિક ચકાસવા માટે દરેક લેખનો રેન્કિંગ સ્કોર તેની છબી પર પિલ તરીકે બતાવો.",
+  storiesLoadError: "સ્ટોરી લોડ કરવામાં સમસ્યા આવી.",
+  noStoriesFound: "કોઈ સ્ટોરી મળી નહીં.",
+  storySourcesTemplate: "{count} સ્રોત",
+  storyArticlesTemplate: "{count} લેખ",
+  storyUpdatedTemplate: "{time} અપડેટ થયું",
+  storyMembersHeading: "આ સ્ટોરી કવર કરતા સ્રોત",
+  loadingStory: "સ્ટોરી લોડ થઈ રહી છે…",
+  storyLoadError: "આ સ્ટોરી લોડ થઈ શકી નહીં.",
+  share: "શેર કરો",
+  about: "અમારા વિશે",
+  privacyPolicy: "ગોપનીયતા નીતિ",
+  termsOfService: "સેવાની શરતો",
+};
+
+export default gu;

@@ -1,0 +1,47 @@
+diff --git a/node_modules/react-native-render-html/lib/commonjs/elements/IMGElementContentSuccess.js b/node_modules/react-native-render-html/lib/commonjs/elements/IMGElementContentSuccess.js
+index e26c07c..791b99f 100644
+--- a/node_modules/react-native-render-html/lib/commonjs/elements/IMGElementContentSuccess.js
++++ b/node_modules/react-native-render-html/lib/commonjs/elements/IMGElementContentSuccess.js
+@@ -13,9 +13,6 @@ function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "functio
+ 
+ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+ 
+-const defaultImageStyle = {
+-  resizeMode: 'cover'
+-};
+ /**
+  * Default success "image" view for the {@link IMGElement} component.
+  */
+@@ -34,7 +31,8 @@ function IMGElementContentSuccess({
+   return /*#__PURE__*/_react.default.createElement(_reactNative.Image, {
+     source: source,
+     onError: onImageError,
+-    style: [defaultImageStyle, dimensions, imageStyle],
++    resizeMode: "cover",
++    style: [dimensions, imageStyle],
+     testID: "image-success"
+   });
+ }
+diff --git a/node_modules/react-native-render-html/src/elements/IMGElementContentSuccess.tsx b/node_modules/react-native-render-html/src/elements/IMGElementContentSuccess.tsx
+index 6fa6db4..9940123 100644
+--- a/node_modules/react-native-render-html/src/elements/IMGElementContentSuccess.tsx
++++ b/node_modules/react-native-render-html/src/elements/IMGElementContentSuccess.tsx
+@@ -7,8 +7,6 @@ import {
+ } from 'react-native';
+ import { IMGElementStateSuccess } from './img-types';
+ 
+-const defaultImageStyle: ImageStyle = { resizeMode: 'cover' };
+-
+ /**
+  * Default success "image" view for the {@link IMGElement} component.
+  */
+@@ -27,7 +25,8 @@ export default function IMGElementContentSuccess({
+     <Image
+       source={source}
+       onError={onImageError}
+-      style={[defaultImageStyle, dimensions, imageStyle]}
++      resizeMode="cover"
++      style={[dimensions, imageStyle]}
+       testID="image-success"
+     />
+   );
