@@ -330,39 +330,40 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
               {data.title}
             </ThemedText>
 
-            <TouchableOpacity
-              onPress={shareArticle}
-              style={[styles.shareButton, { backgroundColor: theme.backgroundElement }]}
-              accessibilityRole="button"
-              accessibilityLabel={t("share")}
-            >
-              <SymbolView
-                name="square.and.arrow.up"
-                size={16}
-                weight="semibold"
-                tintColor={theme.text}
-                fallback={<ThemedText style={styles.shareGlyphFallback}>⬆</ThemedText>}
-              />
-              <ThemedText style={styles.shareButtonText}>{t("share")}</ThemedText>
-            </TouchableOpacity>
-
-            <View style={styles.metaRow}>
-              <ThemedText themeColor="textSecondary" style={styles.meta}>
-                {data.source}
-                {publishedLabel ? ` · ${publishedLabel}` : ""}
-              </ThemedText>
-              {data.read_time_minutes ? (
-                <View
-                  style={[
-                    styles.readTimePill,
-                    { backgroundColor: theme.backgroundElement },
-                  ]}
-                >
-                  <ThemedText themeColor="textSecondary" style={styles.readTimePillText}>
-                    {t("minReadTemplate", { minutes: String(data.read_time_minutes) })}
+            <View testID="article-meta-row" style={styles.metaRow}>
+              <View testID="article-meta-text-block" style={styles.metaTextBlock}>
+                <ThemedText themeColor="textSecondary" style={styles.meta}>
+                  {data.source}
+                </ThemedText>
+                {(publishedLabel || data.read_time_minutes) && (
+                  <ThemedText themeColor="textSecondary" style={styles.meta}>
+                    {[
+                      publishedLabel,
+                      data.read_time_minutes
+                        ? t("minReadTemplate", { minutes: String(data.read_time_minutes) })
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </ThemedText>
-                </View>
-              ) : null}
+                )}
+              </View>
+
+              <TouchableOpacity
+                onPress={shareArticle}
+                style={[styles.shareButton, { backgroundColor: theme.backgroundElement }]}
+                accessibilityRole="button"
+                accessibilityLabel={t("share")}
+              >
+                <SymbolView
+                  name="square.and.arrow.up"
+                  size={16}
+                  weight="semibold"
+                  tintColor={theme.text}
+                  fallback={<ThemedText style={styles.shareGlyphFallback}>⬆</ThemedText>}
+                />
+                <ThemedText style={styles.shareButtonText}>{t("share")}</ThemedText>
+              </TouchableOpacity>
             </View>
 
             {data.content ? (
@@ -585,33 +586,31 @@ const styles = StyleSheet.create({
   },
   imageCaptionText: { color: "#fff", fontSize: 13, lineHeight: 19 },
   title: { marginTop: Spacing.three },
+  // No longer alignSelf/marginTop'd for standalone placement - this now
+  // lives inside metaRow, on the right, the same position/role as
+  // story-detail-screen.tsx's own share button.
   shareButton: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start",
     gap: Spacing.one,
-    marginTop: Spacing.two,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     borderRadius: Radius.full,
   },
   shareButtonText: { fontSize: 14, fontWeight: "600" },
   shareGlyphFallback: { fontSize: 14, fontWeight: "700" },
+  // Matches story-detail-screen.tsx's own metaRow/metaTextBlock exactly:
+  // source above, date/time (+ read time, folded into the same line) below,
+  // on the left; share button on the right.
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
-    flexWrap: "wrap",
-    gap: Spacing.two,
+    justifyContent: "space-between",
     marginTop: Spacing.one,
     marginBottom: Spacing.three,
   },
+  metaTextBlock: { gap: 2 },
   meta: {},
-  readTimePill: {
-    paddingHorizontal: Spacing.two,
-    paddingVertical: 2,
-    borderRadius: Radius.full,
-  },
-  readTimePillText: { fontSize: 12 },
   noContent: { marginTop: Spacing.two },
   readOriginal: {
     marginTop: Spacing.four,

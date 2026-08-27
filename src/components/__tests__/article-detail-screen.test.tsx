@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { Share } from "react-native";
 
 import { fetchArticleDetail, type ArticleDetail } from "@/api/articles";
@@ -97,7 +97,11 @@ describe("ArticleDetailScreen", () => {
     await waitFor(() => {
       expect(screen.getByText("Main article title")).toBeTruthy();
     });
-    expect(screen.getByText(/NDTV ·/)).toBeTruthy();
+    // Source on its own line, date/time on the line below it - see the
+    // "source above, date below" layout test further down for the full
+    // structural check.
+    expect(screen.getByText("NDTV")).toBeTruthy();
+    expect(screen.getByText(/2026/)).toBeTruthy();
   });
 
   it("shows an error message when the article fails to load", async () => {
@@ -196,6 +200,32 @@ describe("ArticleDetailScreen", () => {
     expect(JSON.stringify(content)).toContain("Main article title");
 
     shareSpy.mockRestore();
+  });
+
+  it("shows the source above the date/time, both on the left of the share button - matching story-detail-screen's own meta layout", async () => {
+    // Regression test: the share button used to sit alone, above this row
+    // entirely, with source and date combined on one line here instead.
+    mockFetchArticleDetail.mockResolvedValue(
+      makeDetail({ source: "NDTV", read_time_minutes: 5 })
+    );
+    await act(async () => {
+      renderScreen();
+    });
+    await waitFor(() => screen.getByText("Main article title"));
+
+    const metaRow = screen.getByTestId("article-meta-row");
+    const metaTextBlock = screen.getByTestId("article-meta-text-block");
+
+    // Source and date/time (+ read time, folded into the same line rather
+    // than a separate pill) are both inside the text block, source first.
+    const sourceText = within(metaTextBlock).getByText("NDTV");
+    const dateText = within(metaTextBlock).getByText(/2026.*5 min read/);
+    expect(sourceText).toBeTruthy();
+    expect(dateText).toBeTruthy();
+
+    // The share button is a sibling of that text block within the same
+    // row, not a separate element above it.
+    expect(within(metaRow).getByRole("button", { name: "Share" })).toBeTruthy();
   });
 
   it("does not throw when the share sheet is dismissed or unsupported", async () => {
