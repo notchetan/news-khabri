@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Radius, Spacing } from "@/constants/theme";
+import { NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
 import { useLanguagePreference } from "@/contexts/language-preference";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
@@ -27,17 +27,6 @@ import { getCategoryIcon } from "@/utils/category-icon";
 
 const SEARCH_DEBOUNCE_MS = 300;
 const SEARCH_MIN_LENGTH = 2;
-
-// useSafeAreaInsets()'s `bottom` is only the home-indicator/gesture-area
-// inset - it says nothing about the native tab bar itself (see
-// app-tabs.tsx's NativeTabs), which this app's unstable-native-tabs
-// implementation exposes no JS API to measure. These are Apple/Material's
-// own long-documented standard tab bar content heights (49pt iOS, 56dp
-// Android) - added *on top of* insets.bottom, not instead of it, since that
-// inset is a separate, already-correct piece (0 on older non-notched
-// devices, ~34pt on notched ones) that a hardcoded bar height must not
-// replace.
-const NATIVE_TAB_BAR_HEIGHT = Platform.select({ ios: 49, android: 56, default: 0 });
 
 // English has 10 categories (5 rows of 2) - every language's card grid is
 // sized against that, not its own category count, so a language with fewer
@@ -55,7 +44,12 @@ const REFERENCE_GRID_ROWS = 5;
 // exact styles.gridContent/gridRow values below) so this math stays
 // correct if those spacing tokens ever change.
 const GRID_VERTICAL_PADDING = Spacing.three * 2;
-const GRID_ROW_GAPS = Spacing.two * (REFERENCE_GRID_ROWS - 1);
+// Matches gridContent's own row gap below (Spacing.three) - was
+// Spacing.two, a smaller value than the grid's own column gap and every
+// other major gap in the app, which read as visibly tighter between rows
+// than between columns for no real reason. Keep this in sync with
+// styles.gridContent.gap if that ever changes again.
+const GRID_ROW_GAPS = Spacing.three * (REFERENCE_GRID_ROWS - 1);
 
 // Groups a flat list into pairs for a 2-column grid - [1,2,3,4,5] ->
 // [[1,2],[3,4],[5]]. A plain function rather than FlatList's own
@@ -266,7 +260,11 @@ export default function SearchScreen() {
 
 const styles = StyleSheet.create({
   keyboardAvoidingView: { flex: 1 },
-  searchBarRow: { paddingHorizontal: Spacing.three, paddingBottom: Spacing.two },
+  // No paddingBottom here - whatever renders below (the category grid or
+  // ArticleList's search results) already supplies its own top padding
+  // (Spacing.three), and the two were stacking into a visibly bigger gap
+  // here than anywhere else in the app.
+  searchBarRow: { paddingHorizontal: Spacing.three },
   // A genuine capsule, not Squircle - real iOS search fields (Safari,
   // Messages, Settings) are fully-round pills, not a modest rounded-rect.
   // At this bar's height a squircle radius small enough to read as a
@@ -296,7 +294,10 @@ const styles = StyleSheet.create({
   // math dividing that measurement by REFERENCE_GRID_ROWS was already
   // correct.
   gridScrollView: { flex: 1 },
-  gridContent: { flexGrow: 1, padding: Spacing.three, gap: Spacing.two },
+  // Row gap matches gridRow's own column gap below (both Spacing.three) -
+  // see GRID_ROW_GAPS's own comment above for why this needs to stay in
+  // sync with that constant.
+  gridContent: { flexGrow: 1, padding: Spacing.three, gap: Spacing.three },
   gridRow: { flexDirection: "row", gap: Spacing.three },
   // Only used for the one frame before the first onLayout measurement
   // lands (cardRowHeight is still undefined then) - stretches like the old

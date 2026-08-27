@@ -90,3 +90,15 @@ export const Radius = {
 } as const;
 
 export const MaxContentWidth = 800;
+
+// useSafeAreaInsets().bottom is only the home-indicator/gesture-area inset -
+// it says nothing about the native tab bar itself (see app-tabs.tsx's
+// NativeTabs), which this app's unstable-native-tabs implementation exposes
+// no JS API to measure. These are Apple/Material's own long-documented
+// standard tab bar content heights (49pt iOS, 56dp Android) - any screen
+// that needs to reserve real space above the tab bar (so its own bottom
+// content isn't rendered underneath it) adds this *on top of*
+// insets.bottom, not instead of it, since that inset is a separate,
+// already-correct piece (0 on older non-notched devices, ~34pt on notched
+// ones) that this hardcoded bar height must not replace.
+export const NATIVE_TAB_BAR_HEIGHT = Platform.select({ ios: 49, android: 56, default: 0 });

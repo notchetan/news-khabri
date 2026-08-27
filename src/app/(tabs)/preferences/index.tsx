@@ -18,7 +18,7 @@ import AppHeader from "@/components/app-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { LANGUAGE_ENDONYMS } from "@/constants/languages";
-import { Radius, Spacing } from "@/constants/theme";
+import { NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
 import { useDebugPreference } from "@/contexts/debug-preference";
 import {
   FontSizePreference,
@@ -116,7 +116,11 @@ export default function PreferencesScreen() {
   return (
     <ThemedView style={[styles.container, { paddingTop: topPadding }]}>
       <AppHeader title={t("tabPreferences")} />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        testID="preferences-scroll"
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.toggleRow}>
           <ThemedText type="default" accessibilityRole="header">{t("appearance")}</ThemedText>
           <View style={styles.iconRow}>
@@ -291,11 +295,31 @@ export default function PreferencesScreen() {
         <ThemedText themeColor="textSecondary" style={styles.description}>
           {t("debugModeDescription")}
         </ThemedText>
+      </ScrollView>
 
+      {/* Pinned above the tab bar rather than scrolling with everything
+          else above - a fixed reference point (like iOS Settings' own app
+          version footer) rather than something that scrolls out of view
+          along with whichever toggle the user was actually there to
+          change. Needs its own NATIVE_TAB_BAR_HEIGHT reservation since it's
+          no longer inside the ScrollView, which never needed one itself
+          (content simply scrolls past/under the tab bar until this footer
+          existed to actually anchor something there). */}
+      <View
+        testID="preferences-legal-footer"
+        style={[
+          styles.legalFooter,
+          {
+            paddingBottom: Platform.select({
+              web: 0,
+              default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
+            }),
+          },
+        ]}
+      >
         <View
           style={[styles.divider, styles.sectionSpacing, { backgroundColor: theme.backgroundSelected }]}
         />
-
         <View style={styles.legalLinksRow}>
           {LEGAL_LINKS.map((link, index) => (
             <Fragment key={link.href}>
@@ -312,16 +336,23 @@ export default function PreferencesScreen() {
             </Fragment>
           ))}
         </View>
-      </ScrollView>
+      </View>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.four },
+  // flex:1 (not just contentContainerStyle) is what actually bounds the
+  // ScrollView to the space remaining after AppHeader and legalFooter below
+  // it - without it, the ScrollView sizes to its own content instead of
+  // being constrained by its parent, the same lesson learned the hard way
+  // in search/index.tsx's own gridScrollView.
+  scrollView: { flex: 1 },
+  scrollContent: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.three },
   sectionSpacing: { marginTop: Spacing.three },
   divider: { height: StyleSheet.hairlineWidth, marginBottom: Spacing.three },
+  legalFooter: { paddingHorizontal: Spacing.four },
   toggleRow: {
     flexDirection: "row",
     alignItems: "center",

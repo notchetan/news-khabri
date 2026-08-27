@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { FontSizePreferenceProvider } from "@/contexts/font-size-preference";
@@ -209,6 +209,23 @@ describe("PreferencesScreen", () => {
     // Two separators between three links - none before the first or after
     // the last.
     expect(screen.getAllByText("·")).toHaveLength(2);
+  });
+
+  it("pins About/Privacy Policy/Terms of Service above the tab bar instead of letting them scroll with the rest of the content", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    // Not a descendant of the scrollable area at all - a sibling that sits
+    // below it instead, so it can never scroll out of view along with a
+    // toggle the user was actually there to change.
+    const scrollView = screen.getByTestId("preferences-scroll");
+    expect(within(scrollView).queryByRole("button", { name: "About" })).toBeNull();
+
+    const footer = screen.getByTestId("preferences-legal-footer");
+    expect(within(footer).getByRole("button", { name: "About" })).toBeTruthy();
+    expect(within(footer).getByRole("button", { name: "Privacy Policy" })).toBeTruthy();
+    expect(within(footer).getByRole("button", { name: "Terms of Service" })).toBeTruthy();
   });
 
   it.each([

@@ -75,7 +75,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: Spacing.three,
-    paddingBottom: Spacing.two,
+    // Matches the app's other major structural gaps (list item spacing,
+    // grid spacing, etc.) - this is what every tab's own content sits
+    // below this header by, and it needs to be the same everywhere this
+    // header appears for that to actually read as consistent.
+    paddingBottom: Spacing.three,
     gap: Spacing.two,
   },
   titleGroup: {
