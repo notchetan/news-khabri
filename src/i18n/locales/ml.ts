@@ -47,7 +47,7 @@ const ml: Record<keyof typeof en, string> = {
   fontSizeLarge: "വലിയ ഫോണ്ട് വലുപ്പം",
   minReadTemplate: "{minutes} മിനിറ്റ് വായന",
   scrollToFirstCategory: "ആദ്യ വിഭാഗത്തിലേക്ക് മടങ്ങുക",
-  tabSearch: "തിരയുക",
+  tabSearch: "പര്യവേക്ഷണം ചെയ്യുക",
   searchPlaceholder: "ലേഖനങ്ങൾ തിരയുക",
   noArticlesFound: "ലേഖനങ്ങളൊന്നും കണ്ടെത്തിയില്ല.",
   topStories: "പ്രധാന വാർത്തകൾ",

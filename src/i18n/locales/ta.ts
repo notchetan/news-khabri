@@ -47,7 +47,7 @@ const ta: Record<keyof typeof en, string> = {
   fontSizeLarge: "பெரிய எழுத்துரு அளவு",
   minReadTemplate: "{minutes} நிமிட வாசிப்பு",
   scrollToFirstCategory: "முதல் பிரிவுக்குத் திரும்பு",
-  tabSearch: "தேடு",
+  tabSearch: "ஆராயுங்கள்",
   searchPlaceholder: "கட்டுரைகளைத் தேடு",
   noArticlesFound: "கட்டுரைகள் எதுவும் கிடைக்கவில்லை.",
   topStories: "முக்கிய செய்திகள்",

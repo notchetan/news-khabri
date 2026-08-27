@@ -363,10 +363,14 @@ const styles = StyleSheet.create({
   // being constrained by its parent, the same lesson learned the hard way
   // in search/index.tsx's own gridScrollView.
   scrollView: { flex: 1 },
-  scrollContent: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.three },
+  // Spacing.three (not four) specifically - matches AppHeader's own
+  // paddingHorizontal (see app-header.tsx), so every row's left/right edge
+  // lines up with the logo on the left and the profile icon on the right
+  // instead of sitting 8px further in than both.
+  scrollContent: { paddingHorizontal: Spacing.three, paddingBottom: Spacing.three },
   sectionSpacing: { marginTop: Spacing.three },
   divider: { height: StyleSheet.hairlineWidth, marginBottom: Spacing.three },
-  legalFooter: { paddingHorizontal: Spacing.four },
+  legalFooter: { paddingHorizontal: Spacing.three },
   toggleRow: {
     flexDirection: "row",
     alignItems: "center",

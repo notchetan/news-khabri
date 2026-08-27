@@ -51,7 +51,7 @@ const bn: Record<keyof typeof en, string> = {
   fontSizeLarge: "বড় ফন্ট আকার",
   minReadTemplate: "{minutes} মিনিটে পড়ুন",
   scrollToFirstCategory: "প্রথম বিভাগে ফিরে যান",
-  tabSearch: "খুঁজুন",
+  tabSearch: "এক্সপ্লোর করুন",
   searchPlaceholder: "নিবন্ধ খুঁজুন",
   noArticlesFound: "কোনো নিবন্ধ পাওয়া যায়নি।",
   topStories: "প্রধান খবর",

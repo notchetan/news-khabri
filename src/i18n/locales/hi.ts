@@ -49,7 +49,7 @@ const hi: Record<keyof typeof en, string> = {
   fontSizeLarge: "बड़ा फ़ॉन्ट आकार",
   minReadTemplate: "{minutes} मिनट में पढ़ें",
   scrollToFirstCategory: "पहली श्रेणी पर वापस जाएं",
-  tabSearch: "खोजें",
+  tabSearch: "एक्सप्लोर करें",
   searchPlaceholder: "लेख खोजें",
   noArticlesFound: "कोई लेख नहीं मिला।",
   topStories: "प्रमुख ख़बरें",

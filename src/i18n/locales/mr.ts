@@ -47,7 +47,7 @@ const mr: Record<keyof typeof en, string> = {
   fontSizeLarge: "मोठा फॉन्ट आकार",
   minReadTemplate: "{minutes} मिनिटांत वाचा",
   scrollToFirstCategory: "पहिल्या श्रेणीकडे परत जा",
-  tabSearch: "शोधा",
+  tabSearch: "एक्सप्लोर करा",
   searchPlaceholder: "लेख शोधा",
   noArticlesFound: "कोणतेही लेख आढळले नाहीत.",
   topStories: "प्रमुख बातम्या",

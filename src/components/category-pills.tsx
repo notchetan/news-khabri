@@ -235,6 +235,25 @@ export default function CategoryPills({
             testID="category-pills-scroll-view"
             horizontal
             showsHorizontalScrollIndicator={false}
+            // The pinned pill's collapse is driven by real contentOffset.x
+            // values over a fixed [0, PINNED_PILL_COLLAPSE_DISTANCE] range,
+            // regardless of how much is actually scrollable - fine normally
+            // (extrapolate: "clamp" keeps anything past that range steady),
+            // but a fast fling's native rubber-band bounce can overshoot
+            // past the real end and spring back several times before
+            // settling, generating oscillating contentOffset.x values. For
+            // a language with few categories (a short scrollable range,
+            // e.g. Marathi's 4), that overshoot-and-settle repeatedly
+            // sweeps back through the *whole* [0, 60] range instead of
+            // safely past it, visibly making the pinned pill's width/text
+            // jitter each bounce cycle - not reproducible with more
+            // categories (English's 10), where the same bounce still
+            // happens but far past 60, already fully clamped. Disabling
+            // the bounce/overscroll effect here removes the oscillating
+            // input at its source, rather than trying to make the
+            // interpolation itself robust against arbitrarily large swings.
+            bounces={false}
+            overScrollMode="never"
             onScroll={handleScroll}
             scrollEventThrottle={16}
             style={styles.scrollView}

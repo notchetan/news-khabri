@@ -47,7 +47,7 @@ const kn: Record<keyof typeof en, string> = {
   fontSizeLarge: "ದೊಡ್ಡ ಫಾಂಟ್ ಗಾತ್ರ",
   minReadTemplate: "{minutes} ನಿಮಿಷಗಳ ಓದು",
   scrollToFirstCategory: "ಮೊದಲ ವರ್ಗಕ್ಕೆ ಹಿಂತಿರುಗಿ",
-  tabSearch: "ಹುಡುಕಿ",
+  tabSearch: "ಎಕ್ಸ್‌ಪ್ಲೋರ್ ಮಾಡಿ",
   searchPlaceholder: "ಲೇಖನಗಳನ್ನು ಹುಡುಕಿ",
   noArticlesFound: "ಯಾವುದೇ ಲೇಖನಗಳು ಕಂಡುಬಂದಿಲ್ಲ.",
   topStories: "ಪ್ರಮುಖ ಸುದ್ದಿಗಳು",

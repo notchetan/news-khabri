@@ -51,7 +51,7 @@ const or: Record<keyof typeof en, string> = {
   fontSizeLarge: "ବଡ଼ ଫଣ୍ଟ ଆକାର",
   minReadTemplate: "{minutes} ମିନିଟ୍ ପଠନ",
   scrollToFirstCategory: "ପ୍ରଥମ ବର୍ଗକୁ ଫେରନ୍ତୁ",
-  tabSearch: "ଖୋଜନ୍ତୁ",
+  tabSearch: "ଏକ୍ସପ୍ଲୋର୍ କରନ୍ତୁ",
   searchPlaceholder: "ପ୍ରବନ୍ଧ ଖୋଜନ୍ତୁ",
   noArticlesFound: "କୌଣସି ପ୍ରବନ୍ଧ ମିଳିଲା ନାହିଁ।",
   topStories: "ପ୍ରମୁଖ ଖବର",

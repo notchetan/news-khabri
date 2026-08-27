@@ -47,7 +47,7 @@ const te: Record<keyof typeof en, string> = {
   fontSizeLarge: "పెద్ద ఫాంట్ పరిమాణం",
   minReadTemplate: "{minutes} నిమిషాల చదవడం",
   scrollToFirstCategory: "మొదటి వర్గానికి తిరిగి వెళ్లండి",
-  tabSearch: "శోధించు",
+  tabSearch: "అన్వేషించండి",
   searchPlaceholder: "కథనాలను శోధించండి",
   noArticlesFound: "కథనాలు ఏవీ కనుగొనబడలేదు.",
   topStories: "ముఖ్యమైన వార్తలు",
