@@ -290,7 +290,6 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
                 style={{
                   opacity: headerLabelOpacity,
                   maxWidth: backLabelWidth,
-                  height: 20,
                   overflow: "hidden",
                 }}
               >
@@ -317,7 +316,6 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
                 style={{
                   opacity: headerLabelOpacity,
                   maxWidth: brandLabelWidth,
-                  height: 20,
                   overflow: "hidden",
                 }}
               >
@@ -628,14 +626,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
   },
-  backPressableRow: { flexDirection: "row", alignItems: "center" },
-  backGlyph: { fontSize: 16, fontWeight: "600" },
+  // flex-end (not center) so the label sits against the icon/logo's own
+  // bottom edge rather than optically centered against it - a label's
+  // natural line-height box has real headroom above the glyph itself for
+  // Devanagari/Tamil/etc.'s taller ascenders/matras (see backGlyph's own
+  // comment), so centering that box against a small fixed-size icon put
+  // the *glyph* noticeably higher than the icon's own center, and for the
+  // tallest scripts the old hard height:20 clip on the label wrapper
+  // (removed below) cut into that headroom directly, clipping the top of
+  // the glyph. Anchoring to the bottom instead means that headroom simply
+  // extends upward past the icon, harmlessly, whatever its size ends up
+  // being for a given script.
+  backPressableRow: { flexDirection: "row", alignItems: "flex-end" },
+  // A generous lineHeight (not equal to fontSize) - same reasoning as the
+  // font-size preview glyph fix in preferences/index.tsx: Devanagari/
+  // Tamil/etc. glyphs need real headroom above fontSize itself or they
+  // clip, and the label wrapper above no longer has its own fixed height
+  // to clip them regardless (see backPressableRow's own comment).
+  backGlyph: {
+    fontSize: 16,
+    fontWeight: "600",
+    lineHeight: Math.ceil(16 * 1.4),
+    ...Platform.select({
+      android: { includeFontPadding: false, textAlignVertical: "center" },
+      default: {},
+    }),
+  },
   backLabel: { flexShrink: 0 },
   // Same shape as backGlass, on the opposite side.
   brandGlass: { alignSelf: "flex-start", borderRadius: Radius.full, overflow: "hidden" },
   brandRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-end",
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
   },

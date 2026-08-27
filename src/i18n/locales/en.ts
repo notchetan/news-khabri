@@ -47,7 +47,7 @@ const en = {
   fontSizeLarge: "Large font size",
   minReadTemplate: "{minutes} min read",
   scrollToFirstCategory: "Scroll back to first category",
-  tabSearch: "Search",
+  tabSearch: "Explore",
   searchPlaceholder: "Search articles",
   noArticlesFound: "No articles found.",
   topStories: "Top Stories",

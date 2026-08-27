@@ -48,7 +48,7 @@ const gu: Record<keyof typeof en, string> = {
   fontSizeLarge: "મોટું ફોન્ટ કદ",
   minReadTemplate: "{minutes} મિનિટમાં વાંચો",
   scrollToFirstCategory: "પ્રથમ શ્રેણી પર પાછા જાઓ",
-  tabSearch: "શોધો",
+  tabSearch: "એક્સપ્લોર કરો",
   searchPlaceholder: "લેખ શોધો",
   noArticlesFound: "કોઈ લેખ મળ્યો નહીં.",
   topStories: "મુખ્ય સમાચાર",
