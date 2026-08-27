@@ -20,7 +20,7 @@ const bn: Record<keyof typeof en, string> = {
   imageFailedToLoad: "ছবি লোড হয়নি",
   noImage: "কোনো ছবি নেই",
   profileTitle: "প্রোফাইল",
-  profileComingSoon: "সাইন-ইন এবং ব্যক্তিগতকরণ শীঘ্রই আসছে।",
+  profileComingSoon: "সাইন-ইন এবং ব্যক্তিগতকরণ শীঘ্রই আসছে",
   preferencesTitle: "সেটিংস",
   appearance: "চেহারা",
   appearanceAutomaticDesc: "আপনার ডিভাইসের সিস্টেম সেটিংয়ের সাথে মিলান",
@@ -58,6 +58,7 @@ const bn: Record<keyof typeof en, string> = {
   tabSearch: "এক্সপ্লোর করুন",
   searchPlaceholder: "নিবন্ধ খুঁজুন",
   noArticlesFound: "কোনো নিবন্ধ পাওয়া যায়নি।",
+  noResultsForTemplate: "{query} এর জন্য কোনো ফলাফল পাওয়া যায়নি",
   topStories: "প্রধান খবর",
   // "টপ" - same common-loanword convention as the Hindi locale's "टॉप".
   topStoriesShort: "টপ",

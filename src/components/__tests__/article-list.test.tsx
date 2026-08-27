@@ -103,7 +103,19 @@ describe("ArticleList", () => {
     });
   });
 
-  it("shows an empty state when there are no matching articles", async () => {
+  it("shows a category-browse empty state when there are no matching articles and no search term", async () => {
+    mockFetchArticles.mockResolvedValue([]);
+
+    await act(async () => {
+      renderList({ category: "business" });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("No articles found.")).toBeTruthy();
+    });
+  });
+
+  it("shows a search-specific empty state echoing the query, centered, without a trailing full stop", async () => {
     mockFetchArticles.mockResolvedValue([]);
 
     await act(async () => {
@@ -111,7 +123,11 @@ describe("ArticleList", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText("No articles found.")).toBeTruthy();
+      expect(screen.getByText("No results found for nonexistent")).toBeTruthy();
+    });
+    expect(screen.queryByText("No articles found.")).toBeNull();
+    expect(screen.getByText("No results found for nonexistent")).toHaveStyle({
+      textAlign: "center",
     });
   });
 

@@ -16,7 +16,7 @@ const kn: Record<keyof typeof en, string> = {
   imageFailedToLoad: "ಚಿತ್ರ ಲೋಡ್ ಆಗಲಿಲ್ಲ",
   noImage: "ಚಿತ್ರವಿಲ್ಲ",
   profileTitle: "ಪ್ರೊಫೈಲ್",
-  profileComingSoon: "ಸೈನ್-ಇನ್ ಮತ್ತು ವೈಯಕ್ತೀಕರಣ ಶೀಘ್ರದಲ್ಲೇ ಬರಲಿದೆ.",
+  profileComingSoon: "ಸೈನ್-ಇನ್ ಮತ್ತು ವೈಯಕ್ತೀಕರಣ ಶೀಘ್ರದಲ್ಲೇ ಬರಲಿದೆ",
   preferencesTitle: "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
   appearance: "ನೋಟ",
   appearanceAutomaticDesc: "ನಿಮ್ಮ ಸಾಧನದ ಸಿಸ್ಟಂ ಸೆಟ್ಟಿಂಗ್‌ಗೆ ಹೊಂದಿಸಿ",
@@ -54,6 +54,7 @@ const kn: Record<keyof typeof en, string> = {
   tabSearch: "ಎಕ್ಸ್‌ಪ್ಲೋರ್ ಮಾಡಿ",
   searchPlaceholder: "ಲೇಖನಗಳನ್ನು ಹುಡುಕಿ",
   noArticlesFound: "ಯಾವುದೇ ಲೇಖನಗಳು ಕಂಡುಬಂದಿಲ್ಲ.",
+  noResultsForTemplate: "{query} ಗಾಗಿ ಯಾವುದೇ ಫಲಿತಾಂಶಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
   topStories: "ಪ್ರಮುಖ ಸುದ್ದಿಗಳು",
   // "ಟಾಪ್" - same common-loanword convention as the Hindi locale's "टॉप".
   topStoriesShort: "ಟಾಪ್",

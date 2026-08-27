@@ -16,7 +16,7 @@ const ta: Record<keyof typeof en, string> = {
   imageFailedToLoad: "படம் ஏற்றப்படவில்லை",
   noImage: "படம் இல்லை",
   profileTitle: "சுயவிவரம்",
-  profileComingSoon: "உள்நுழைவும் தனிப்பயனாக்கமும் விரைவில் வரும்.",
+  profileComingSoon: "உள்நுழைவும் தனிப்பயனாக்கமும் விரைவில் வரும்",
   preferencesTitle: "அமைப்புகள்",
   appearance: "தோற்றம்",
   appearanceAutomaticDesc: "உங்கள் சாதனத்தின் சிஸ்டம் அமைப்புடன் பொருத்தவும்",
@@ -54,6 +54,7 @@ const ta: Record<keyof typeof en, string> = {
   tabSearch: "ஆராயுங்கள்",
   searchPlaceholder: "கட்டுரைகளைத் தேடு",
   noArticlesFound: "கட்டுரைகள் எதுவும் கிடைக்கவில்லை.",
+  noResultsForTemplate: "{query} க்கான முடிவுகள் எதுவும் கிடைக்கவில்லை",
   topStories: "முக்கிய செய்திகள்",
   // "டாப்" - same common-loanword convention as the Hindi locale's "टॉप".
   topStoriesShort: "டாப்",

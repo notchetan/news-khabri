@@ -16,7 +16,7 @@ const ml: Record<keyof typeof en, string> = {
   imageFailedToLoad: "ചിത്രം ലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല",
   noImage: "ചിത്രമില്ല",
   profileTitle: "പ്രൊഫൈൽ",
-  profileComingSoon: "സൈൻ-ഇനും വ്യക്തിഗതമാക്കലും ഉടൻ വരുന്നു.",
+  profileComingSoon: "സൈൻ-ഇനും വ്യക്തിഗതമാക്കലും ഉടൻ വരുന്നു",
   preferencesTitle: "ക്രമീകരണങ്ങൾ",
   appearance: "രൂപം",
   appearanceAutomaticDesc: "നിങ്ങളുടെ ഉപകരണത്തിന്റെ സിസ്റ്റം ക്രമീകരണവുമായി പൊരുത്തപ്പെടുത്തുക",
@@ -54,6 +54,7 @@ const ml: Record<keyof typeof en, string> = {
   tabSearch: "പര്യവേക്ഷണം ചെയ്യുക",
   searchPlaceholder: "ലേഖനങ്ങൾ തിരയുക",
   noArticlesFound: "ലേഖനങ്ങളൊന്നും കണ്ടെത്തിയില്ല.",
+  noResultsForTemplate: "{query} എന്നതിനായി ഫലങ്ങളൊന്നും കണ്ടെത്തിയില്ല",
   topStories: "പ്രധാന വാർത്തകൾ",
   // "ടോപ്പ്" - same common-loanword convention as the Hindi locale's "टॉप".
   topStoriesShort: "ടോപ്പ്",

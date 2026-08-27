@@ -84,8 +84,14 @@ export default function ArticleList({ category, search, basePath }: Props) {
       }}
       onEndReachedThreshold={0.5}
       ListEmptyComponent={
-        <Text style={[styles.message, { color: theme.textSecondary }]}>
-          {t("noArticlesFound")}
+        <Text
+          style={[
+            styles.message,
+            search ? styles.messageCentered : null,
+            { color: theme.textSecondary },
+          ]}
+        >
+          {search ? t("noResultsForTemplate", { query: search }) : t("noArticlesFound")}
         </Text>
       }
       ListFooterComponent={
@@ -121,6 +127,7 @@ export default function ArticleList({ category, search, basePath }: Props) {
 
 const styles = StyleSheet.create({
   message: { padding: 16 },
+  messageCentered: { textAlign: "center" },
   footer: { paddingVertical: Spacing.four },
   listContent: { padding: Spacing.three, gap: Spacing.three },
 });

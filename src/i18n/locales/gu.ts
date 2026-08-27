@@ -17,7 +17,7 @@ const gu: Record<keyof typeof en, string> = {
   imageFailedToLoad: "છબી લોડ થઈ શકી નહીં",
   noImage: "કોઈ છબી નથી",
   profileTitle: "પ્રોફાઇલ",
-  profileComingSoon: "સાઇન-ઇન અને વ્યક્તિગતકરણ ટૂંક સમયમાં આવી રહ્યા છે.",
+  profileComingSoon: "સાઇન-ઇન અને વ્યક્તિગતકરણ ટૂંક સમયમાં આવી રહ્યા છે",
   preferencesTitle: "સેટિંગ્સ",
   appearance: "દેખાવ",
   appearanceAutomaticDesc: "તમારા ડિવાઇસની સિસ્ટમ સેટિંગ સાથે મેળ ખાય",
@@ -55,6 +55,7 @@ const gu: Record<keyof typeof en, string> = {
   tabSearch: "એક્સપ્લોર કરો",
   searchPlaceholder: "લેખ શોધો",
   noArticlesFound: "કોઈ લેખ મળ્યો નહીં.",
+  noResultsForTemplate: "{query} માટે કોઈ પરિણામ મળ્યું નથી",
   topStories: "મુખ્ય સમાચાર",
   // Same loanword convention as the Hindi locale's "टॉप" - "મુખ્ય" alone
   // reads as an unfinished word without "સમાચાર" following it.

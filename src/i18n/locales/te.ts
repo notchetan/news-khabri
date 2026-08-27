@@ -16,7 +16,7 @@ const te: Record<keyof typeof en, string> = {
   imageFailedToLoad: "చిత్రం లోడ్ కాలేదు",
   noImage: "చిత్రం లేదు",
   profileTitle: "ప్రొఫైల్",
-  profileComingSoon: "సైన్-ఇన్ మరియు వ్యక్తిగతీకరణ త్వరలో వస్తాయి.",
+  profileComingSoon: "సైన్-ఇన్ మరియు వ్యక్తిగతీకరణ త్వరలో వస్తాయి",
   preferencesTitle: "సెట్టింగ్‌లు",
   appearance: "రూపం",
   appearanceAutomaticDesc: "మీ పరికరం సిస్టమ్ సెట్టింగ్‌తో సరిపోల్చండి",
@@ -54,6 +54,7 @@ const te: Record<keyof typeof en, string> = {
   tabSearch: "అన్వేషించండి",
   searchPlaceholder: "కథనాలను శోధించండి",
   noArticlesFound: "కథనాలు ఏవీ కనుగొనబడలేదు.",
+  noResultsForTemplate: "{query} కోసం ఫలితాలు ఏవీ కనుగొనబడలేదు",
   topStories: "ముఖ్యమైన వార్తలు",
   // "టాప్" - same common-loanword convention as the Hindi locale's "टॉप".
   topStoriesShort: "టాప్",

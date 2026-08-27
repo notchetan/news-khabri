@@ -16,7 +16,7 @@ const en = {
   imageFailedToLoad: "Image failed to load",
   noImage: "No image",
   profileTitle: "Profile",
-  profileComingSoon: "Sign-in and personalization are coming soon.",
+  profileComingSoon: "Sign-in and personalization are coming soon",
   preferencesTitle: "Preferences",
   appearance: "Appearance",
   appearanceAutomaticDesc: "Match your device's system setting",
@@ -59,6 +59,10 @@ const en = {
   tabSearch: "Explore",
   searchPlaceholder: "Search articles",
   noArticlesFound: "No articles found.",
+  // Search-results-specific empty state (see article-list.tsx) - echoes
+  // the actual query back so it's clear what came up empty, unlike the
+  // generic noArticlesFound above used for a category with nothing in it.
+  noResultsForTemplate: "No results found for {query}",
   topStories: "Top Stories",
   topStoriesShort: "Top",
   categoryIndia: "India",

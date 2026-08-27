@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import { Share } from "react-native";
 
 import { fetchArticleDetail, type ArticleDetail } from "@/api/articles";
+import { Spacing } from "@/constants/theme";
 import { FontSizePreferenceProvider } from "@/contexts/font-size-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
@@ -361,6 +362,36 @@ describe("ArticleDetailScreen", () => {
     });
     expect(opacityOf(backLabel)).toBe(1);
     expect(opacityOf(brandLabel)).toBe(1);
+  });
+
+  it("starts the scroll content below the measured header height, so the hero image loads below the header instead of behind it", async () => {
+    mockFetchArticleDetail.mockResolvedValue(makeDetail());
+    await act(async () => {
+      renderScreen();
+    });
+    await waitFor(() => screen.getByText("Main article title"));
+
+    const scrollView = screen.getByTestId("article-scroll-view");
+    const paddingTopOf = () => {
+      const style = [scrollView.props.contentContainerStyle].flat();
+      return style.find((s) => s && "paddingTop" in s)?.paddingTop;
+    };
+
+    // Before the header row's own onLayout has measured anything, a
+    // generous fallback still clears it (see contentTopPadding's own
+    // comment) - well past a bare status-bar-only inset.
+    expect(paddingTopOf()).toBeGreaterThan(20);
+
+    // Once the real header row measures taller than that fallback, the
+    // scroll content's top padding grows to match it (plus its own small
+    // gap) - the hero image should never load already tucked behind the
+    // header.
+    await act(async () => {
+      fireEvent(screen.getByTestId("article-header-row"), "layout", {
+        nativeEvent: { layout: { height: 120, width: 400, x: 0, y: 0 } },
+      });
+    });
+    expect(paddingTopOf()).toBe(120 + Spacing.two);
   });
 
   it("shows and hides the photo caption when the info badge is toggled", async () => {

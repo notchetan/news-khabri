@@ -78,16 +78,15 @@ export default function SearchScreen() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const searchInputRef = useRef<TextInput>(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
-  // The grid's own measured height, captured once per keyboard state (not
-  // recomputed on every layout pass, which would also fire mid-animation
-  // with a transient in-between value) - whichever of the two is relevant
-  // right now is what REFERENCE_GRID_ROWS divides into a fixed row height
-  // below, and it stays remembered across a keyboard toggle so switching
-  // back doesn't need to re-measure.
-  const [measuredHeights, setMeasuredHeights] = useState<{
-    open: number | null;
-    closed: number | null;
-  }>({ open: null, closed: null });
+  // The grid's own measured height while the keyboard is *closed* only -
+  // this is what REFERENCE_GRID_ROWS divides into a fixed row height
+  // below, and it's deliberately never overwritten by a layout pass fired
+  // while the keyboard is open (see handleGridLayout's own guard). The
+  // grid used to remember a separate measurement per keyboard state and
+  // switch between them, which meant every keyboard show/hide visibly
+  // resized the cards - the request was for the cards to just stay the
+  // fixed size they are with the keyboard closed, always.
+  const [closedHeight, setClosedHeight] = useState<number | null>(null);
 
   // Focus the search box (and raise the keyboard) every time this tab gains
   // focus - matches how Apple's own App Store/Podcasts/Music Search tabs
@@ -111,20 +110,22 @@ export default function SearchScreen() {
   }, []);
 
   const handleGridLayout = (event: LayoutChangeEvent) => {
-    const height = event.nativeEvent.layout.height;
-    setMeasuredHeights((prev) =>
-      keyboardVisible ? { ...prev, open: height } : { ...prev, closed: height }
-    );
+    // A layout pass fired while the keyboard is showing reports the
+    // keyboard-shrunk available height, not the grid's real (closed) size -
+    // ignoring it here, rather than remembering it under its own key, is
+    // what keeps the cards from ever resizing on keyboard show/hide.
+    if (keyboardVisible) return;
+    setClosedHeight(event.nativeEvent.layout.height);
   };
 
-  // Before the very first layout pass reports a real number, cardRowHeight
-  // is undefined and gridRow falls back to flex:1 (see its style below) -
-  // a brief, harmless default for the one frame before measurement lands,
-  // never a visible jump since it only affects an already-empty grid.
-  const referenceHeight = keyboardVisible ? measuredHeights.open : measuredHeights.closed;
-  const cardRowHeight = referenceHeight
+  // Before the first closed-keyboard layout pass reports a real number
+  // (e.g. this tab was focused with the keyboard already up, from the
+  // auto-focus below), cardRowHeight is undefined and gridRow falls back
+  // to flex:1 (see its style below) - a brief, harmless default, never a
+  // visible jump since it only affects an already-empty grid.
+  const cardRowHeight = closedHeight
     ? Math.max(
-        (referenceHeight - GRID_VERTICAL_PADDING - GRID_ROW_GAPS) / REFERENCE_GRID_ROWS,
+        (closedHeight - GRID_VERTICAL_PADDING - GRID_ROW_GAPS) / REFERENCE_GRID_ROWS,
         0
       )
     : undefined;
