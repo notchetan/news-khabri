@@ -90,6 +90,30 @@ describe("CategoryPills", () => {
     expect(screen.queryByTestId("category-pills-scroll-view")).toBeNull();
   });
 
+  it("disables the native scroll bounce/overscroll, so a fast fling can't oscillate the pinned pill's collapse", async () => {
+    // Regression test: the pinned pill's collapse is driven by real
+    // contentOffset.x over a fixed distance, regardless of how much is
+    // actually scrollable. For a short category list (e.g. Marathi's 4
+    // categories), a fast fling's native rubber-band bounce can overshoot
+    // past the real end and spring back several times before settling,
+    // sweeping contentOffset.x back through that whole collapse range each
+    // cycle - visibly jittering the pill's width/text. Not reproducible in
+    // jest (no real scroll-bounce physics here), so this only asserts the
+    // fix itself: bounce/overscroll is turned off at the source, which
+    // removes the oscillating input regardless of list length.
+    await renderWithTheme(
+      <CategoryPills
+        categories={["All", "Sports", "Business"]}
+        selected="All"
+        onSelect={jest.fn()}
+      />
+    );
+
+    const scrollView = screen.getByTestId("category-pills-scroll-view");
+    expect(scrollView).toHaveProp("bounces", false);
+    expect(scrollView).toHaveProp("overScrollMode", "never");
+  });
+
   it("does not show the scroll-back arrow before the list has been scrolled", async () => {
     await renderWithTheme(
       <CategoryPills
