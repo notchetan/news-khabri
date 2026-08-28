@@ -54,8 +54,15 @@ export function ThemePreferenceProvider({
   // real system setting.
   useEffect(() => {
     if (Platform.OS === "web") return;
+    // "unspecified", not null - RN's ColorSchemeName dropped null in favor
+    // of this literal for "no override, follow the system" (see
+    // NativeAppearance.d.ts).
     Appearance.setColorScheme(
-      preference === "automatic" ? null : preference === "night" ? "dark" : "light"
+      preference === "automatic"
+        ? "unspecified"
+        : preference === "night"
+          ? "dark"
+          : "light"
     );
   }, [preference]);
 

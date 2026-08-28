@@ -1,6 +1,6 @@
 # Expo HAS CHANGED
 
-Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
+Read the exact versioned docs at https://docs.expo.dev/versions/v55.0.0/ before writing any code.
 
 # News Khabri (frontend) — notes for AI agents
 
@@ -31,8 +31,8 @@ new one.
 
 ## Architecture at a glance
 
-- Expo SDK 54, `expo-router` (file-based routing under `src/app/`),
-  React 19, RN 0.81.
+- Expo SDK 55, `expo-router` (file-based routing under `src/app/`),
+  React 19, RN 0.83.
 - Data fetching: `@tanstack/react-query` over a thin `fetch`-based client
   in `src/api/` (`articles.ts`, `stories.ts`). No client-side caching
   logic of our own — react-query owns that.
@@ -94,6 +94,19 @@ new one.
   `patch-package` on `postinstall`. If a dependency reinstall ever wipes
   out an expected behavior in rendered HTML content, check here before
   assuming the library changed.
+- `patches/react-native-screens+4.16.0.patch` (same `patch-package` /
+  `postinstall` mechanism) extends an upstream `formSheet`-only
+  background-color workaround to `push` too - see
+  `docs/navigation-white-flash.md`'s third layer for why this was needed
+  even after both JS-level fixes (the React Navigation `Theme` override
+  and the `expo-system-ui` root-view sync) were already in place.
+- `plugins/with-android-root-view-background.js`, a local Expo config
+  plugin registered in `app.json`, sets Android's static
+  `android:windowBackground` theme attribute (light/dark split via
+  `values`/`values-night` colors.xml) - the layer Android's edge-to-edge
+  rounded-corner mask actually samples, and none of the four
+  navigation-white-flash layers above reach it since it's static, not
+  JS-driven. See `docs/navigation-white-flash.md`'s fourth layer.
 - `require("@/assets/...")` (image assets, not source) needs its own
   entry in `package.json`'s `jest.moduleNameMapper`
   (`"^@/assets/(.*)$": "<rootDir>/assets/$1"`) - jest-expo auto-derives a
@@ -105,6 +118,28 @@ new one.
   (`app-header.tsx`) needed the same asset - if a new component that
   `require()`s something under `assets/` suddenly fails jest with
   "Could not locate module... mapped as .../src/$1", this is why.
+- On the Expo SDK 54 -> 55 upgrade, `expo-modules-core` surfaced the exact
+  same `expo-asset` hoisting gap above, one level deeper:
+  `jest-expo`'s own setup does a plain `require('expo-modules-core')`,
+  which Metro tolerates nested at `node_modules/expo/node_modules/expo-modules-core`
+  but Jest's stricter resolver can't find unless it's hoisted to the top
+  level - fixed the same way, `npx expo install expo-modules-core`. Also
+  from that same upgrade: `react-native-worklets` (bumped 0.5.1 -> 0.7.x)
+  now throws `WorkletsError: Native part of Worklets doesn't seem to be
+  initialized` under Jest instead of silently no-op-ing - needs an
+  explicit `jest.mock("react-native-worklets", () =>
+  require("react-native-worklets/lib/module/mock"))` in `jest.setup.js`
+  (the package has no top-level `mock.js`/`mock/` export, only the
+  compiled `lib/module/mock.js`).
+- `expo prebuild`'s default (non-`--clean`) mode diffs against the
+  existing `android/`/`ios/` folders rather than fully regenerating them -
+  after the SDK 55 upgrade this left a stale `MainApplication.kt`
+  referencing `ReactNativeHostWrapper`, a symbol the new template no
+  longer has, breaking the Kotlin compile. Since `android/`/`ios/` are
+  both gitignored and never hand-edited here (only touched via config
+  plugins), there's nothing to lose - delete the folder and let
+  `expo prebuild` regenerate it from scratch after any SDK bump, don't
+  rely on the incremental diff.
 
 ## Hard-won `Animated` / `onLayout` / layout lessons
 
