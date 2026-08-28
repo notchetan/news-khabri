@@ -122,7 +122,7 @@ export default function CategoryPills({
   );
 
   return (
-    <View style={styles.row}>
+    <View testID="category-pills-row" style={styles.row}>
       <View style={styles.pinnedContainer}>
         <PinnedPill
           fullLabel={pinnedFullLabel}
@@ -384,10 +384,12 @@ function Pill({
   );
 }
 
-// Screen-edge padding vs. the gap between items within the row - see
-// docs/category-pills-layout.md for why these are two different constants.
+// Screen-edge padding vs. the gap between items within the row vs. the gap
+// around the divider/back-arrow slot specifically - see
+// docs/category-pills-layout.md for why these are three different constants.
 const PILL_GAP = Spacing.three;
 const PILL_ITEM_GAP = 14;
+const DIVIDER_SLOT_GAP = 10;
 
 const styles = StyleSheet.create({
   row: {
@@ -396,7 +398,10 @@ const styles = StyleSheet.create({
     flexGrow: 0,
     flexDirection: "row",
     alignItems: "center",
-    gap: PILL_ITEM_GAP,
+    // row's own gap only ever applies on either side of dividerSlot (the
+    // pinned pill and the scrollable strip's own internal gap - see
+    // container below - supply their own spacing otherwise).
+    gap: DIVIDER_SLOT_GAP,
   },
   pinnedContainer: { paddingLeft: PILL_GAP },
   // Fixed width, not the icon's own 20px size prop - see
