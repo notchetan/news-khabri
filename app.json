@@ -52,14 +52,6 @@
       "expo-image",
       "expo-web-browser",
       [
-        "expo-build-properties",
-        {
-          "ios": {
-            "deploymentTarget": "15.1"
-          }
-        }
-      ],
-      [
         "./plugins/with-ios-pod-resource-bundle-deployment-target.js",
         {
           "deploymentTarget": "15.1"
