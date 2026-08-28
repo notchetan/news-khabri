@@ -3,13 +3,16 @@
 A brief flash of the wrong background color appeared on every push/pop
 transition (article <-> home, language-select <-> preferences, etc.),
 even after the app had its own custom color palette wired up everywhere
-else. Fixed across six layers - two in `src/app/_layout.tsx`, one via a
-`patch-package` patch, one via a custom Android config plugin, one via
-`NativeTabs`' own props, one via an Expo SDK upgrade - because the color
-is painted by several different things at several different points in a
-transition. Layer 6 (an iOS-26-only remaining artifact) took two attempts
-- a direct dependency bump that broke iOS outright and was reverted, then
-a full SDK upgrade that landed cleanly - see that section for both.
+else. Fixed on Android and mostly-fixed on iOS across five layers - two
+in `src/app/_layout.tsx`, one via a `patch-package` patch, one via a
+custom Android config plugin, one via `NativeTabs`' own props - because
+the color is painted by several different things at several different
+points in a transition.
+
+One remaining artifact, isolated to iOS 26's native push-transition
+compositing specifically, is a **known, accepted issue for now** - see
+Layer 6 for the two real fixes found (both would have worked) and why
+neither shipped.
 
 ## Layer 1: React Navigation's own `Theme` object
 
@@ -202,31 +205,37 @@ exactly the risk of going outside a bundled version pairing. A hard crash
 is strictly worse than a cosmetic transient flash, so this was reverted
 in full before it ever reached the user's phone as a real fix.
 
-**Second attempt, landed**: upgraded the whole Expo SDK, 54 -> 55, rather
-than one package in isolation - SDK 55 bundles `react-native-screens
-~4.23.0` (confirmed via its own `bundledNativeModules.json`), well past
-the `4.17.0` fix, with every other native module version-paired
-correctly by Expo rather than guessed at package-by-package. This is a
-materially different, safer kind of change than the first attempt:
-`npx expo install --fix` moves the *whole* dependency graph to a set of
-versions Expo has already tested against each other, instead of bumping
-one native module against an otherwise-unchanged graph. Confirmed the
-underlying fix is actually present post-upgrade: `[UIColor
-systemBackgroundColor]` now appears in
-`ios/bottom-tabs/host/RNSBottomTabsHostComponentView.mm` (three call
-sites) where `4.16.0` had none. `patches/react-native-screens+4.16.0.patch`
-was regenerated as `patches/react-native-screens+4.23.0.patch` (the
-`formSheet`/`push` gate in `ScreenStackItem.tsx` still exists unchanged at
-this version - upstream never generalized it, so Layer 3's patch is still
-required). See `AGENTS.md`'s own note on the SDK 54->55 upgrade for the
-other breakage this surfaced (`expo-modules-core` hoisting,
-`react-native-worklets`' jest mock, `expo-router`'s native-tabs API
-reshuffle) - none of it related to this bug specifically, all fallout
-from the same upgrade.
+**Second attempt, worked but reverted anyway**: upgraded the whole Expo
+SDK, 54 -> 55, rather than one package in isolation - SDK 55 bundles
+`react-native-screens ~4.23.0` (confirmed via its own
+`bundledNativeModules.json`), well past the `4.17.0` fix, with every
+other native module version-paired correctly by Expo rather than guessed
+at package-by-package. Confirmed the underlying fix was actually present
+post-upgrade: `[UIColor systemBackgroundColor]` appeared in
+`ios/bottom-tabs/host/RNSBottomTabsHostComponentView.mm` where `4.16.0`
+had none, and the app built and ran correctly on Android end to end.
 
-Verified on Android (full rebuild, install, launch, feed, article
-push/pop navigation, tab bar) after the SDK 55 upgrade. **Not yet
-visually confirmed on iOS** - no device/simulator access in this
-environment; the original report and both prior fix attempts were only
-ever verified via the user's own real-iPhone recordings, and this one
-still needs the same before being treated as closed.
+Getting an actual iOS verification build turned out to be its own saga,
+independent of whether the fix itself worked: the test device had since
+moved to an iOS 27 *beta*, which needs a beta Xcode (a large separate
+download, free Apple ID only - no paid Developer Program needed) and its
+own compounding build issues once installed - a CocoaPods deployment-target
+floor mismatch (several pods' resource-bundle sub-targets were stuck as
+low as iOS 9.0, below Xcode 27 beta's iOS 15.0 minimum), then a second
+issue from the first fix attempt at that (`expo-build-properties`
+unconditionally overwrites *every* pod's deployment target rather than
+only raising outliers below a floor, which broke `expo-router`'s own
+legitimate iOS 16.0+ requirement for its LinkPreview code). A working
+fix for that was found (a custom raise-only Podfile `post_install`
+patch, `plugins/with-ios-pod-resource-bundle-deployment-target.js`), but
+by that point the cumulative effort - on a work laptop, for a cosmetic
+transient flash - was judged not worth continuing. **Reverted in full**:
+`react-native-screens` back to `4.16.0` (patch regenerated to match),
+Expo SDK back to 54, `expo-router`'s native-tabs usage back to its
+54-compatible API, and both new iOS-build-specific plugins removed.
+
+**Current status: known, accepted issue.** The fix is understood and
+was confirmed to work (SDK 55, `react-native-screens >= 4.17.0`) - revisit
+if this app upgrades its Expo SDK for other reasons in the future, at
+which point this specific artifact should already be resolved as a side
+effect rather than needing its own dedicated effort again.

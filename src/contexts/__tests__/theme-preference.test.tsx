@@ -165,6 +165,6 @@ describe("useThemePreference", () => {
     await act(async () => {
       result.current.setPreference("automatic");
     });
-    expect(Appearance.setColorScheme).toHaveBeenLastCalledWith("unspecified");
+    expect(Appearance.setColorScheme).toHaveBeenLastCalledWith(null);
   });
 });
