@@ -206,6 +206,27 @@ describe("StoryDetailScreen", () => {
     });
   });
 
+  it("shows the app logo and name on the top right, alongside the back button on the top left, matching ArticleDetailScreen's own floating header", async () => {
+    // Regression test: this screen used to have its own older, plain
+    // in-flow back button only - never updated when article-detail-
+    // screen.tsx got the floating GlassView header (back button left, app
+    // logo/name pill right, collapsing on scroll) - see
+    // docs/article-header-layout.md and floating-detail-header.tsx, which
+    // both screens now share.
+    mockFetchStoryDetail.mockResolvedValue(makeDetail());
+
+    await act(async () => {
+      renderScreen();
+    });
+    await waitFor(() => screen.getByText("The Hindu"));
+
+    expect(screen.getByTestId("story-header-row")).toBeTruthy();
+    expect(screen.getByTestId("story-back-chevron")).toBeTruthy();
+    expect(screen.getByText(" Back")).toBeTruthy();
+    expect(screen.getByTestId("story-brand-logo")).toBeTruthy();
+    expect(screen.getByText(" News Khabri")).toBeTruthy();
+  });
+
   it("calls router.back() when the back button is pressed and history exists", async () => {
     mockFetchStoryDetail.mockResolvedValue(makeDetail());
 

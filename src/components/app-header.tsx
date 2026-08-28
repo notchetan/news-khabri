@@ -1,6 +1,7 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Platform, Pressable, StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
@@ -62,7 +63,7 @@ export default function AppHeader({ title }: Props) {
           size={28}
           weight="regular"
           tintColor={theme.text}
-          fallback={<Text style={[styles.profileFallback, { color: theme.text }]}>◍</Text>}
+          fallback={<Ionicons name="person-circle" size={28} color={theme.text} />}
         />
       </Pressable>
     </View>
@@ -102,5 +103,4 @@ const styles = StyleSheet.create({
       default: {},
     }),
   },
-  profileFallback: { fontSize: 28, lineHeight: 30 },
 });
