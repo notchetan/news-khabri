@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Spacing } from "@/constants/theme";
+import { NATIVE_TAB_BAR_HEIGHT, Spacing } from "@/constants/theme";
 import { useLanguagePreference } from "@/contexts/language-preference";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
@@ -47,6 +47,12 @@ export default function HomeScreen() {
     default: insets.top,
     web: Spacing.six,
   });
+  // Same tab-bar reservation as search/index.tsx and preferences/index.tsx -
+  // see docs/android-tab-bar.md.
+  const bottomPadding = Platform.select({
+    default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
+    web: 0,
+  });
 
   const pillValues = [TOP_STORIES, ...(categories ?? [])];
   const isTopStories = category === TOP_STORIES;
@@ -66,6 +72,7 @@ export default function HomeScreen() {
       style={{
         flex: 1,
         paddingTop: topPadding,
+        paddingBottom: bottomPadding,
         backgroundColor: theme.background,
       }}
     >

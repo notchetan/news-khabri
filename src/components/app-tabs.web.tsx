@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { usePathname, useRouter } from 'expo-router';
 import {
   Tabs,
@@ -121,7 +122,7 @@ export function CustomTabList(props: TabListProps) {
             size={22}
             weight="regular"
             tintColor={theme.text}
-            fallback={<ThemedText style={styles.profileFallback}>◍</ThemedText>}
+            fallback={<Ionicons name="person-circle" size={22} color={theme.text} />}
           />
         </Pressable>
       </ThemedView>
@@ -163,7 +164,6 @@ const styles = StyleSheet.create({
     marginRight: 'auto',
   },
   logo: { width: 22, height: 22 },
-  profileFallback: { fontSize: 22 },
   pressed: {
     opacity: 0.7,
   },

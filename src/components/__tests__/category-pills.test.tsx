@@ -236,6 +236,20 @@ describe("CategoryPills", () => {
     expect(slot).toHaveStyle({ width: initialWidth });
   });
 
+  it("uses a 10px gap around the divider/back-arrow slot specifically, independent of the wider gap between scrollable pills", async () => {
+    await renderWithTheme(
+      <CategoryPills
+        categories={["All", "Sports", "Business"]}
+        selected="All"
+        onSelect={jest.fn()}
+      />
+    );
+
+    // The row's own gap only applies around the divider/back-arrow slot -
+    // deliberately smaller than the gap between scrollable pills (still 14).
+    expect(screen.getByTestId("category-pills-row")).toHaveStyle({ gap: 10 });
+  });
+
   it("colors the divider from the current theme's own secondary text color in light mode, matching the back arrow it shares a slot with", async () => {
     await renderWithTheme(
       <CategoryPills

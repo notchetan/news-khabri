@@ -1,11 +1,10 @@
-import { GlassView } from "expo-glass-effect";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
-  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -22,6 +21,10 @@ import { scheduleOnRN } from "react-native-worklets";
 
 import { fetchArticleDetail } from "@/api/articles";
 import ArticleImage from "@/components/article-image";
+import FloatingDetailHeader, {
+  getContentTopPadding,
+  useHeaderScrollY,
+} from "@/components/floating-detail-header";
 import Squircle from "@/components/squircle";
 import { ThemedText } from "@/components/themed-text";
 import { NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
@@ -32,13 +35,9 @@ import { useTranslation } from "@/i18n/translations";
 import { useQuery } from "@tanstack/react-query";
 
 const SWIPE_THRESHOLD = 60;
-// Distance (not a duration) the header labels' collapse is spread across -
-// see docs/animated-scroll-collapse.md.
-const HEADER_COLLAPSE_DISTANCE = 60;
-// Natural width of each label, eyeballed against the real strings rather
-// than measured via an onLayout probe.
-const BACK_LABEL_WIDTH = 80;
-const BRAND_LABEL_WIDTH = 100;
+// Keeps the related-article swipe from starting inside the screen-edge
+// strip the OS's own back gesture claims. See docs/article-swipe-gesture.md.
+const EDGE_EXCLUSION_WIDTH = 24;
 
 type Props = {
   basePath: "/article" | "/search/article";
@@ -60,29 +59,11 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   const swipeIndicatorOpacity = useRef(new Animated.Value(0)).current;
   // Continuous scroll-position-driven collapse, not a discrete threshold -
   // see docs/animated-scroll-collapse.md.
-  const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollY = useHeaderScrollY();
   const scrollRef = useRef<ScrollView>(null);
-  // Measured height of the floating back/brand pill row (backRow below) -
-  // see docs/article-header-layout.md.
+  // Measured height of the floating back/brand pill row - see
+  // docs/article-header-layout.md.
   const [headerHeight, setHeaderHeight] = useState(0);
-
-  // Near-instant opacity swap, deliberately not spread across the same
-  // distance as the width shrink below - see docs/animated-scroll-collapse.md.
-  const headerLabelOpacity = scrollY.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 0],
-    extrapolate: "clamp",
-  });
-  const backLabelWidth = scrollY.interpolate({
-    inputRange: [0, HEADER_COLLAPSE_DISTANCE],
-    outputRange: [BACK_LABEL_WIDTH, 0],
-    extrapolate: "clamp",
-  });
-  const brandLabelWidth = scrollY.interpolate({
-    inputRange: [0, HEADER_COLLAPSE_DISTANCE],
-    outputRange: [BRAND_LABEL_WIDTH, 0],
-    extrapolate: "clamp",
-  });
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["article", activeId],
@@ -132,6 +113,7 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   const swipeGesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
     .failOffsetY([-10, 10])
+    .hitSlop({ left: -EDGE_EXCLUSION_WIDTH, right: -EDGE_EXCLUSION_WIDTH })
     .onEnd((event) => {
       "worklet";
       if (event.translationX < -SWIPE_THRESHOLD) {
@@ -145,9 +127,8 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
     default: insets.top + Spacing.two,
     web: Spacing.six,
   });
-  // See docs/article-header-layout.md.
   const contentTopPadding = Platform.select({
-    default: (headerHeight || topPadding + 44) + Spacing.two,
+    default: getContentTopPadding(headerHeight, topPadding),
     web: Spacing.six,
   });
   // Same base gap (Spacing.three) plus tab-bar reservation formula used in
@@ -233,82 +214,12 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   return (
     <GestureDetector gesture={swipeGesture}>
       <View style={{ flex: 1, backgroundColor: theme.background }}>
-        {Platform.OS !== "web" && (
-          <View
-            pointerEvents="none"
-            style={[
-              styles.statusBarScrim,
-              { height: insets.top, backgroundColor: theme.background },
-            ]}
-          />
-        )}
-        {/* Same left-label/right-label shape as AppHeader - see
-            docs/article-header-layout.md. */}
-        <View
-          testID="article-header-row"
-          style={[styles.backRow, { paddingTop: topPadding }]}
-          onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
-          pointerEvents="box-none"
-        >
-          <GlassView style={styles.backGlass} glassEffectStyle="regular">
-            <Pressable
-              onPress={goBack}
-              hitSlop={12}
-              style={[styles.backPressable, styles.backPressableRow]}
-              accessibilityRole="button"
-              accessibilityLabel={t("back")}
-            >
-              <SymbolView
-                testID="article-back-chevron"
-                name="chevron.left"
-                size={16}
-                weight="semibold"
-                tintColor={theme.text}
-                fallback={<ThemedText style={styles.backGlyph}>‹</ThemedText>}
-              />
-              <Animated.View
-                style={{
-                  opacity: headerLabelOpacity,
-                  maxWidth: backLabelWidth,
-                  overflow: "hidden",
-                }}
-              >
-                <ThemedText
-                  numberOfLines={1}
-                  style={[styles.backGlyph, styles.backLabel]}
-                >
-                  {` ${t("back")}`}
-                </ThemedText>
-              </Animated.View>
-            </Pressable>
-          </GlassView>
-
-          <GlassView style={styles.brandGlass} glassEffectStyle="regular">
-            <View testID="article-brand-row" style={styles.brandRow}>
-              <Image
-                testID="article-brand-logo"
-                source={require("@/assets/images/tab-home-icon.png")}
-                style={styles.brandLogo}
-                resizeMode="contain"
-                accessibilityIgnoresInvertColors
-              />
-              <Animated.View
-                style={{
-                  opacity: headerLabelOpacity,
-                  maxWidth: brandLabelWidth,
-                  overflow: "hidden",
-                }}
-              >
-                <ThemedText
-                  numberOfLines={1}
-                  style={[styles.backGlyph, styles.brandLabel]}
-                >
-                  {` ${t("appName")}`}
-                </ThemedText>
-              </Animated.View>
-            </View>
-          </GlassView>
-        </View>
+        <FloatingDetailHeader
+          scrollY={scrollY}
+          topPadding={topPadding}
+          onGoBack={goBack}
+          onHeaderHeightChange={setHeaderHeight}
+        />
 
         {isLoading ? (
           <ArticleDetailSkeleton headerHeight={headerHeight} topPadding={topPadding} />
@@ -407,7 +318,7 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
                   size={16}
                   weight="semibold"
                   tintColor={theme.text}
-                  fallback={<ThemedText style={styles.shareGlyphFallback}>⬆</ThemedText>}
+                  fallback={<Ionicons name="share-outline" size={16} color={theme.text} />}
                 />
                 <ThemedText style={styles.shareButtonText}>{t("share")}</ThemedText>
               </TouchableOpacity>
@@ -532,10 +443,8 @@ function ArticleDetailSkeleton({
   const opacity = useRef(new Animated.Value(0.4)).current;
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  // Same header-clearing formula as the real ScrollView - see
-  // docs/article-header-layout.md.
   const contentTopPadding = Platform.select({
-    default: (headerHeight || topPadding + 44) + Spacing.two,
+    default: getContentTopPadding(headerHeight, topPadding),
     web: Spacing.six,
   });
   const contentBottomPadding =
@@ -581,53 +490,6 @@ function ArticleDetailSkeleton({
 }
 
 const styles = StyleSheet.create({
-  // See "Status bar scrim" in docs/article-header-layout.md.
-  statusBarScrim: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 5,
-  },
-  backRow: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    paddingHorizontal: Spacing.four,
-    paddingBottom: Spacing.two,
-  },
-  // See "Pill shape" in docs/article-header-layout.md.
-  backGlass: { alignSelf: "flex-start", borderRadius: Radius.full, overflow: "hidden" },
-  backPressable: {
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-  },
-  // See docs/cross-script-text-rendering.md.
-  backPressableRow: { flexDirection: "row", alignItems: "center" },
-  backGlyph: {
-    fontSize: 16,
-    fontWeight: "600",
-    lineHeight: Math.ceil(16 * 1.4),
-    ...Platform.select({
-      android: { includeFontPadding: false, textAlignVertical: "center" },
-      default: {},
-    }),
-  },
-  backLabel: { flexShrink: 0 },
-  brandGlass: { alignSelf: "flex-start", borderRadius: Radius.full, overflow: "hidden" },
-  brandRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-  },
-  brandLogo: { width: 20, height: 20 },
-  brandLabel: { flexShrink: 0 },
   centerFill: { flex: 1, alignItems: "center", justifyContent: "center" },
   scrollContent: { paddingHorizontal: Spacing.four },
   swipeIndicator: {
@@ -679,7 +541,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full,
   },
   shareButtonText: { fontSize: 14, fontWeight: "600" },
-  shareGlyphFallback: { fontSize: 14, fontWeight: "700" },
   // See "Matching story-detail-screen's meta layout" in
   // docs/article-header-layout.md.
   metaRow: {

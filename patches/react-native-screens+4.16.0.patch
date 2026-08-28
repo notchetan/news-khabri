@@ -1,0 +1,16 @@
+diff --git a/node_modules/react-native-screens/src/components/ScreenStackItem.tsx b/node_modules/react-native-screens/src/components/ScreenStackItem.tsx
+index c153719..9f9113f 100644
+--- a/node_modules/react-native-screens/src/components/ScreenStackItem.tsx
++++ b/node_modules/react-native-screens/src/components/ScreenStackItem.tsx
+@@ -105,7 +105,10 @@ function ScreenStackItem(
+   // content with formSheet presentation.
+   let internalScreenStyle;
+ 
+-  if (stackPresentation === 'formSheet' && contentStyle) {
++  if (
++    (stackPresentation === 'formSheet' || stackPresentation === 'push') &&
++    contentStyle
++  ) {
+     const flattenContentStyles = StyleSheet.flatten(contentStyle);
+     internalScreenStyle = {
+       backgroundColor: flattenContentStyles?.backgroundColor,

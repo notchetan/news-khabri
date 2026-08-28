@@ -1,11 +1,44 @@
 # Article page header & layout details
 
-Layout rationale specific to `article-detail-screen.tsx`, extracted out of
-the component. See
+Layout rationale for the floating back/brand header
+(`floating-detail-header.tsx`), extracted out of `article-detail-screen.tsx`
+originally - see "Shared between article and story screens" below - and
+for `article-detail-screen.tsx`'s own remaining layout. See
 [`animated-scroll-collapse.md`](./animated-scroll-collapse.md) for the
 scroll-driven collapse animation itself, and
 [`cross-script-text-rendering.md`](./cross-script-text-rendering.md) for
 the header labels' text-clipping/alignment fixes.
+
+## Shared between article and story screens
+
+`floating-detail-header.tsx` was originally `article-detail-screen.tsx`'s
+own JSX. Extracted after `story-detail-screen.tsx` was found still using
+an older, plain in-flow back button - it had simply never been updated
+when the article screen gained this floating GlassView header, since the
+two screens never actually shared code for it. Both now render the same
+component (`testIDPrefix` distinguishes their tests), so this class of
+drift isn't possible again.
+
+## `GlassView`'s non-iOS fallback
+
+`GlassView`'s real frosted-glass rendering - the pill's only visual
+background, neither pill sets one of its own otherwise - is iOS-only;
+everywhere else it silently falls back to a plain, fully transparent
+`View` (see `expo-glass-effect`'s own `GlassView.tsx`), leaving the
+chevron/logo floating with no pill backdrop at all, especially illegible
+over a busy hero image. `floating-detail-header.tsx`'s `glassFallbackStyle`
+stands in with a solid `theme.backgroundElement` fill (the same "raised
+surface" token used elsewhere, e.g. the share button) wherever glass is
+actually unavailable, without double-drawing on top of the real thing.
+
+Whether it's available is checked once via `isLiquidGlassAvailable()`,
+computed at module scope rather than per-render. That function calls into
+the real native module on iOS and *throws* (not just warns, unlike
+`GlassView` itself) when the module isn't present - true in the Jest test
+environment, where `jest-expo`'s own `NativeViewManagerAdapter` mocking
+covers `GlassView`'s rendering but not this direct native call. Hence the
+try/catch at module scope, defaulting to "no glass" on any failure rather
+than re-attempting (and re-throwing) on every render.
 
 ## Hero image starts below the header, not behind it
 

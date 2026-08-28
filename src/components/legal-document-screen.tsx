@@ -5,7 +5,7 @@ import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
-import { Spacing } from "@/constants/theme";
+import { NATIVE_TAB_BAR_HEIGHT, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 
@@ -29,6 +29,12 @@ export default function LegalDocumentScreen({ title, children }: Props) {
     default: insets.top + Spacing.two,
     web: Spacing.six,
   });
+  // Same tab-bar reservation as article-detail-screen.tsx/search/index.tsx -
+  // see docs/android-tab-bar.md.
+  const bottomPadding = Platform.select({
+    web: 0,
+    default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
+  });
 
   const goBack = () => {
     if (router.canGoBack()) {
@@ -39,7 +45,7 @@ export default function LegalDocumentScreen({ title, children }: Props) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.background, paddingTop: topPadding }}>
+    <View style={{ flex: 1, backgroundColor: theme.background, paddingTop: topPadding, paddingBottom: bottomPadding }}>
       <View style={styles.headerRow}>
         <Pressable
           onPress={goBack}

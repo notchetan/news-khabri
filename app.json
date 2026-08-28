@@ -39,7 +39,17 @@
             "backgroundColor": "#17140F"
           }
         }
-      ]
+      ],
+      "expo-asset",
+      [
+        "./plugins/with-android-root-view-background.js",
+        {
+          "light": "#FAF7F2",
+          "dark": "#17140F"
+        }
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

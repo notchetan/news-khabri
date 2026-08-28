@@ -32,22 +32,24 @@ state - and it's the *current* color scheme's own token (not the other
 scheme's, as this once mistakenly used), so it stays guaranteed to
 contrast against its own background either way.
 
-## PILL_GAP vs. PILL_ITEM_GAP
+## PILL_GAP vs. PILL_ITEM_GAP vs. DIVIDER_SLOT_GAP
 
-Two different spacing constants, deliberately not unified into one:
+Three different spacing constants, deliberately not unified into one:
 
 - `PILL_GAP` is the screen-edge padding (pinned pill's left edge, and the
   scrollable strip's trailing right edge). Kept at `Spacing.three`
   specifically so the pinned pill's left edge lines up with the
   article/story cards' own left edge below it - a fixed design constraint
   tied to the rest of the page's layout.
-- `PILL_ITEM_GAP` (14) is the space *between* items within the row:
-  pinned pill -> divider/back-arrow slot, slot -> first scrollable pill,
-  and between each scrollable pill after that. This is just a visual
-  density choice, not tied to anything else on the page - `Spacing.three`
-  there read as too much white space. It's driven by `row`'s own `gap`
-  property rather than scattered margin/padding on each individual piece;
-  that per-piece approach is what previously let the actual gaps drift
-  apart from each other (the back arrow's own touch-padding was stacking
-  with the divider's margin on one side while providing less than a full
-  gap on the other).
+- `DIVIDER_SLOT_GAP` (10) is the gap on either side of `dividerSlot`
+  specifically: pinned pill -> divider/back-arrow slot, and slot -> the
+  scrollable strip. Driven by `row`'s own `gap` property, which - because
+  `dividerSlot` and the `ScrollView` are `row`'s only other children -
+  only ever applies in those two places, nowhere else in the row.
+- `PILL_ITEM_GAP` (14) is the space *between* the scrollable pills
+  themselves, inside the `ScrollView`'s own `contentContainerStyle`
+  (`container`) - a separate, visual-density-only choice, intentionally
+  not tied to `DIVIDER_SLOT_GAP`'s value. It's driven by `container`'s own
+  `gap` property rather than scattered margin/padding on each individual
+  pill; that per-piece approach is what previously let the actual gaps
+  drift apart from each other.

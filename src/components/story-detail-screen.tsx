@@ -1,18 +1,23 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { fetchStoryDetail } from "@/api/stories";
 import ArticleImage from "@/components/article-image";
+import FloatingDetailHeader, {
+  getContentTopPadding,
+  useHeaderScrollY,
+} from "@/components/floating-detail-header";
 import { ThemedText } from "@/components/themed-text";
-import { Radius, Spacing } from "@/constants/theme";
+import { NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 import { formatRelativeTime } from "@/utils/format-date";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Platform,
-  Pressable,
   ScrollView,
   Share,
   StyleSheet,
@@ -36,6 +41,12 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
   const theme = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  // Continuous scroll-position-driven collapse - see
+  // docs/animated-scroll-collapse.md.
+  const scrollY = useHeaderScrollY();
+  // Measured height of the floating back/brand pill row - see
+  // docs/article-header-layout.md.
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   const storyId = Number(id);
   const { data, isLoading, error } = useQuery({
@@ -47,6 +58,27 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
     default: insets.top + Spacing.two,
     web: Spacing.six,
   });
+  const contentTopPadding = Platform.select({
+    default: getContentTopPadding(headerHeight, topPadding),
+    web: Spacing.six,
+  });
+  // Same base gap (Spacing.three) plus tab-bar reservation formula used in
+  // article-detail-screen.tsx/search/index.tsx/preferences/index.tsx - see
+  // NATIVE_TAB_BAR_HEIGHT's own comment for why insets.bottom alone isn't
+  // enough.
+  const contentBottomPadding =
+    Spacing.three +
+    Platform.select({
+      web: 0,
+      default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
+    });
+
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    // false: the animated maxWidth inside FloatingDetailHeader is a layout
+    // property the native driver can't animate.
+    { useNativeDriver: false }
+  );
 
   const goBack = () => {
     if (router.canGoBack()) {
@@ -97,25 +129,14 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
   }, [isSingleton, representativeArticleId, articleBasePath, router]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.background, paddingTop: topPadding }}>
-      <View style={styles.headerRow}>
-        <Pressable
-          onPress={goBack}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={t("back")}
-          style={[styles.backPressable, styles.backPressableRow]}
-        >
-          <SymbolView
-            name="chevron.left"
-            size={16}
-            weight="semibold"
-            tintColor={theme.text}
-            fallback={<ThemedText style={styles.backGlyph}>‹</ThemedText>}
-          />
-          <ThemedText style={styles.backGlyph}>{" " + t("back")}</ThemedText>
-        </Pressable>
-      </View>
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
+      <FloatingDetailHeader
+        scrollY={scrollY}
+        topPadding={topPadding}
+        onGoBack={goBack}
+        onHeaderHeightChange={setHeaderHeight}
+        testIDPrefix="story"
+      />
 
       {isLoading || isSingleton ? (
         <View style={styles.centerFill} accessibilityRole="progressbar" accessibilityLabel={t("loadingStory")}>
@@ -126,7 +147,15 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
           <ThemedText themeColor="textSecondary">{t("storyLoadError")}</ThemedText>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          testID="story-scroll-view"
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingTop: contentTopPadding, paddingBottom: contentBottomPadding },
+          ]}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+        >
           <ArticleImage
             uri={data.representativeArticle?.image_url ?? null}
             category={data.category}
@@ -162,7 +191,7 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
                 size={16}
                 weight="semibold"
                 tintColor={theme.text}
-                fallback={<ThemedText style={styles.shareGlyphFallback}>⬆</ThemedText>}
+                fallback={<Ionicons name="share-outline" size={16} color={theme.text} />}
               />
               <ThemedText style={styles.shareButtonText}>{t("share")}</ThemedText>
             </TouchableOpacity>
@@ -222,12 +251,8 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
 }
 
 const styles = StyleSheet.create({
-  headerRow: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.two },
-  backPressable: { alignSelf: "flex-start", paddingVertical: Spacing.one },
-  backPressableRow: { flexDirection: "row", alignItems: "center" },
-  backGlyph: { fontSize: 16, fontWeight: "600" },
   centerFill: { flex: 1, alignItems: "center", justifyContent: "center" },
-  scrollContent: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.six },
+  scrollContent: { paddingHorizontal: Spacing.four },
   title: { marginTop: Spacing.three },
   metaRow: {
     flexDirection: "row",
@@ -245,7 +270,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full,
   },
   shareButtonText: { fontSize: 14, fontWeight: "600" },
-  shareGlyphFallback: { fontSize: 14, fontWeight: "700" },
   meta: {},
   summary: { marginTop: Spacing.three },
   membersSection: { marginTop: Spacing.five },

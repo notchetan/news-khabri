@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { Platform, Pressable, StyleSheet } from "react-native";
@@ -63,7 +64,7 @@ export default function ProfileScreen() {
           size={48}
           weight="regular"
           tintColor={theme.textSecondary}
-          fallback={<ThemedText style={styles.iconFallback}>◍</ThemedText>}
+          fallback={<Ionicons name="person-circle" size={48} color={theme.textSecondary} />}
         />
         <ThemedText type="subtitle" style={styles.title} accessibilityRole="header">
           {t("profileTitle")}
@@ -92,7 +93,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: Spacing.five,
   },
-  iconFallback: { fontSize: 48 },
   title: { marginTop: Spacing.three, textAlign: "center" },
   message: { marginTop: Spacing.two, textAlign: "center" },
 });

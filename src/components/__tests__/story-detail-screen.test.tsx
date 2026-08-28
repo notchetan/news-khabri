@@ -206,6 +206,23 @@ describe("StoryDetailScreen", () => {
     });
   });
 
+  it("shows the app logo and name on the top right, alongside the back button on the top left, matching ArticleDetailScreen's own floating header", async () => {
+    // Regression test - see docs/story-detail-screen.md's "Shares its
+    // header with article-detail-screen.tsx".
+    mockFetchStoryDetail.mockResolvedValue(makeDetail());
+
+    await act(async () => {
+      renderScreen();
+    });
+    await waitFor(() => screen.getByText("The Hindu"));
+
+    expect(screen.getByTestId("story-header-row")).toBeTruthy();
+    expect(screen.getByTestId("story-back-chevron")).toBeTruthy();
+    expect(screen.getByText(" Back")).toBeTruthy();
+    expect(screen.getByTestId("story-brand-logo")).toBeTruthy();
+    expect(screen.getByText(" News Khabri")).toBeTruthy();
+  });
+
   it("calls router.back() when the back button is pressed and history exists", async () => {
     mockFetchStoryDetail.mockResolvedValue(makeDetail());
 

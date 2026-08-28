@@ -17,3 +17,12 @@ plain `ArticleList` card instead of a story card, since "1 sources · 1
 articles" is noise, not information, and the story detail screen (source/
 article counts, a members list of exactly one) has nothing to add over
 the article itself.
+
+## Shares its header with `article-detail-screen.tsx`
+
+See `docs/article-header-layout.md`'s "Shared between article and story
+screens" - this screen used to have its own older, plain in-flow back
+button, never updated when the article screen gained its floating
+GlassView header (back button left, app logo/name pill right, collapsing
+on scroll). Both screens now render the same `floating-detail-header.tsx`
+component, so that drift isn't possible again.

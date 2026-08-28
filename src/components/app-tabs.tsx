@@ -1,4 +1,5 @@
-import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Icon, Label, NativeTabs, VectorIcon } from 'expo-router/unstable-native-tabs';
 
 import { Colors } from '@/constants/theme';
 import { useThemePreference } from '@/contexts/theme-preference';
@@ -11,15 +12,18 @@ export default function AppTabs() {
 
   return (
     <NativeTabs
+      // backgroundColor/blurEffect: without these, the tab bar's native
+      // translucent material follows the OS's system light/dark trait
+      // rather than this app's own in-app theme preference - see
+      // docs/navigation-white-flash.md's fifth layer.
+      backgroundColor={colors.background}
+      blurEffect={resolvedScheme === "dark" ? "systemMaterialDark" : "systemMaterialLight"}
       indicatorColor={colors.backgroundElement}
       iconColor={{ default: colors.textSecondary, selected: colors.text }}
       labelStyle={{ selected: { color: colors.text } }}
-      // "onScrollDown" is a single, tab-bar-wide UIKit setting (iOS 26+),
-      // not something scoped per-screen - it doesn't reliably reset when
-      // navigating between screens with different scroll views (e.g. it
-      // stays minimized after leaving the article screen and going back to
-      // Home), so it's disabled rather than left in a broken/inconsistent
-      // state.
+      // "onScrollDown" is tab-bar-wide (iOS 26+), not per-screen - it
+      // doesn't reset navigating between screens with different scroll
+      // views, so it's disabled rather than left inconsistent.
       minimizeBehavior="never">
       {/* Labels are kept (not omitted) but hidden - each tab's own name now
           shows at the top of its screen instead (see app-header.tsx), so
@@ -30,20 +34,34 @@ export default function AppTabs() {
       <NativeTabs.Trigger name="(home)">
         <Label hidden>{t('tabHome')}</Label>
         {/* A generic house glyph, not the app's own mark - that logo now
-            shows in the header instead (see app-header.tsx), so this only
-            needs to read as "the Home tab" the way every other tab's icon
-            reads as its own destination. */}
-        <Icon sf={{ default: 'house', selected: 'house.fill' }} />
+            shows in the header instead (see app-header.tsx). androidSrc is
+            required alongside sf - see docs/android-tab-bar.md. */}
+        <Icon
+          sf={{ default: 'house', selected: 'house.fill' }}
+          androidSrc={{
+            default: <VectorIcon family={Ionicons} name="home-outline" />,
+            selected: <VectorIcon family={Ionicons} name="home" />,
+          }}
+        />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="search">
         <Label hidden>{t('tabSearch')}</Label>
-        <Icon sf="magnifyingglass" />
+        <Icon
+          sf="magnifyingglass"
+          androidSrc={<VectorIcon family={Ionicons} name="search" />}
+        />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="preferences">
         <Label hidden>{t('tabPreferences')}</Label>
-        <Icon sf={{ default: 'gearshape', selected: 'gearshape.fill' }} />
+        <Icon
+          sf={{ default: 'gearshape', selected: 'gearshape.fill' }}
+          androidSrc={{
+            default: <VectorIcon family={Ionicons} name="settings-outline" />,
+            selected: <VectorIcon family={Ionicons} name="settings" />,
+          }}
+        />
       </NativeTabs.Trigger>
     </NativeTabs>
   );

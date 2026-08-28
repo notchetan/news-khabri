@@ -89,7 +89,8 @@ export const Radius = {
 
 export const MaxContentWidth = 800;
 
-// Standard tab bar content heights (49pt iOS, 56dp Android) - added *on
-// top of* insets.bottom, not instead of it. See AGENTS.md's own
+// Standard tab bar content heights (49pt iOS, 80dp Android - Material 3's
+// NavigationBar spec) - added *on top of* insets.bottom, not instead of
+// it. See docs/android-tab-bar.md and AGENTS.md's own
 // useSafeAreaInsets()-doesn't-include-the-tab-bar lesson.
-export const NATIVE_TAB_BAR_HEIGHT = Platform.select({ ios: 49, android: 56, default: 0 });
+export const NATIVE_TAB_BAR_HEIGHT = Platform.select({ ios: 49, android: 80, default: 0 });
