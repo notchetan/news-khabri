@@ -1,6 +1,6 @@
 # Expo HAS CHANGED
 
-Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
+Read the exact versioned docs at https://docs.expo.dev/versions/v54.0.0/ before writing any code.
 
 # News Khabri (frontend) — notes for AI agents
 
@@ -63,14 +63,19 @@ new one.
   not just a targeted test file — this repo has caught real regressions
   in files nowhere near the one being edited. Report exact pass/fail
   counts; don't round up or hand-wave.
-- There is **no live device/simulator/browser access in this
-  environment.** Every UI/animation/layout change here is
-  reasoning-plus-unit-test only. Say so plainly when reporting a visual
-  fix, and expect — don't be surprised by — the user finding it's still
-  wrong on a real device. This has happened repeatedly on animated,
-  measurement-dependent UI (see the `Animated`/`onLayout` section
-  below); when it does, prefer changing approach over re-guessing the
-  same fragile structure with a different number.
+- **Live Android device testing is available on this machine** (Android
+  Studio, SDK, and a `Pixel_10_Pro_XL` AVD are installed here) - use it
+  for real UI/layout verification rather than reasoning-only whenever a
+  change is visual, animated, or measurement-dependent; several bugs
+  this session (missing tab bar icons, wrong tab-bar height, a swipe
+  gesture swallowing the system back gesture) were only found this way,
+  not through code review. **iOS has no local device or simulator access
+  at all** (no Mac in this environment) - verification there depends
+  entirely on the user's own device, coordinated via screen recordings
+  or Remote Control; say so plainly when reporting an iOS-only fix, and
+  expect it may still turn out wrong until actually seen on a real
+  device. When a visual fix turns out wrong, prefer changing approach
+  over re-guessing the same fragile structure with a different number.
 - `Animated`-interpolated style props (opacity, etc.) resolve to real
   numeric values under `@testing-library/react-native` — confirmed
   empirically, not assumed. `fireEvent.scroll(view, { nativeEvent: {
@@ -139,8 +144,13 @@ this exact codebase. Read this before touching anything similar.
 - **`useSafeAreaInsets().bottom` does not include the native tab bar's
   own height.** `expo-router/unstable-native-tabs`' `NativeTabs` exposes
   no JS API to measure itself. Add the platform's standard tab-bar
-  content height on top of the inset (`Platform.select({ ios: 49,
-  android: 56, default: 0 })`), don't replace the inset with it.
+  content height on top of the inset (`NATIVE_TAB_BAR_HEIGHT` in
+  `src/constants/theme.ts` - see `docs/android-tab-bar.md` for why the
+  Android value is 80, not the more commonly assumed 56), don't replace
+  the inset with it. Every screen that scrolls content behind the tab
+  bar needs this reservation itself - there's no single shared layout
+  owner to add it in once, and a screen that goes without one is easy to
+  miss until tested live (see `docs/android-tab-bar.md` again).
 - **A `ScrollView` needs an explicit `style={{ flex: 1 }}`, not just
   `contentContainerStyle`, to actually be constrained by its parent.**
   Without it, `onLayout` measurements on the ScrollView itself are

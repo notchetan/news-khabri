@@ -245,11 +245,8 @@ describe("CategoryPills", () => {
       />
     );
 
-    // The outer row's own gap only ever applies on either side of the
-    // divider/back-arrow slot (its only other siblings are the pinned pill
-    // and the scrollable strip) - so this is exactly the gap next to the
-    // divider/back arrow, and it's deliberately smaller than the gap
-    // between the scrollable pills themselves (still 14, untouched).
+    // The row's own gap only applies around the divider/back-arrow slot -
+    // deliberately smaller than the gap between scrollable pills (still 14).
     expect(screen.getByTestId("category-pills-row")).toHaveStyle({ gap: 10 });
   });
 

@@ -30,11 +30,7 @@ export default function LegalDocumentScreen({ title, children }: Props) {
     web: Spacing.six,
   });
   // Same tab-bar reservation as article-detail-screen.tsx/search/index.tsx -
-  // see NATIVE_TAB_BAR_HEIGHT's own comment for why insets.bottom alone
-  // isn't enough. Missing here previously: on Android the native tab bar is
-  // opaque (unlike iOS's translucent one, where content scrolling behind it
-  // stays legible), so the last bit of unreserved content was fully hidden
-  // behind it instead of just dimmed.
+  // see docs/android-tab-bar.md.
   const bottomPadding = Platform.select({
     web: 0,
     default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,

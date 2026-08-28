@@ -10,23 +10,11 @@ import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 
 // Shared floating header for article-detail-screen.tsx and
-// story-detail-screen.tsx - back button on the left, the app's own
-// name/logo on the right, both floating over scrolling content via
-// GlassView, collapsing together as the caller's own scroll position
-// moves. See docs/animated-scroll-collapse.md and
-// docs/article-header-layout.md for the collapse/layout rationale - this
-// was originally article-detail-screen.tsx's own JSX, extracted here after
-// story-detail-screen.tsx was found still using the older plain-back-
-// button header, having drifted apart from a pattern that was never
-// actually shared in code.
+// story-detail-screen.tsx - back button left, app name/logo right, both
+// floating over scrolling content. See docs/article-header-layout.md.
 
-// isLiquidGlassAvailable() calls into the real native module on iOS and
-// *throws* (not just warns, unlike GlassView itself) when that module isn't
-// present - true in the Jest test environment, where jest-expo's own
-// NativeViewManagerAdapter mocking covers GlassView's rendering but not
-// this direct native call. Computed once at module scope, defaulting to
-// "no glass" on any failure, rather than re-attempting (and re-throwing)
-// on every render.
+// See docs/article-header-layout.md's "GlassView's non-iOS fallback" for
+// why this is computed once at module scope rather than per-render.
 let liquidGlassAvailable = false;
 try {
   liquidGlassAvailable = isLiquidGlassAvailable();
@@ -43,11 +31,9 @@ const BACK_LABEL_WIDTH = 80;
 const BRAND_LABEL_WIDTH = 100;
 
 type Props = {
-  // The caller's own live scroll position (its ScrollView's onScroll feeds
-  // the same Animated.Value) - this component only reads it, never resets
-  // or owns it, since scroll-reset-on-content-change behavior differs by
-  // caller (e.g. article-detail-screen.tsx resets on swiping to a related
-  // article; story-detail-screen.tsx has no equivalent).
+  // The caller's own live scroll position - this component only reads it,
+  // never resets or owns it, since reset-on-content-change behavior
+  // differs by caller.
   scrollY: Animated.Value;
   topPadding: number;
   onGoBack: () => void;
@@ -87,15 +73,8 @@ export default function FloatingDetailHeader({
     extrapolate: "clamp",
   });
 
-  // GlassView's real frosted-glass rendering (the pill's only visual
-  // background - neither backGlass/brandGlass sets one of its own) is
-  // iOS-only; everywhere else it silently falls back to a plain, fully
-  // transparent View (see expo-glass-effect's own GlassView.tsx), leaving
-  // the chevron/logo floating with no pill backdrop at all - especially
-  // illegible over a busy hero image. A solid theme.backgroundElement
-  // fill (the same "raised surface" token used elsewhere in the app, e.g.
-  // the share button) stands in for the missing glass wherever it's
-  // actually unavailable, without double-drawing on top of the real thing.
+  // Stands in for GlassView's real (iOS-only) blur where it's unavailable -
+  // see docs/article-header-layout.md's "GlassView's non-iOS fallback".
   const glassFallbackStyle = liquidGlassAvailable
     ? null
     : { backgroundColor: theme.backgroundElement };
@@ -182,12 +161,8 @@ export function useHeaderScrollY() {
   return useRef(new Animated.Value(0)).current;
 }
 
-// The hero image should sit fully below the floating header on initial
-// load, not behind it - see "Hero image starts below the header, not
-// behind it" in docs/article-header-layout.md. Before headerHeight's first
-// onLayout measurement lands (still 0), falls back to a generous estimate
-// (topPadding plus a typical pill height) so the image never briefly pokes
-// out above the header for that one frame either.
+// See "Hero image starts below the header, not behind it" in
+// docs/article-header-layout.md.
 export function getContentTopPadding(headerHeight: number, topPadding: number): number {
   return (headerHeight || topPadding + 44) + Spacing.two;
 }

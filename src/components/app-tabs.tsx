@@ -12,28 +12,18 @@ export default function AppTabs() {
 
   return (
     <NativeTabs
-      // Without these two, the tab bar's own native translucent material
-      // follows the OS's actual system light/dark trait - independent of
-      // this app's own in-app theme preference (which can differ from the
-      // system setting entirely, unlike expo-system-ui's root-view sync,
-      // which only reaches the RN content layer, not this genuinely native
-      // bar). A real UIKit quirk on top of that mismatch: blur materials
-      // can flash their unblended base tint during view-hierarchy changes,
-      // which is what showed up as a brief white/cream band across the
-      // status bar and tab bar during push/pop transitions - see
-      // docs/navigation-white-flash.md's fifth layer. Locking both to the
-      // app's own resolvedScheme fixes both causes at once.
+      // backgroundColor/blurEffect: without these, the tab bar's native
+      // translucent material follows the OS's system light/dark trait
+      // rather than this app's own in-app theme preference - see
+      // docs/navigation-white-flash.md's fifth layer.
       backgroundColor={colors.background}
       blurEffect={resolvedScheme === "dark" ? "systemMaterialDark" : "systemMaterialLight"}
       indicatorColor={colors.backgroundElement}
       iconColor={{ default: colors.textSecondary, selected: colors.text }}
       labelStyle={{ selected: { color: colors.text } }}
-      // "onScrollDown" is a single, tab-bar-wide UIKit setting (iOS 26+),
-      // not something scoped per-screen - it doesn't reliably reset when
-      // navigating between screens with different scroll views (e.g. it
-      // stays minimized after leaving the article screen and going back to
-      // Home), so it's disabled rather than left in a broken/inconsistent
-      // state.
+      // "onScrollDown" is tab-bar-wide (iOS 26+), not per-screen - it
+      // doesn't reset navigating between screens with different scroll
+      // views, so it's disabled rather than left inconsistent.
       minimizeBehavior="never">
       {/* Labels are kept (not omitted) but hidden - each tab's own name now
           shows at the top of its screen instead (see app-header.tsx), so
@@ -44,15 +34,8 @@ export default function AppTabs() {
       <NativeTabs.Trigger name="(home)">
         <Label hidden>{t('tabHome')}</Label>
         {/* A generic house glyph, not the app's own mark - that logo now
-            shows in the header instead (see app-header.tsx), so this only
-            needs to read as "the Home tab" the way every other tab's icon
-            reads as its own destination. sf is iOS-only (SF Symbols don't
-            exist on Android) - androidSrc is the required cross-platform
-            fallback there, via expo-router's own VectorIcon helper
-            (@expo/vector-icons under the hood). Without it, Android's tab
-            bar has no icon *and* no label (see Label's own comment above -
-            it's deliberately hidden), which reads as a completely empty
-            bar rather than just a missing icon. */}
+            shows in the header instead (see app-header.tsx). androidSrc is
+            required alongside sf - see docs/android-tab-bar.md. */}
         <Icon
           sf={{ default: 'house', selected: 'house.fill' }}
           androidSrc={{

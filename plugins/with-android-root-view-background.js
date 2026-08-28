@@ -5,22 +5,10 @@ const {
   AndroidConfig,
 } = require("@expo/config-plugins");
 
-// expo-system-ui's own withAndroidRootViewBackgroundColor plugin (see
-// node_modules/expo-system-ui/plugin/src/withAndroidRootViewBackgroundColor.ts)
-// only reads a single expo.android.backgroundColor - no light/dark split,
-// unlike expo-splash-screen's own plugin (which does support a `dark`
-// sub-key, already used for this app's splash screen in app.json). Without
-// android:windowBackground set at all, AppTheme falls back to
-// Theme.AppCompat.DayNight's own default (plain white/near-black) - the
-// color Android's edge-to-edge rounded-corner mask actually samples, which
-// is a *different* layer than the ones docs/navigation-white-flash.md's
-// three layers already cover (React Navigation's Theme, expo-system-ui's
-// *runtime* setBackgroundColorAsync call, and the react-native-screens
-// patch) - all three of those only take effect once JS has run, and none
-// of them touch this static theme attribute. Colors.xml's own
-// values/values-night split (the same mechanism expo-splash-screen already
-// relies on for splashscreen_background) makes this correct from the very
-// first native frame, no JS involved.
+// Sets Android's static android:windowBackground theme attribute, with a
+// light/dark split via colors.xml - see docs/navigation-white-flash.md's
+// fourth layer for why this is needed (expo-system-ui's own equivalent
+// plugin only supports a single color, no dark variant).
 const COLOR_NAME = "rootViewBackground";
 
 function withAndroidRootViewBackground(config, { light, dark }) {

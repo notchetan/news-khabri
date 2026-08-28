@@ -48,10 +48,7 @@ export default function HomeScreen() {
     web: Spacing.six,
   });
   // Same tab-bar reservation as search/index.tsx and preferences/index.tsx -
-  // see NATIVE_TAB_BAR_HEIGHT's own comment for why insets.bottom alone
-  // isn't enough. Without this, StoryList/ArticleList's last card was
-  // clipped behind Android's opaque tab bar (invisible there, unlike iOS's
-  // translucent one where the same unreserved content stays legible).
+  // see docs/android-tab-bar.md.
   const bottomPadding = Platform.select({
     default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
     web: 0,
