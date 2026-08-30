@@ -9,6 +9,7 @@ import { ActivityIndicator, FlatList, StyleSheet, Text } from "react-native";
 import { Spacing } from "@/constants/theme";
 import { useDebugPreference } from "@/contexts/debug-preference";
 import { useLanguagePreference } from "@/contexts/language-preference";
+import { useSourcesPreference } from "@/contexts/sources-preference";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 import { formatRelativeTime } from "@/utils/format-date";
@@ -26,6 +27,7 @@ type Props = {
 // confusion.
 export default function StoryList({ category }: Props) {
   const { language } = useLanguagePreference();
+  const { selectedSources } = useSourcesPreference();
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
@@ -34,7 +36,7 @@ export default function StoryList({ category }: Props) {
 
   useEffect(() => {
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
-  }, [category]);
+  }, [category, selectedSources]);
 
   const {
     data,
@@ -46,8 +48,9 @@ export default function StoryList({ category }: Props) {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["storyFeed", language, category],
-    queryFn: ({ pageParam }) => fetchStoryFeed(language, category, pageParam as number),
+    queryKey: ["storyFeed", language, category, selectedSources],
+    queryFn: ({ pageParam }) =>
+      fetchStoryFeed(language, category, pageParam as number, selectedSources),
     initialPageParam: STORIES_PAGE_SIZE,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
       const requested = typeof lastPageParam === "number" ? lastPageParam : STORIES_PAGE_SIZE;

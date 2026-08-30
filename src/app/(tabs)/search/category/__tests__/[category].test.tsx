@@ -5,6 +5,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 import { fetchArticles, type Article } from "@/api/articles";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
+import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
 import SearchCategoryScreen from "../[category]";
 
@@ -55,9 +56,11 @@ function renderScreen() {
     <QueryClientProvider client={queryClient}>
       <ThemePreferenceProvider>
         <LanguagePreferenceProvider>
-          <DebugPreferenceProvider>
-            <SearchCategoryScreen />
-          </DebugPreferenceProvider>
+          <SourcesPreferenceProvider>
+            <DebugPreferenceProvider>
+              <SearchCategoryScreen />
+            </DebugPreferenceProvider>
+          </SourcesPreferenceProvider>
         </LanguagePreferenceProvider>
       </ThemePreferenceProvider>
     </QueryClientProvider>
@@ -102,7 +105,8 @@ describe("SearchCategoryScreen", () => {
         "en",
         "business",
         undefined,
-        undefined
+        undefined,
+        []
       );
     });
   });

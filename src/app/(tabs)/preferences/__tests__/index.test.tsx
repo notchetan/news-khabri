@@ -5,6 +5,8 @@ import { Colors } from "@/constants/theme";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { FontSizePreferenceProvider } from "@/contexts/font-size-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
+import { NotificationPreferenceProvider } from "@/contexts/notification-preference";
+import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
 import PreferencesScreen from "../index";
 
@@ -17,15 +19,28 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
+// Never actually reach the real native module or network from these tests -
+// the notification-preference context's own registration side effect is
+// exercised separately in notification-preference.test.tsx.
+jest.mock("expo-notifications", () => ({
+  getPermissionsAsync: jest.fn().mockResolvedValue({ status: "denied" }),
+  requestPermissionsAsync: jest.fn().mockResolvedValue({ status: "denied" }),
+  getExpoPushTokenAsync: jest.fn(),
+}));
+
 function renderScreen() {
   return render(
     <ThemePreferenceProvider>
       <LanguagePreferenceProvider>
-        <FontSizePreferenceProvider>
-          <DebugPreferenceProvider>
-            <PreferencesScreen />
-          </DebugPreferenceProvider>
-        </FontSizePreferenceProvider>
+        <SourcesPreferenceProvider>
+          <NotificationPreferenceProvider>
+            <FontSizePreferenceProvider>
+              <DebugPreferenceProvider>
+                <PreferencesScreen />
+              </DebugPreferenceProvider>
+            </FontSizePreferenceProvider>
+          </NotificationPreferenceProvider>
+        </SourcesPreferenceProvider>
       </LanguagePreferenceProvider>
     </ThemePreferenceProvider>
   );
@@ -128,6 +143,59 @@ describe("PreferencesScreen", () => {
     fireEvent.press(screen.getByRole("button", { name: "Language" }));
 
     expect(mockPush).toHaveBeenCalledWith("/preferences/language");
+  });
+
+  it("shows 'All sources' by default and navigates to the sources picker screen when tapped", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    expect(screen.getByText("All sources")).toBeTruthy();
+
+    fireEvent.press(screen.getByRole("button", { name: "Sources" }));
+
+    expect(mockPush).toHaveBeenCalledWith("/preferences/sources");
+  });
+
+  it("shows 'Off' by default and navigates to the notifications picker screen when tapped", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    expect(screen.getByText("Off")).toBeTruthy();
+
+    fireEvent.press(screen.getByRole("button", { name: "Notifications" }));
+
+    expect(mockPush).toHaveBeenCalledWith("/preferences/notifications");
+  });
+
+  it("shows the chosen interval once notifications are on, instead of 'Off'", async () => {
+    await AsyncStorage.setItem("notificationPreference", "15");
+
+    await act(async () => {
+      renderScreen();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Every 15 minutes")).toBeTruthy();
+    });
+    expect(screen.queryByText("Off")).toBeNull();
+  });
+
+  it("shows a count once sources are selected, instead of 'All sources'", async () => {
+    await AsyncStorage.setItem(
+      "sourcesPreference",
+      JSON.stringify({ en: ["NDTV", "BBC Sport"] })
+    );
+
+    await act(async () => {
+      renderScreen();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("2 selected")).toBeTruthy();
+    });
+    expect(screen.queryByText("All sources")).toBeNull();
   });
 
   it("shows the selected language's own endonym as the current value, not its English name", async () => {

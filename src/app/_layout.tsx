@@ -4,7 +4,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { useRouter, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import * as SystemUI from "expo-system-ui";
@@ -17,6 +17,11 @@ import { Colors } from "@/constants/theme";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { FontSizePreferenceProvider } from "@/contexts/font-size-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
+import {
+  NotificationPreferenceProvider,
+  useNotificationPreference,
+} from "@/contexts/notification-preference";
+import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
 import {
   ThemePreferenceProvider,
   useThemePreference,
@@ -64,6 +69,8 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const { resolvedScheme } = useThemePreference();
+  const { interval: notificationInterval } = useNotificationPreference();
+  const router = useRouter();
 
   // Belt-and-suspenders alongside AppLightTheme/AppDarkTheme above - see
   // docs/navigation-white-flash.md.
@@ -72,6 +79,30 @@ function AppContent() {
       resolvedScheme === "dark" ? Colors.dark.background : Colors.light.background
     );
   }, [resolvedScheme]);
+
+  // Tapping a trending-story notification opens that story directly - see
+  // "Tapping a notification" in docs/push-notifications.md. Only set up
+  // once notifications are actually on (and even then, guarded by try/catch)
+  // - see "Why expo-notifications is required lazily, not imported" in that
+  // same doc for why this can't be a top-level import.
+  useEffect(() => {
+    if (notificationInterval === 0) return;
+    try {
+      const Notifications: typeof import("expo-notifications") = require("expo-notifications");
+      const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+        const storyId = response.notification.request.content.data?.storyId;
+        if (storyId == null) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (router.push as any)({
+          pathname: "/story/[id]",
+          params: { id: String(storyId) },
+        });
+      });
+      return () => subscription.remove();
+    } catch {
+      return undefined;
+    }
+  }, [router, notificationInterval]);
 
   return (
     <ThemeProvider value={resolvedScheme === "dark" ? AppDarkTheme : AppLightTheme}>
@@ -92,9 +123,13 @@ export default function RootLayout() {
           <ThemePreferenceProvider>
             <FontSizePreferenceProvider>
               <LanguagePreferenceProvider>
-                <DebugPreferenceProvider>
-                  <AppContent />
-                </DebugPreferenceProvider>
+                <SourcesPreferenceProvider>
+                  <NotificationPreferenceProvider>
+                    <DebugPreferenceProvider>
+                      <AppContent />
+                    </DebugPreferenceProvider>
+                  </NotificationPreferenceProvider>
+                </SourcesPreferenceProvider>
               </LanguagePreferenceProvider>
             </FontSizePreferenceProvider>
           </ThemePreferenceProvider>

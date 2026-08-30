@@ -6,6 +6,7 @@ import { fetchArticles, fetchCategories, type Article } from "@/api/articles";
 import { fetchStoryFeed, type Story } from "@/api/stories";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
+import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
 import HomeScreen from "../index";
 
@@ -79,9 +80,11 @@ function renderScreen() {
     <QueryClientProvider client={queryClient}>
       <ThemePreferenceProvider>
         <LanguagePreferenceProvider>
-          <DebugPreferenceProvider>
-            <HomeScreen />
-          </DebugPreferenceProvider>
+          <SourcesPreferenceProvider>
+            <DebugPreferenceProvider>
+              <HomeScreen />
+            </DebugPreferenceProvider>
+          </SourcesPreferenceProvider>
         </LanguagePreferenceProvider>
       </ThemePreferenceProvider>
     </QueryClientProvider>
@@ -140,7 +143,7 @@ describe("HomeScreen", () => {
     // The API is still filtered by the raw backend value, not the
     // translated display text.
     await waitFor(() => {
-      expect(mockFetchArticles).toHaveBeenCalledWith("hi", "business", undefined, undefined);
+      expect(mockFetchArticles).toHaveBeenCalledWith("hi", "business", undefined, undefined, []);
     });
   });
 
@@ -150,7 +153,7 @@ describe("HomeScreen", () => {
     });
 
     await waitFor(() => {
-      expect(mockFetchStoryFeed).toHaveBeenCalledWith("en", undefined, 20);
+      expect(mockFetchStoryFeed).toHaveBeenCalledWith("en", undefined, 20, []);
     });
     expect(mockFetchArticles).not.toHaveBeenCalled();
   });
@@ -177,7 +180,8 @@ describe("HomeScreen", () => {
         "en",
         "business",
         undefined,
-        undefined
+        undefined,
+        []
       );
     });
   });
@@ -203,7 +207,7 @@ describe("HomeScreen", () => {
     });
 
     await waitFor(() => {
-      expect(mockFetchStoryFeed).toHaveBeenCalledWith("en", undefined, 20);
+      expect(mockFetchStoryFeed).toHaveBeenCalledWith("en", undefined, 20, []);
     });
   });
 

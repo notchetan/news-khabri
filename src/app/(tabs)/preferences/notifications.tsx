@@ -5,37 +5,51 @@ import { Pressable, StyleSheet } from "react-native";
 import LegalDocumentScreen from "@/components/legal-document-screen";
 import PageHeader from "@/components/page-header";
 import { ThemedText } from "@/components/themed-text";
-import { LANGUAGE_ENDONYMS, LANGUAGE_OPTIONS } from "@/constants/languages";
 import { Spacing } from "@/constants/theme";
-import { useLanguagePreference } from "@/contexts/language-preference";
+import {
+  NotificationInterval,
+  useNotificationPreference,
+} from "@/contexts/notification-preference";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 
-// A pushed screen with a checkmarked list, not a modal sheet - the same
-// pattern iOS's own Settings app uses for a setting with more than a
-// handful of options (Settings > General > Language & Region pushes a new
-// screen rather than presenting a sheet over the current one), and
-// consistent with how About/Privacy/Terms already navigate in this app.
-export default function LanguageScreen() {
+const INTERVAL_OPTIONS: NotificationInterval[] = [0, 5, 15, 30, 60, 120];
+
+// Single-select pushed picker, same shape as language.tsx (checkmarked
+// list, tap selects and navigates back) - unlike sources.tsx, this is one
+// choice, not a set, so there's no multi-select/Select-all-Clear-all here.
+export default function NotificationsScreen() {
   const router = useRouter();
-  const { language, setLanguage } = useLanguagePreference();
+  const { interval, setInterval } = useNotificationPreference();
   const { t } = useTranslation();
   const theme = useTheme();
 
+  const labelFor = (value: NotificationInterval) =>
+    value === 0
+      ? t("notificationsOff")
+      : t("notificationsEveryMinutesTemplate", { minutes: String(value) });
+
   return (
     <LegalDocumentScreen
-      title={t("language")}
+      title={t("notifications")}
       renderHeader={(goBack) => (
-        <PageHeader title={t("language")} onGoBack={goBack} testIDPrefix="language" />
+        <PageHeader
+          title={t("notifications")}
+          onGoBack={goBack}
+          testIDPrefix="notifications"
+        />
       )}
     >
-      {LANGUAGE_OPTIONS.map((option) => {
-        const selected = language === option.value;
+      <ThemedText themeColor="textSecondary" style={styles.description}>
+        {t("notificationsDescription")}
+      </ThemedText>
+      {INTERVAL_OPTIONS.map((option) => {
+        const selected = interval === option;
         return (
           <Pressable
-            key={option.value}
+            key={option}
             onPress={() => {
-              setLanguage(option.value);
+              setInterval(option);
               router.back();
             }}
             style={[styles.row, { borderColor: theme.backgroundSelected }]}
@@ -43,7 +57,7 @@ export default function LanguageScreen() {
             accessibilityState={{ selected }}
           >
             <ThemedText type="default" style={[selected && { color: theme.tint }]}>
-              {LANGUAGE_ENDONYMS[option.value]}
+              {labelFor(option)}
             </ThemedText>
             {selected && (
               <SymbolView
@@ -62,6 +76,7 @@ export default function LanguageScreen() {
 }
 
 const styles = StyleSheet.create({
+  description: { marginBottom: Spacing.three },
   row: {
     flexDirection: "row",
     alignItems: "center",

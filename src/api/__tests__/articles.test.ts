@@ -72,6 +72,26 @@ describe("fetchArticles", () => {
     expect(calledUrl).not.toContain("cursor=");
   });
 
+  it("includes a joined sources param when a non-empty list is provided", async () => {
+    mockFetchOnce([mockArticle]);
+
+    await fetchArticles("en", undefined, undefined, undefined, ["NDTV", "BBC Sport"]);
+
+    const calledUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    // URLSearchParams itself encodes a space as "+", not "%20" -
+    // encodeURIComponent's own escaping doesn't match what's actually sent.
+    expect(calledUrl).toContain("sources=NDTV%2CBBC+Sport");
+  });
+
+  it("omits the sources param entirely when the list is empty", async () => {
+    mockFetchOnce([mockArticle]);
+
+    await fetchArticles("en", undefined, undefined, undefined, []);
+
+    const calledUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    expect(calledUrl).not.toContain("sources=");
+  });
+
   it("throws when the response is not ok", async () => {
     mockFetchOnce([], false);
 

@@ -5,6 +5,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 import { ARTICLES_PAGE_SIZE, fetchArticles, type Article } from "@/api/articles";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
+import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
 import ArticleList from "../article-list";
 import { __resetGuardedNavigateForTests } from "@/utils/navigation-guard";
@@ -48,9 +49,11 @@ function renderList(props: Partial<React.ComponentProps<typeof ArticleList>> = {
     <QueryClientProvider client={queryClient}>
       <ThemePreferenceProvider>
         <LanguagePreferenceProvider>
-          <DebugPreferenceProvider>
-            <ArticleList basePath="/article" {...props} />
-          </DebugPreferenceProvider>
+          <SourcesPreferenceProvider>
+            <DebugPreferenceProvider>
+              <ArticleList basePath="/article" {...props} />
+            </DebugPreferenceProvider>
+          </SourcesPreferenceProvider>
         </LanguagePreferenceProvider>
       </ThemePreferenceProvider>
     </QueryClientProvider>
@@ -141,7 +144,29 @@ describe("ArticleList", () => {
         "en",
         "business",
         undefined,
-        "market"
+        "market",
+        []
+      );
+    });
+  });
+
+  it("passes the selected sources preference through to fetchArticles", async () => {
+    await AsyncStorage.setItem(
+      "sourcesPreference",
+      JSON.stringify({ en: ["NDTV", "BBC Sport"] })
+    );
+
+    await act(async () => {
+      renderList();
+    });
+
+    await waitFor(() => {
+      expect(mockFetchArticles).toHaveBeenCalledWith(
+        "en",
+        undefined,
+        undefined,
+        undefined,
+        ["NDTV", "BBC Sport"]
       );
     });
   });
@@ -177,7 +202,8 @@ describe("ArticleList", () => {
       "en",
       undefined,
       "2026-01-15T18:19:00Z|20",
-      undefined
+      undefined,
+      []
     );
   });
 

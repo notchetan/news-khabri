@@ -35,7 +35,8 @@ export async function fetchArticles(
   language: string,
   category?: string,
   cursor?: string,
-  search?: string
+  search?: string,
+  sources?: string[]
 ): Promise<Article[]> {
   const params = new URLSearchParams({
     limit: String(ARTICLES_PAGE_SIZE),
@@ -44,6 +45,7 @@ export async function fetchArticles(
   if (category) params.set("category", category);
   if (cursor) params.set("cursor", cursor);
   if (search) params.set("search", search);
+  if (sources && sources.length > 0) params.set("sources", sources.join(","));
 
   const res = await fetch(`${BASE_URL}/articles?${params}`);
   if (!res.ok) throw new Error("Failed to fetch articles");
@@ -56,8 +58,14 @@ export async function fetchArticleDetail(id: number): Promise<ArticleDetail> {
   return res.json();
 }
 
-export async function fetchCategories(language: string): Promise<string[]> {
-  const res = await fetch(`${BASE_URL}/categories?language=${language}`);
+export async function fetchCategories(
+  language: string,
+  sources?: string[]
+): Promise<string[]> {
+  const params = new URLSearchParams({ language });
+  if (sources && sources.length > 0) params.set("sources", sources.join(","));
+
+  const res = await fetch(`${BASE_URL}/categories?${params}`);
   if (!res.ok) throw new Error("Failed to fetch categories");
   return res.json();
 }
@@ -65,5 +73,11 @@ export async function fetchCategories(language: string): Promise<string[]> {
 export async function fetchLanguages(): Promise<string[]> {
   const res = await fetch(`${BASE_URL}/languages`);
   if (!res.ok) throw new Error("Failed to fetch languages");
+  return res.json();
+}
+
+export async function fetchSources(language: string): Promise<string[]> {
+  const res = await fetch(`${BASE_URL}/sources?language=${language}`);
+  if (!res.ok) throw new Error("Failed to fetch sources");
   return res.json();
 }
