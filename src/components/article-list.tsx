@@ -9,6 +9,7 @@ import { ActivityIndicator, FlatList, StyleSheet, Text } from "react-native";
 import { Spacing } from "@/constants/theme";
 import { useDebugPreference } from "@/contexts/debug-preference";
 import { useLanguagePreference } from "@/contexts/language-preference";
+import { useSourcesPreference } from "@/contexts/sources-preference";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 
@@ -20,6 +21,7 @@ type Props = {
 
 export default function ArticleList({ category, search, basePath }: Props) {
   const { language } = useLanguagePreference();
+  const { selectedSources } = useSourcesPreference();
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
@@ -28,7 +30,7 @@ export default function ArticleList({ category, search, basePath }: Props) {
 
   useEffect(() => {
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
-  }, [category, search]);
+  }, [category, search, selectedSources]);
 
   const {
     data,
@@ -40,9 +42,9 @@ export default function ArticleList({ category, search, basePath }: Props) {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["articles", language, category, search],
+    queryKey: ["articles", language, category, search, selectedSources],
     queryFn: ({ pageParam }) =>
-      fetchArticles(language, category, pageParam as string | undefined, search),
+      fetchArticles(language, category, pageParam as string | undefined, search, selectedSources),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) =>
       lastPage.length === ARTICLES_PAGE_SIZE

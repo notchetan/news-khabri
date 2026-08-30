@@ -69,4 +69,36 @@ describe("LegalDocumentScreen", () => {
     expect(mockReplace).toHaveBeenCalledWith("/preferences");
     expect(mockBack).not.toHaveBeenCalled();
   });
+
+  it("renders a custom header via renderHeader instead of the default '‹ Back' row, and suppresses the in-content title", async () => {
+    await act(async () => {
+      render(
+        <ThemePreferenceProvider>
+          <LanguagePreferenceProvider>
+            <LegalDocumentScreen
+              title="About"
+              renderHeader={(goBack) => (
+                <Text accessibilityRole="button" onPress={goBack}>
+                  Custom header
+                </Text>
+              )}
+            >
+              <Text>Body content</Text>
+            </LegalDocumentScreen>
+          </LanguagePreferenceProvider>
+        </ThemePreferenceProvider>
+      );
+    });
+
+    expect(screen.getByText("Custom header")).toBeTruthy();
+    expect(screen.getByText("Body content")).toBeTruthy();
+    // "About" would otherwise render twice (once as the in-content heading,
+    // once wherever the custom header itself shows it) - the default
+    // heading is suppressed so a caller's own header is the only place it
+    // appears.
+    expect(screen.queryByText("About")).toBeNull();
+
+    fireEvent.press(screen.getByText("Custom header"));
+    expect(mockBack).toHaveBeenCalled();
+  });
 });

@@ -5,6 +5,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 import { fetchStoryFeed, STORIES_PAGE_SIZE, type Story } from "@/api/stories";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
+import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
 import StoryList from "../story-list";
 import { __resetGuardedNavigateForTests } from "@/utils/navigation-guard";
@@ -65,9 +66,11 @@ function renderList(props: Partial<React.ComponentProps<typeof StoryList>> = {})
     <QueryClientProvider client={queryClient}>
       <ThemePreferenceProvider>
         <LanguagePreferenceProvider>
-          <DebugPreferenceProvider>
-            <StoryList {...props} />
-          </DebugPreferenceProvider>
+          <SourcesPreferenceProvider>
+            <DebugPreferenceProvider>
+              <StoryList {...props} />
+            </DebugPreferenceProvider>
+          </SourcesPreferenceProvider>
         </LanguagePreferenceProvider>
       </ThemePreferenceProvider>
     </QueryClientProvider>
@@ -231,7 +234,7 @@ describe("StoryList", () => {
     await waitFor(() => {
       expect(mockFetchStoryFeed).toHaveBeenCalledTimes(2);
     });
-    expect(mockFetchStoryFeed).toHaveBeenLastCalledWith("en", undefined, 40);
+    expect(mockFetchStoryFeed).toHaveBeenLastCalledWith("en", undefined, 40, []);
   });
 
   it("passes the category through to fetchStoryFeed", async () => {
@@ -240,7 +243,32 @@ describe("StoryList", () => {
     });
 
     await waitFor(() => {
-      expect(mockFetchStoryFeed).toHaveBeenCalledWith("en", "business", STORIES_PAGE_SIZE);
+      expect(mockFetchStoryFeed).toHaveBeenCalledWith(
+        "en",
+        "business",
+        STORIES_PAGE_SIZE,
+        []
+      );
+    });
+  });
+
+  it("passes the selected sources preference through to fetchStoryFeed", async () => {
+    await AsyncStorage.setItem(
+      "sourcesPreference",
+      JSON.stringify({ en: ["NDTV", "BBC Sport"] })
+    );
+
+    await act(async () => {
+      renderList();
+    });
+
+    await waitFor(() => {
+      expect(mockFetchStoryFeed).toHaveBeenCalledWith(
+        "en",
+        undefined,
+        STORIES_PAGE_SIZE,
+        ["NDTV", "BBC Sport"]
+      );
     });
   });
 

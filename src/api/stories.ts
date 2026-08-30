@@ -48,11 +48,13 @@ export const STORIES_PAGE_SIZE = 20;
 export async function fetchStoryFeed(
   language: string,
   category?: string,
-  limit?: number
+  limit?: number,
+  sources?: string[]
 ): Promise<Story[]> {
   const params = new URLSearchParams({ language });
   if (category) params.set("category", category);
   if (limit) params.set("limit", String(limit));
+  if (sources && sources.length > 0) params.set("sources", sources.join(","));
 
   const res = await fetch(`${BASE_URL}/stories/top?${params}`);
   if (!res.ok) throw new Error("Failed to fetch story feed");

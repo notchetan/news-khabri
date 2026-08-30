@@ -7,6 +7,7 @@ import { Keyboard, TextInput } from "react-native";
 import { fetchArticles, fetchCategories, type Article } from "@/api/articles";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
+import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
 import SearchScreen from "../index";
 
@@ -59,9 +60,11 @@ function renderScreen() {
     <QueryClientProvider client={queryClient}>
       <ThemePreferenceProvider>
         <LanguagePreferenceProvider>
-          <DebugPreferenceProvider>
-            <SearchScreen />
-          </DebugPreferenceProvider>
+          <SourcesPreferenceProvider>
+            <DebugPreferenceProvider>
+              <SearchScreen />
+            </DebugPreferenceProvider>
+          </SourcesPreferenceProvider>
         </LanguagePreferenceProvider>
       </ThemePreferenceProvider>
     </QueryClientProvider>
@@ -279,7 +282,8 @@ describe("SearchScreen", () => {
       "en",
       undefined,
       undefined,
-      "election"
+      "election",
+      []
     );
 
     await waitFor(
@@ -288,7 +292,8 @@ describe("SearchScreen", () => {
           "en",
           undefined,
           undefined,
-          "election"
+          "election",
+          []
         );
       },
       { timeout: 2000 }
@@ -332,7 +337,8 @@ describe("SearchScreen", () => {
           "en",
           undefined,
           undefined,
-          "us"
+          "us",
+          []
         );
       },
       { timeout: 2000 }

@@ -25,6 +25,8 @@ import {
   useFontSizePreference,
 } from "@/contexts/font-size-preference";
 import { useLanguagePreference } from "@/contexts/language-preference";
+import { useNotificationPreference } from "@/contexts/notification-preference";
+import { useSourcesPreference } from "@/contexts/sources-preference";
 import {
   ThemePreference,
   useThemePreference,
@@ -77,6 +79,8 @@ export default function PreferencesScreen() {
   const { preference: fontPreference, setPreference: setFontPreference } =
     useFontSizePreference();
   const { language } = useLanguagePreference();
+  const { selectedSources } = useSourcesPreference();
+  const { interval: notificationInterval } = useNotificationPreference();
   const { debugEnabled, setDebugEnabled } = useDebugPreference();
   const { t } = useTranslation();
   const theme = useTheme();
@@ -245,6 +249,74 @@ export default function PreferencesScreen() {
         </Pressable>
         <ThemedText themeColor="textSecondary" style={styles.description}>
           {t("languageDescription")}
+        </ThemedText>
+
+        <View
+          style={[styles.divider, styles.sectionSpacing, { backgroundColor: theme.backgroundSelected }]}
+        />
+
+        <Pressable
+          onPress={() => router.push("/preferences/sources")}
+          style={styles.legalRow}
+          accessibilityRole="button"
+          accessibilityLabel={t("sources")}
+        >
+          <ThemedText type="default" accessibilityRole="header">{t("sources")}</ThemedText>
+          <View style={styles.languagePickerValue}>
+            <ThemedText themeColor="textSecondary">
+              {selectedSources.length > 0
+                ? t("sourcesSelectedTemplate", { count: String(selectedSources.length) })
+                : t("allSources")}
+            </ThemedText>
+            <SymbolView
+              name="chevron.right"
+              size={14}
+              weight="semibold"
+              tintColor={theme.textSecondary}
+              fallback={
+                <ThemedText themeColor="textSecondary" style={styles.legalChevronFallback}>
+                  ›
+                </ThemedText>
+              }
+            />
+          </View>
+        </Pressable>
+        <ThemedText themeColor="textSecondary" style={styles.description}>
+          {t("sourcesDescription")}
+        </ThemedText>
+
+        <View
+          style={[styles.divider, styles.sectionSpacing, { backgroundColor: theme.backgroundSelected }]}
+        />
+
+        <Pressable
+          onPress={() => router.push("/preferences/notifications")}
+          style={styles.legalRow}
+          accessibilityRole="button"
+          accessibilityLabel={t("notifications")}
+        >
+          <ThemedText type="default" accessibilityRole="header">{t("notifications")}</ThemedText>
+          <View style={styles.languagePickerValue}>
+            <ThemedText themeColor="textSecondary">
+              {notificationInterval === 0
+                ? t("notificationsOff")
+                : t("notificationsEveryMinutesTemplate", { minutes: String(notificationInterval) })}
+            </ThemedText>
+            <SymbolView
+              name="chevron.right"
+              size={14}
+              weight="semibold"
+              tintColor={theme.textSecondary}
+              fallback={
+                <ThemedText themeColor="textSecondary" style={styles.legalChevronFallback}>
+                  ›
+                </ThemedText>
+              }
+            />
+          </View>
+        </Pressable>
+        <ThemedText themeColor="textSecondary" style={styles.description}>
+          {t("notificationsDescription")}
         </ThemedText>
 
         <View

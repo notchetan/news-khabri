@@ -30,6 +30,22 @@ describe("LanguageScreen (Apple-style pushed picker)", () => {
     jest.clearAllMocks();
   });
 
+  it("shows a PageHeader (chevron + title left, brand logo right) matching the article page's own header, not the plain 'Back' row", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    expect(screen.getByTestId("language-header-row")).toBeTruthy();
+    expect(screen.getByTestId("language-back-chevron")).toBeTruthy();
+    expect(screen.getByTestId("language-brand-logo")).toBeTruthy();
+    // The heading text appears once, in the header - not duplicated as a
+    // separate in-content title the way About/Privacy/Terms still show it.
+    expect(screen.getAllByText("Language")).toHaveLength(1);
+
+    fireEvent.press(screen.getByRole("button", { name: "Back" }));
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
   it("lists every language in its own script, not translated via the currently active language", async () => {
     await act(async () => {
       renderScreen();
