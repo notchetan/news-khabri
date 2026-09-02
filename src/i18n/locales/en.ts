@@ -19,6 +19,22 @@ const en = {
   signInDescription: "Sign in to sync your preferences across devices",
   signInWithGoogle: "Sign in with Google",
   signOut: "Sign out",
+  // Bookmarks - the toggle on articles/feed cards, and the Saved screen
+  // reached from the header icon and the Profile screen.
+  save: "Save",
+  removeBookmark: "Remove from saved",
+  savedArticlesTitle: "Saved",
+  savedTitleCountTemplate: "Saved ({count})",
+  articleSaved: "Article saved.",
+  toastCheckNow: "Check now",
+  noSavedArticles: "No saved articles yet",
+  noSavedArticlesDescription:
+    "Tap the bookmark icon on any article to save it for later",
+  clearAll: "Clear All",
+  clearAllConfirmTitle: "Clear all saved articles?",
+  clearAllConfirmMessage:
+    "This removes every article from your saved list. This can't be undone.",
+  cancel: "Cancel",
   preferencesTitle: "Preferences",
   appearance: "Appearance",
   appearanceAutomaticDesc: "Match your device's system setting",

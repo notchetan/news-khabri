@@ -30,6 +30,7 @@ import Squircle from "@/components/squircle";
 import { ThemedText } from "@/components/themed-text";
 import { NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
 import { useAuth } from "@/contexts/auth-context";
+import { useBookmarks } from "@/contexts/bookmarks-context";
 import { useFontSizePreference } from "@/contexts/font-size-preference";
 import { useTheme } from "@/hooks/use-theme";
 import { formatPublishedDate } from "@/utils/format-date";
@@ -53,6 +54,7 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   const { t } = useTranslation();
   const { scale: fontScale } = useFontSizePreference();
   const { token } = useAuth();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const [showCaption, setShowCaption] = useState(false);
@@ -175,6 +177,21 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
       // Share sheet dismissed, or unsupported (e.g. desktop web without a
       // navigator.share implementation) - nothing to recover from, no-op.
     }
+  };
+
+  const saved = data ? isBookmarked(data.id) : false;
+  const toggleSaved = () => {
+    if (!data) return;
+    toggleBookmark({
+      id: data.id,
+      title: data.title,
+      link: data.link,
+      source: data.source,
+      category: data.category,
+      published_at: data.published_at,
+      image_url: data.image_url,
+      language: data.language,
+    });
   };
 
   // router.back() warns/no-ops when this screen has no prior route to pop -
@@ -319,21 +336,46 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
                 )}
               </View>
 
-              <TouchableOpacity
-                onPress={shareArticle}
-                style={[styles.shareButton, { backgroundColor: theme.backgroundElement }]}
-                accessibilityRole="button"
-                accessibilityLabel={t("share")}
-              >
-                <SymbolView
-                  name="square.and.arrow.up"
-                  size={16}
-                  weight="semibold"
-                  tintColor={theme.text}
-                  fallback={<Ionicons name="share-outline" size={16} color={theme.text} />}
-                />
-                <ThemedText style={styles.shareButtonText}>{t("share")}</ThemedText>
-              </TouchableOpacity>
+              <View style={styles.metaActions}>
+                <TouchableOpacity
+                  testID="article-bookmark-button"
+                  onPress={toggleSaved}
+                  style={[styles.iconButton, { backgroundColor: theme.backgroundElement }]}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: saved }}
+                  accessibilityLabel={saved ? t("removeBookmark") : t("save")}
+                >
+                  <SymbolView
+                    name={saved ? "bookmark.fill" : "bookmark"}
+                    size={16}
+                    weight="semibold"
+                    tintColor={theme.text}
+                    fallback={
+                      <Ionicons
+                        name={saved ? "bookmark" : "bookmark-outline"}
+                        size={16}
+                        color={theme.text}
+                      />
+                    }
+                  />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={shareArticle}
+                  style={[styles.shareButton, { backgroundColor: theme.backgroundElement }]}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("share")}
+                >
+                  <SymbolView
+                    name="square.and.arrow.up"
+                    size={16}
+                    weight="semibold"
+                    tintColor={theme.text}
+                    fallback={<Ionicons name="share-outline" size={16} color={theme.text} />}
+                  />
+                  <ThemedText style={styles.shareButtonText}>{t("share")}</ThemedText>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {data.content ? (
@@ -544,6 +586,7 @@ const styles = StyleSheet.create({
   title: { marginTop: Spacing.three },
   // See "Matching story-detail-screen's meta layout" in
   // docs/article-header-layout.md.
+  metaActions: { flexDirection: "row", alignItems: "center", gap: Spacing.two },
   shareButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -553,6 +596,14 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full,
   },
   shareButtonText: { fontSize: 14, fontWeight: "600" },
+  // Icon-only, square-ish - the bookmark toggle sitting left of Share.
+  iconButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.two,
+    borderRadius: Radius.full,
+  },
   // See "Matching story-detail-screen's meta layout" in
   // docs/article-header-layout.md.
   metaRow: {

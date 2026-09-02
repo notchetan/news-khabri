@@ -25,6 +25,11 @@ export const Colors = {
     // '#3c87f7' that didn't match anything else in the app.
     tint: '#A8552E',
     tintText: '#FFF9F2',
+    // Destructive actions only (e.g. "Clear all" on the Saved screen). A
+    // muted brick red rather than iOS's stock '#FF3B30' so it still reads
+    // as "danger" without breaking this palette's warm, low-saturation
+    // undertone.
+    danger: '#B23B2E',
   },
   dark: {
     text: '#F3EFE7',
@@ -34,6 +39,7 @@ export const Colors = {
     textSecondary: '#A79D8C',
     tint: '#D98B63',
     tintText: '#1C1109',
+    danger: '#E0685A',
   },
 } as const;
 

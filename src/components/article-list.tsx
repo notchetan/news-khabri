@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text } from "react-native";
 
 import { Spacing } from "@/constants/theme";
+import { useBookmarks } from "@/contexts/bookmarks-context";
 import { useDebugPreference } from "@/contexts/debug-preference";
 import { useLanguagePreference } from "@/contexts/language-preference";
 import { useSourcesPreference } from "@/contexts/sources-preference";
@@ -26,6 +27,7 @@ export default function ArticleList({ category, search, basePath }: Props) {
   const theme = useTheme();
   const router = useRouter();
   const { debugEnabled } = useDebugPreference();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
   const listRef = useRef<FlatList>(null);
 
   useEffect(() => {
@@ -112,6 +114,20 @@ export default function ArticleList({ category, search, basePath }: Props) {
           accessibilityLabel={`${item.title}, ${item.source}`}
           debugScore={debugEnabled && item.ranking_score != null ? item.ranking_score : undefined}
           debugTestID="ranking-debug-pill"
+          bookmarked={isBookmarked(item.id)}
+          bookmarkAccessibilityLabel={isBookmarked(item.id) ? t("removeBookmark") : t("save")}
+          onToggleBookmark={() =>
+            toggleBookmark({
+              id: item.id,
+              title: item.title,
+              link: item.link,
+              source: item.source,
+              category: item.category,
+              published_at: item.published_at,
+              image_url: item.image_url,
+              language: item.language,
+            })
+          }
           onPress={() =>
             // basePath is built from a prop, so typed routes can't verify
             // it statically like a literal pathname.

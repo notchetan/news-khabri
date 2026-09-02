@@ -8,6 +8,7 @@ import { ActivityIndicator, FlatList, StyleSheet, Text } from "react-native";
 
 import { Spacing } from "@/constants/theme";
 import { useAuth } from "@/contexts/auth-context";
+import { useBookmarks } from "@/contexts/bookmarks-context";
 import { useDebugPreference } from "@/contexts/debug-preference";
 import { useLanguagePreference } from "@/contexts/language-preference";
 import { useSourcesPreference } from "@/contexts/sources-preference";
@@ -34,6 +35,7 @@ export default function StoryList({ category }: Props) {
   const router = useRouter();
   const { debugEnabled } = useDebugPreference();
   const { token } = useAuth();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
   const listRef = useRef<FlatList>(null);
 
   useEffect(() => {
@@ -117,6 +119,9 @@ export default function StoryList({ category }: Props) {
               ...(updatedLabel ? [t("storyUpdatedTemplate", { time: updatedLabel })] : []),
             ].join(" · ");
 
+        const rep = item.representativeArticle;
+        const repSaved = rep ? isBookmarked(rep.id) : false;
+
         return (
           <FeedCard
             title={item.title}
@@ -126,6 +131,25 @@ export default function StoryList({ category }: Props) {
             accessibilityLabel={`${item.title}, ${metaText}`}
             debugScore={debugEnabled ? item.storyScore : undefined}
             debugTestID="story-debug-pill"
+            bookmarked={repSaved}
+            bookmarkAccessibilityLabel={repSaved ? t("removeBookmark") : t("save")}
+            // Bookmarks are per-article; a story card saves its own
+            // representative article. Hidden when there isn't one.
+            onToggleBookmark={
+              rep
+                ? () =>
+                    toggleBookmark({
+                      id: rep.id,
+                      title: rep.title,
+                      link: rep.link,
+                      source: rep.source,
+                      category: item.category,
+                      published_at: rep.published_at,
+                      image_url: rep.image_url,
+                      language: item.language,
+                    })
+                : undefined
+            }
             onPress={() => {
               // Typed routes can't verify a dynamic pathname built from a
               // variable id, same pattern used throughout the app.

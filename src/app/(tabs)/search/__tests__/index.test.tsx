@@ -6,6 +6,7 @@ import { Keyboard, TextInput } from "react-native";
 
 import { fetchArticles, fetchCategories, type Article } from "@/api/articles";
 import { AuthProvider } from "@/contexts/auth-context";
+import { BookmarksProvider } from "@/contexts/bookmarks-context";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
@@ -23,6 +24,11 @@ jest.mock("@/api/articles", () => ({
 }));
 
 const mockPush = jest.fn();
+jest.mock("@/contexts/toast-context", () => ({
+  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
+  useToast: () => ({ show: jest.fn(), hide: jest.fn() }),
+}));
+
 jest.mock("expo-router", () => {
   const { useEffect } = jest.requireActual("react");
   return {
@@ -76,7 +82,9 @@ function renderScreen() {
           <SourcesPreferenceProvider>
             <DebugPreferenceProvider>
               <AuthProvider>
-                <SearchScreen />
+                <BookmarksProvider>
+                  <SearchScreen />
+                </BookmarksProvider>
               </AuthProvider>
             </DebugPreferenceProvider>
           </SourcesPreferenceProvider>

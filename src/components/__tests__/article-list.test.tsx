@@ -19,6 +19,17 @@ jest.mock("@/api/articles", () => ({
   fetchArticles: jest.fn(),
 }));
 
+// ArticleList reads the bookmark toggle state per card - stubbed here
+// since these assertions are about the list, not bookmarking (see
+// bookmarks-context.test.tsx for that).
+jest.mock("@/contexts/bookmarks-context", () => ({
+  useBookmarks: () => ({
+    bookmarks: [],
+    isBookmarked: () => false,
+    toggleBookmark: jest.fn(),
+  }),
+}));
+
 const mockPush = jest.fn();
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush }),

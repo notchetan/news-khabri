@@ -1,4 +1,6 @@
-import { StyleSheet, Text, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { SymbolView } from "expo-symbols";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import ArticleImage from "@/components/article-image";
 import Squircle from "@/components/squircle";
@@ -7,7 +9,9 @@ import { concentricRadius } from "@/utils/corner-radius";
 import { useTheme } from "@/hooks/use-theme";
 import { guardedNavigate } from "@/utils/navigation-guard";
 
-const CARD_PADDING = 12;
+// Exported so screens that place their own headings above a list of these
+// cards can line the heading's edges up with the card's inner content.
+export const CARD_PADDING = 12;
 const IMAGE_RADIUS = concentricRadius(Radius.large, CARD_PADDING);
 
 type Props = {
@@ -21,6 +25,13 @@ type Props = {
   // pass undefined to hide it (e.g. debug mode off, or no score available).
   debugScore?: number;
   debugTestID?: string;
+  // A bookmark toggle overlaid top-right of the image - only rendered when
+  // onToggleBookmark is provided, so callers that don't opt in (e.g. the
+  // Saved screen's own list) are unchanged.
+  onToggleBookmark?: () => void;
+  bookmarked?: boolean;
+  bookmarkAccessibilityLabel?: string;
+  bookmarkTestID?: string;
 };
 
 // Shared by ArticleList and StoryList - both render the same card shape
@@ -35,6 +46,10 @@ export default function FeedCard({
   accessibilityLabel,
   debugScore,
   debugTestID,
+  onToggleBookmark,
+  bookmarked,
+  bookmarkAccessibilityLabel,
+  bookmarkTestID,
 }: Props) {
   const theme = useTheme();
 
@@ -54,6 +69,31 @@ export default function FeedCard({
           <View testID={debugTestID} style={styles.debugPill}>
             <Text style={styles.debugPillText}>{debugScore.toFixed(2)}</Text>
           </View>
+        )}
+        {onToggleBookmark && (
+          <TouchableOpacity
+            testID={bookmarkTestID}
+            onPress={onToggleBookmark}
+            hitSlop={8}
+            style={styles.bookmarkButton}
+            accessibilityRole="button"
+            accessibilityState={{ selected: !!bookmarked }}
+            accessibilityLabel={bookmarkAccessibilityLabel}
+          >
+            <SymbolView
+              name={bookmarked ? "bookmark.fill" : "bookmark"}
+              size={13}
+              weight="bold"
+              tintColor="#fff"
+              fallback={
+                <Ionicons
+                  name={bookmarked ? "bookmark" : "bookmark-outline"}
+                  size={13}
+                  color="#fff"
+                />
+              }
+            />
+          </TouchableOpacity>
         )}
       </View>
       <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
@@ -82,6 +122,18 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full,
   },
   debugPillText: { color: "#fff", fontSize: 11, fontWeight: "700" },
+  // Mirrors debugPill's absolute overlay, top-right instead of top-left.
+  bookmarkButton: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: Radius.full,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   title: { fontWeight: "600", fontSize: 16, marginTop: 8 },
   meta: { fontSize: 12, marginTop: 4 },
 });

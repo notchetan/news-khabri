@@ -42,6 +42,17 @@ type Props = {
   // component's original home in article-detail-screen.tsx) so both
   // screens' own tests can target their own instance unambiguously.
   testIDPrefix?: string;
+  // When set, an inline title that fades in over the collapse distance as
+  // the two side labels fade out - the iOS large-title-to-nav-bar-title
+  // move (the caller renders the matching large title as scrolling
+  // content). Article/story screens pass nothing and are unchanged.
+  centerTitle?: string;
+  // Fills the header row with a solid background instead of letting
+  // content scroll visibly behind the pills. For list screens (Saved),
+  // where chrome peeking through the gaps reads as a glitch rather than
+  // the intentional "content flows under the header" look the article/
+  // story screens want.
+  opaque?: boolean;
 };
 
 export default function FloatingDetailHeader({
@@ -50,6 +61,8 @@ export default function FloatingDetailHeader({
   onGoBack,
   onHeaderHeightChange,
   testIDPrefix = "article",
+  centerTitle,
+  opaque = false,
 }: Props) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -70,6 +83,13 @@ export default function FloatingDetailHeader({
   const brandLabelWidth = scrollY.interpolate({
     inputRange: [0, HEADER_COLLAPSE_DISTANCE],
     outputRange: [BRAND_LABEL_WIDTH, 0],
+    extrapolate: "clamp",
+  });
+  // The mirror image of headerLabelOpacity - the inline title appears
+  // exactly as the side labels finish collapsing.
+  const centerTitleOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_COLLAPSE_DISTANCE],
+    outputRange: [0, 1],
     extrapolate: "clamp",
   });
 
@@ -93,10 +113,38 @@ export default function FloatingDetailHeader({
       )}
       <View
         testID={`${testIDPrefix}-header-row`}
-        style={[styles.backRow, { paddingTop: topPadding }]}
+        style={[
+          styles.backRow,
+          { paddingTop: topPadding },
+          opaque && { backgroundColor: theme.background },
+        ]}
         onLayout={(event) => onHeaderHeightChange(event.nativeEvent.layout.height)}
         pointerEvents="box-none"
       >
+        {centerTitle != null && (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.centerTitleWrap,
+              { paddingTop: topPadding, opacity: centerTitleOpacity },
+            ]}
+          >
+            <GlassView
+              style={[styles.centerGlass, glassFallbackStyle]}
+              glassEffectStyle="regular"
+            >
+              <ThemedText
+                testID={`${testIDPrefix}-center-title`}
+                numberOfLines={1}
+                style={styles.centerTitle}
+                accessibilityRole="header"
+              >
+                {centerTitle}
+              </ThemedText>
+            </GlassView>
+          </Animated.View>
+        )}
+
         <GlassView style={[styles.backGlass, glassFallbackStyle]} glassEffectStyle="regular">
           <Pressable
             onPress={onGoBack}
@@ -199,6 +247,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     lineHeight: Math.ceil(16 * 1.4),
+    ...Platform.select({
+      android: { includeFontPadding: false, textAlignVertical: "center" },
+      default: {},
+    }),
+  },
+  // Overlay centered between the two pills; starts at the same top offset
+  // and shares the pills' own vertical padding so its baseline matches
+  // theirs. Wide side margins keep it clear of the collapsed pills.
+  centerTitleWrap: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  // Same liquid-glass pill treatment as the back/brand pills (see "Pill
+  // shape" in docs/article-header-layout.md); wraps the inline title so
+  // all three read as one set.
+  centerGlass: {
+    alignSelf: "center",
+    borderRadius: Radius.full,
+    overflow: "hidden",
+    maxWidth: "55%",
+  },
+  centerTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    lineHeight: Math.ceil(16 * 1.4),
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
     ...Platform.select({
       android: { includeFontPadding: false, textAlignVertical: "center" },
       default: {},

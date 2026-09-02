@@ -5,6 +5,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 import { fetchArticles, fetchCategories, type Article } from "@/api/articles";
 import { fetchStoryFeed, type Story } from "@/api/stories";
 import { AuthProvider } from "@/contexts/auth-context";
+import { BookmarksProvider } from "@/contexts/bookmarks-context";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
@@ -19,6 +20,11 @@ jest.mock("@/api/articles", () => ({
   ...jest.requireActual("@/api/articles"),
   fetchArticles: jest.fn(),
   fetchCategories: jest.fn(),
+}));
+
+jest.mock("@/contexts/toast-context", () => ({
+  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
+  useToast: () => ({ show: jest.fn(), hide: jest.fn() }),
 }));
 
 jest.mock("@/api/stories", () => ({
@@ -96,7 +102,9 @@ function renderScreen() {
           <SourcesPreferenceProvider>
             <DebugPreferenceProvider>
               <AuthProvider>
-                <HomeScreen />
+                <BookmarksProvider>
+                  <HomeScreen />
+                </BookmarksProvider>
               </AuthProvider>
             </DebugPreferenceProvider>
           </SourcesPreferenceProvider>

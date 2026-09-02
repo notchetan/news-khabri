@@ -123,6 +123,18 @@ export default function ProfileScreen() {
             )}
           </>
         )}
+
+        {!isLoading && (
+          <Pressable
+            testID="profile-saved-button"
+            onPress={() => router.push("/saved")}
+            style={[styles.button, { backgroundColor: theme.backgroundElement }]}
+            accessibilityRole="button"
+            accessibilityLabel={t("savedArticlesTitle")}
+          >
+            <ThemedText type="default">{t("savedArticlesTitle")}</ThemedText>
+          </Pressable>
+        )}
       </ThemedView>
     </ThemedView>
   );

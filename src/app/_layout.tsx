@@ -15,6 +15,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { Colors } from "@/constants/theme";
 import { AuthProvider } from "@/contexts/auth-context";
+import { BookmarksProvider } from "@/contexts/bookmarks-context";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { FontSizePreferenceProvider } from "@/contexts/font-size-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
@@ -28,6 +29,7 @@ import {
   ThemePreferenceProvider,
   useThemePreference,
 } from "@/contexts/theme-preference";
+import { ToastProvider } from "@/contexts/toast-context";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -148,9 +150,13 @@ export default function RootLayout() {
                   <NotificationPreferenceProvider>
                     <DebugPreferenceProvider>
                       <AuthProvider>
-                        <OnboardingProvider>
-                          <AppContent />
-                        </OnboardingProvider>
+                        <ToastProvider>
+                          <BookmarksProvider>
+                            <OnboardingProvider>
+                              <AppContent />
+                            </OnboardingProvider>
+                          </BookmarksProvider>
+                        </ToastProvider>
                       </AuthProvider>
                     </DebugPreferenceProvider>
                   </NotificationPreferenceProvider>
