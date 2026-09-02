@@ -2,7 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 
+import { fetchMe } from "@/api/auth";
 import { fetchStoryFeed, STORIES_PAGE_SIZE, type Story } from "@/api/stories";
+import { AuthProvider } from "@/contexts/auth-context";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
@@ -18,6 +20,21 @@ jest.mock("@/api/stories", () => ({
   ...jest.requireActual("@/api/stories"),
   fetchStoryFeed: jest.fn(),
 }));
+
+jest.mock("@/api/auth", () => ({
+  fetchMe: jest.fn(),
+  signInWithGoogle: jest.fn(),
+  putPreferences: jest.fn(),
+}));
+
+const mockGetItemAsync = jest.fn().mockResolvedValue(null);
+jest.mock("expo-secure-store", () => ({
+  getItemAsync: (...args: unknown[]) => mockGetItemAsync(...args),
+  setItemAsync: jest.fn().mockResolvedValue(undefined),
+  deleteItemAsync: jest.fn().mockResolvedValue(undefined),
+}));
+
+const mockFetchMe = fetchMe as jest.Mock;
 
 // formatRelativeTime is relative to the real current time - mock it to a
 // fixed string so card metadata assertions aren't tied to when the test
@@ -68,7 +85,9 @@ function renderList(props: Partial<React.ComponentProps<typeof StoryList>> = {})
         <LanguagePreferenceProvider>
           <SourcesPreferenceProvider>
             <DebugPreferenceProvider>
-              <StoryList {...props} />
+              <AuthProvider>
+                <StoryList {...props} />
+              </AuthProvider>
             </DebugPreferenceProvider>
           </SourcesPreferenceProvider>
         </LanguagePreferenceProvider>
@@ -80,6 +99,7 @@ function renderList(props: Partial<React.ComponentProps<typeof StoryList>> = {})
 describe("StoryList", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
+    mockGetItemAsync.mockResolvedValue(null);
     await AsyncStorage.clear();
     mockFetchStoryFeed.mockResolvedValue([]);
     // FeedCard's onPress goes through guardedNavigate now, a module-scoped
@@ -234,7 +254,7 @@ describe("StoryList", () => {
     await waitFor(() => {
       expect(mockFetchStoryFeed).toHaveBeenCalledTimes(2);
     });
-    expect(mockFetchStoryFeed).toHaveBeenLastCalledWith("en", undefined, 40, []);
+    expect(mockFetchStoryFeed).toHaveBeenLastCalledWith("en", undefined, 40, [], null);
   });
 
   it("passes the category through to fetchStoryFeed", async () => {
@@ -247,7 +267,8 @@ describe("StoryList", () => {
         "en",
         "business",
         STORIES_PAGE_SIZE,
-        []
+        [],
+        null
       );
     });
   });
@@ -267,7 +288,8 @@ describe("StoryList", () => {
         "en",
         undefined,
         STORIES_PAGE_SIZE,
-        ["NDTV", "BBC Sport"]
+        ["NDTV", "BBC Sport"],
+        null
       );
     });
   });
@@ -296,5 +318,28 @@ describe("StoryList", () => {
       expect(screen.getByTestId("story-debug-pill")).toBeTruthy();
     });
     expect(screen.getByText("0.81")).toBeTruthy();
+  });
+
+  it("sends the session token so /stories/top can apply its personalization signal, once signed in", async () => {
+    mockGetItemAsync.mockResolvedValue("stored-session-token");
+    mockFetchMe.mockResolvedValue({
+      user: { id: 1, email: "chetan@example.com", name: "Chetan Shetty", avatarUrl: null },
+      preferences: null,
+    });
+    mockFetchStoryFeed.mockResolvedValue([makeStory()]);
+
+    await act(async () => {
+      renderList();
+    });
+
+    await waitFor(() => {
+      expect(mockFetchStoryFeed).toHaveBeenCalledWith(
+        "en",
+        undefined,
+        STORIES_PAGE_SIZE,
+        [],
+        "stored-session-token"
+      );
+    });
   });
 });

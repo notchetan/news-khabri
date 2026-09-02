@@ -7,9 +7,13 @@ import {
   type ReactNode,
 } from "react";
 
+import { notifyPreferenceChanged, onPreferenceChanged } from "@/utils/preference-sync";
+
 export type FontSizePreference = "small" | "medium" | "large";
 
-const STORAGE_KEY = "fontSizePreference";
+export const FONT_SIZE_STORAGE_KEY = "fontSizePreference";
+export const DEFAULT_FONT_SIZE_PREFERENCE: FontSizePreference = "medium";
+const STORAGE_KEY = FONT_SIZE_STORAGE_KEY;
 
 const SCALE: Record<FontSizePreference, number> = {
   small: 0.875,
@@ -33,19 +37,26 @@ export function FontSizePreferenceProvider({
   children: ReactNode;
 }) {
   const [preference, setPreferenceState] =
-    useState<FontSizePreference>("medium");
+    useState<FontSizePreference>(DEFAULT_FONT_SIZE_PREFERENCE);
 
+  // Also re-reads on every AuthProvider preference pull - see
+  // docs/google-sign-in.md.
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
-      if (stored === "small" || stored === "medium" || stored === "large") {
-        setPreferenceState(stored);
-      }
-    });
+    const load = () => {
+      AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
+        if (stored === "small" || stored === "medium" || stored === "large") {
+          setPreferenceState(stored);
+        }
+      });
+    };
+    load();
+    return onPreferenceChanged(load);
   }, []);
 
   const setPreference = (next: FontSizePreference) => {
     setPreferenceState(next);
     AsyncStorage.setItem(STORAGE_KEY, next);
+    notifyPreferenceChanged();
   };
 
   return (

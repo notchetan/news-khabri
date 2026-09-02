@@ -4,7 +4,8 @@ import { SymbolView } from "expo-symbols";
 import { Image, Platform, Pressable, StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
-import { Spacing } from "@/constants/theme";
+import { Radius, Spacing } from "@/constants/theme";
+import { useAuth } from "@/contexts/auth-context";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 
@@ -30,6 +31,7 @@ export default function AppHeader({ title }: Props) {
   const theme = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
+  const { user } = useAuth();
 
   if (Platform.OS === "web") return null;
 
@@ -58,13 +60,21 @@ export default function AppHeader({ title }: Props) {
         accessibilityRole="button"
         accessibilityLabel={t("tabProfile")}
       >
-        <SymbolView
-          name="person.crop.circle"
-          size={28}
-          weight="regular"
-          tintColor={theme.text}
-          fallback={<Ionicons name="person-circle" size={28} color={theme.text} />}
-        />
+        {user?.avatarUrl ? (
+          <Image
+            testID="app-header-avatar"
+            source={{ uri: user.avatarUrl }}
+            style={styles.avatar}
+          />
+        ) : (
+          <SymbolView
+            name="person.crop.circle"
+            size={28}
+            weight="regular"
+            tintColor={theme.text}
+            fallback={<Ionicons name="person-circle" size={28} color={theme.text} />}
+          />
+        )}
       </Pressable>
     </View>
   );
@@ -93,6 +103,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   logo: { width: 28, height: 28 },
+  avatar: { width: 28, height: 28, borderRadius: Radius.full },
   // See docs/cross-script-text-rendering.md.
   title: {
     fontSize: 20,

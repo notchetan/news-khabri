@@ -45,18 +45,26 @@ export const STORIES_PAGE_SIZE = 20;
 // Named fetchStoryFeed (not fetchTopStories) to avoid colliding with the
 // existing per-article ranked feed in api/articles.ts - that endpoint stays
 // untouched and is still used elsewhere.
+//
+// `token` is optional and purely additive - sending it (when signed in)
+// lets the backend blend in its personalized-ranking signal (see the
+// backend's docs/personalization.md); omitting it gives the exact same
+// public, unpersonalized ranking as before that feature existed.
 export async function fetchStoryFeed(
   language: string,
   category?: string,
   limit?: number,
-  sources?: string[]
+  sources?: string[],
+  token?: string | null
 ): Promise<Story[]> {
   const params = new URLSearchParams({ language });
   if (category) params.set("category", category);
   if (limit) params.set("limit", String(limit));
   if (sources && sources.length > 0) params.set("sources", sources.join(","));
 
-  const res = await fetch(`${BASE_URL}/stories/top?${params}`);
+  const res = await fetch(`${BASE_URL}/stories/top?${params}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
   if (!res.ok) throw new Error("Failed to fetch story feed");
   return res.json();
 }

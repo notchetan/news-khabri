@@ -14,7 +14,8 @@ import { Image, Pressable, View, StyleSheet } from 'react-native';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { useAuth } from '@/contexts/auth-context';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from '@/i18n/translations';
 import { concentricRadius } from '@/utils/corner-radius';
@@ -85,6 +86,7 @@ export function CustomTabList(props: TabListProps) {
   const theme = useTheme();
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useAuth();
 
   return (
     <View {...props} style={styles.tabListContainer}>
@@ -117,13 +119,21 @@ export function CustomTabList(props: TabListProps) {
           accessibilityRole="button"
           accessibilityLabel={t('tabProfile')}
         >
-          <SymbolView
-            name="person.crop.circle"
-            size={22}
-            weight="regular"
-            tintColor={theme.text}
-            fallback={<Ionicons name="person-circle" size={22} color={theme.text} />}
-          />
+          {user?.avatarUrl ? (
+            <Image
+              testID="app-tabs-web-avatar"
+              source={{ uri: user.avatarUrl }}
+              style={styles.avatar}
+            />
+          ) : (
+            <SymbolView
+              name="person.crop.circle"
+              size={22}
+              weight="regular"
+              tintColor={theme.text}
+              fallback={<Ionicons name="person-circle" size={22} color={theme.text} />}
+            />
+          )}
         </Pressable>
       </ThemedView>
     </View>
@@ -164,6 +174,7 @@ const styles = StyleSheet.create({
     marginRight: 'auto',
   },
   logo: { width: 22, height: 22 },
+  avatar: { width: 22, height: 22, borderRadius: Radius.full },
   pressed: {
     opacity: 0.7,
   },

@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text } from "react-native";
 
 import { Spacing } from "@/constants/theme";
+import { useAuth } from "@/contexts/auth-context";
 import { useDebugPreference } from "@/contexts/debug-preference";
 import { useLanguagePreference } from "@/contexts/language-preference";
 import { useSourcesPreference } from "@/contexts/sources-preference";
@@ -32,6 +33,7 @@ export default function StoryList({ category }: Props) {
   const theme = useTheme();
   const router = useRouter();
   const { debugEnabled } = useDebugPreference();
+  const { token } = useAuth();
   const listRef = useRef<FlatList>(null);
 
   useEffect(() => {
@@ -48,9 +50,12 @@ export default function StoryList({ category }: Props) {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["storyFeed", language, category, selectedSources],
+    // token is part of the key so signing in/out refetches with (or
+    // without) the personalization signal, rather than serving a cached
+    // page computed under the other auth state.
+    queryKey: ["storyFeed", language, category, selectedSources, token],
     queryFn: ({ pageParam }) =>
-      fetchStoryFeed(language, category, pageParam as number, selectedSources),
+      fetchStoryFeed(language, category, pageParam as number, selectedSources, token),
     initialPageParam: STORIES_PAGE_SIZE,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
       const requested = typeof lastPageParam === "number" ? lastPageParam : STORIES_PAGE_SIZE;

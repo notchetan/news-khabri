@@ -1,0 +1,96 @@
+# Google Sign-In and account-linked preferences
+
+The backend's own `docs/google-sign-in.md` (in `news-khabri-backend`)
+covers the server side - session tokens, `/auth/google`, `/me`,
+`/me/preferences`. This covers the frontend half.
+
+## Why two new native modules are required lazily, not imported
+
+Both `@react-native-google-signin/google-signin` and `expo-secure-store`
+are native modules added to this app but not necessarily linked into
+whatever build is currently installed on a device - the same situation
+`expo-notifications` was in (see that feature's own
+`docs/push-notifications.md`'s "Why expo-notifications is required
+lazily"). Merely *importing* an unlinked native module can crash the
+whole app on boot, not just the feature that needed it - and
+`expo-secure-store` in particular is touched on **every single app
+launch** (`AuthProvider`'s own session-restore check), which is exactly
+the always-run code path that caused that earlier crash. Neither module
+is imported at `contexts/auth-context.tsx`'s module scope; both are
+`require()`'d inside the specific function that needs them, each wrapped
+in its own try/catch.
+
+## The preference sync bus (`utils/preference-sync.ts`)
+
+Six independent preference contexts already existed before this feature
+(theme, font size, debug mode, language, sources, notification interval),
+each owning its own `AsyncStorage` key and React state. Making them
+account-linked needed two things `AuthProvider` has to do regardless of
+where it sits in `_layout.tsx`'s own provider tree:
+
+- **Push**: read every preference's current value and `PUT` it to the
+  server whenever any one of them changes.
+- **Pull**: write a server-fetched preference bundle back into those same
+  six `AsyncStorage` keys, and get each already-mounted context to notice.
+
+A plain React Context can only flow one direction (parent to child). If
+`AuthProvider` sat *above* the six preference providers, it could pull
+(children re-reading a value it provides) but not push (it can't call
+`useThemePreference()` etc. on its own ancestors' behalf). If it sat
+*below* them, push works (it's a descendant, calling their hooks
+normally) but pull doesn't. `AuthProvider` actually ended up nested
+*inside* the six others in `_layout.tsx` - but the sync mechanism doesn't
+rely on that ordering at all, so it isn't fragile if that ever changes.
+
+The fix is a plain module-scope event emitter, not React Context: every
+preference context's own `setXxx` calls `notifyPreferenceChanged()` right
+after its own `AsyncStorage.setItem` (this is the push trigger -
+`AuthProvider` subscribes and, if signed in, reads all six keys fresh and
+`PUT`s them). Every preference context's own load effect also subscribes
+to `onPreferenceChanged` and re-runs itself (this is what makes a
+server-pulled write actually reach an already-initialized context -
+`AuthProvider` calls the same `notifyPreferenceChanged()` after writing a
+pulled bundle into `AsyncStorage`). Both directions share one primitive,
+so nesting order genuinely doesn't matter.
+
+One consequence worth knowing: a local preference change triggers a
+harmless extra "reload from storage" in its own context too (it's also
+subscribed), and a server-pulled write triggers a harmless extra push
+right back to the server with the same values it just received. Neither
+is a bug - re-reading/re-sending an unchanged value is a no-op, not a
+loop (nothing re-triggers `notifyPreferenceChanged()` from inside a load
+effect) - it just wasn't worth adding guard-flag state to avoid one
+redundant read or one redundant PUT.
+
+## New account vs. existing account on sign-in
+
+`AuthProvider.signIn()` branches on whether `/auth/google` returns
+`preferences: null` (a brand new account) or a real object (returning
+user). A new account is seeded with whatever this device's *own* current
+preferences already are (`PUT`, not left empty) - a returning user's
+saved preferences instead become this device's source of truth (applied
+locally, overwriting whatever was there). This is a deliberate asymmetry,
+not an oversight: the alternative (always overwrite local with server, even
+for a device that just created the account and has nothing server-side
+yet) would silently reset a brand new sign-in back to app defaults.
+
+## Testing components that render under `AuthProvider`
+
+`AuthProvider`'s own mount effect (the SecureStore read, then `fetchMe`)
+adds extra microtask ticks that `await act(async () => {...})` flushes as
+part of exiting. Against a mock resolved with `mockResolvedValue`, those
+extra ticks were enough for the mock's promise to also settle and commit
+before a "still loading" assertion ever ran, so the loading state was
+never actually observed - a manually-resolved promise (`new Promise((r) =>
+{ resolveDetail = r; })`, resolved explicitly after asserting the loading
+state) avoids the race instead of relying on timing.
+
+## `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`
+
+Committed in a plain `.env` (not `.env.local`) - `EXPO_PUBLIC_*` values
+are inlined into the client bundle at build time and Expo's own
+`.gitignore` convention (only `.env*.local` is ignored) already treats
+them as public, unlike the backend's `JWT_SECRET`. This must be the exact
+same Google Cloud Console "Web application" OAuth client ID as the
+backend's own `GOOGLE_WEB_CLIENT_ID` - see the backend doc for why the web
+client (not an Android-specific one) is used even for an Android sign-in.

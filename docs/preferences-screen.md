@@ -56,3 +56,16 @@ two scrollable sections.
 using the row's own `gap` uniformly between every child (link, dot, link,
 dot, link) - the same "let flexbox gap own the spacing" approach used in
 `category-pills.tsx`, rather than mismatched per-element margins.
+
+## Sources vs. Notifications: different sign-in gating
+
+The two rows look inconsistent at a glance - Sources stays visible but
+fully disabled until signed in, while Notifications keeps a plain on/off
+`Switch` (defaulting "on" to 15 minutes) even when signed out. This is
+intentional, not drift: notification delivery already works for an
+anonymous device (the backend keys a push subscription off the Expo push
+token itself, not an account), so gating it entirely would remove
+something readers already had before this feature existed. Source
+filtering has no equivalent anonymous-capable fallback worth keeping - the
+full 5/15/30/60/120-minute interval picker is what actually needs an
+account, since that choice has to persist across devices/reinstalls.

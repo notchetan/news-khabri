@@ -5,6 +5,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 import { Keyboard, TextInput } from "react-native";
 
 import { fetchArticles, fetchCategories, type Article } from "@/api/articles";
+import { AuthProvider } from "@/contexts/auth-context";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
@@ -34,6 +35,18 @@ jest.mock("expo-router", () => {
   };
 });
 
+jest.mock("@/api/auth", () => ({
+  fetchMe: jest.fn(),
+  signInWithGoogle: jest.fn(),
+  putPreferences: jest.fn(),
+}));
+
+jest.mock("expo-secure-store", () => ({
+  getItemAsync: jest.fn().mockResolvedValue(null),
+  setItemAsync: jest.fn().mockResolvedValue(undefined),
+  deleteItemAsync: jest.fn().mockResolvedValue(undefined),
+}));
+
 const mockFetchArticles = fetchArticles as jest.Mock;
 const mockFetchCategories = fetchCategories as jest.Mock;
 
@@ -62,7 +75,9 @@ function renderScreen() {
         <LanguagePreferenceProvider>
           <SourcesPreferenceProvider>
             <DebugPreferenceProvider>
-              <SearchScreen />
+              <AuthProvider>
+                <SearchScreen />
+              </AuthProvider>
             </DebugPreferenceProvider>
           </SourcesPreferenceProvider>
         </LanguagePreferenceProvider>
