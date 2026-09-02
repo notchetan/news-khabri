@@ -21,6 +21,11 @@ jest.mock("@/api/articles", () => ({
   fetchArticleDetail: jest.fn(),
 }));
 
+jest.mock("@/contexts/toast-context", () => ({
+  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
+  useToast: () => ({ show: jest.fn(), hide: jest.fn() }),
+}));
+
 jest.mock("@/api/auth", () => ({
   fetchMe: jest.fn(),
   signInWithGoogle: jest.fn(),

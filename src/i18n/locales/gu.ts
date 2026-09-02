@@ -23,7 +23,9 @@ const gu: Record<keyof typeof en, string> = {
   save: "સાચવો",
   removeBookmark: "સાચવેલમાંથી દૂર કરો",
   savedArticlesTitle: "સાચવેલ",
-  savedCountTemplate: "{count} સાચવેલ",
+  savedTitleCountTemplate: "સાચવેલ ({count})",
+  articleSaved: "લેખ સાચવ્યો.",
+  toastCheckNow: "હમણાં જુઓ",
   clearAll: "બધું સાફ કરો",
   clearAllConfirmTitle: "બધા સાચવેલા લેખ સાફ કરવા છે?",
   clearAllConfirmMessage:

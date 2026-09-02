@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 import {
   createContext,
   useCallback,
@@ -18,6 +19,8 @@ import {
   type BookmarkedArticle,
 } from "@/api/bookmarks";
 import { useAuth } from "@/contexts/auth-context";
+import { useToast } from "@/contexts/toast-context";
+import { useTranslation } from "@/i18n/translations";
 
 export const BOOKMARKS_STORAGE_KEY = "bookmarks";
 
@@ -52,6 +55,9 @@ async function readStored(): Promise<BookmarkedArticle[]> {
 
 export function BookmarksProvider({ children }: { children: ReactNode }) {
   const { token } = useAuth();
+  const { show: showToast } = useToast();
+  const { t } = useTranslation();
+  const router = useRouter();
   const [bookmarks, setBookmarks] = useState<BookmarkedArticle[]>([]);
   // Which token the sign-in reconcile below has already run for, so it
   // fires once per sign-in and not on every bookmark change afterwards.
@@ -113,6 +119,15 @@ export function BookmarksProvider({ children }: { children: ReactNode }) {
         : [{ ...article, bookmarked_at: new Date().toISOString() }, ...bookmarks];
       persist(next);
 
+      if (!currentlySaved) {
+        // Toast only on save, never on un-save. "Check now" jumps to the
+        // Saved screen.
+        showToast({
+          message: t("articleSaved"),
+          action: { label: t("toastCheckNow"), onPress: () => router.push("/saved") },
+        });
+      }
+
       if (token) {
         const call = currentlySaved
           ? removeBookmark(token, article.id)
@@ -123,7 +138,7 @@ export function BookmarksProvider({ children }: { children: ReactNode }) {
         call.catch(() => {});
       }
     },
-    [bookmarks, bookmarkedIds, persist, token]
+    [bookmarks, bookmarkedIds, persist, token, showToast, t, router]
   );
 
   const clearBookmarks = useCallback(() => {

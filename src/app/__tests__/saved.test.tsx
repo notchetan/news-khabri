@@ -13,6 +13,11 @@ jest.mock("@/hooks/use-color-scheme", () => ({
 
 // Signed out - the on-device list is the whole source of truth, so these
 // never reach the network.
+jest.mock("@/contexts/toast-context", () => ({
+  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
+  useToast: () => ({ show: jest.fn(), hide: jest.fn() }),
+}));
+
 jest.mock("@/api/bookmarks", () => ({
   addBookmark: jest.fn().mockResolvedValue(undefined),
   removeBookmark: jest.fn().mockResolvedValue(undefined),
@@ -133,7 +138,7 @@ describe("SavedScreen", () => {
     await waitFor(() => {
       expect(screen.getByText("Saved article 1")).toBeTruthy();
     });
-    expect(screen.getByText("2 saved")).toBeTruthy();
+    expect(screen.getByTestId("saved-large-title").props.children).toBe("Saved (2)");
 
     fireEvent.press(screen.getByTestId("saved-clear-all"));
 

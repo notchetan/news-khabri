@@ -22,7 +22,9 @@ const mr: Record<keyof typeof en, string> = {
   save: "जतन करा",
   removeBookmark: "जतन केलेल्यांमधून काढा",
   savedArticlesTitle: "जतन केलेले",
-  savedCountTemplate: "{count} जतन केले",
+  savedTitleCountTemplate: "जतन केलेले ({count})",
+  articleSaved: "लेख जतन केला.",
+  toastCheckNow: "आता पाहा",
   clearAll: "सर्व साफ करा",
   clearAllConfirmTitle: "जतन केलेले सर्व लेख साफ करायचे?",
   clearAllConfirmMessage:

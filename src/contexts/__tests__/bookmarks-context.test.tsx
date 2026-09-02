@@ -7,6 +7,7 @@ import {
   fetchBookmarks,
   removeBookmark,
 } from "@/api/bookmarks";
+import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { BOOKMARKS_STORAGE_KEY, BookmarksProvider, useBookmarks } from "../bookmarks-context";
 
 jest.mock("@/api/bookmarks", () => ({
@@ -21,6 +22,17 @@ jest.mock("@/api/bookmarks", () => ({
 let mockToken: string | null = null;
 jest.mock("@/contexts/auth-context", () => ({
   useAuth: () => ({ token: mockToken }),
+}));
+
+const mockShowToast = jest.fn();
+jest.mock("@/contexts/toast-context", () => ({
+  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
+  useToast: () => ({ show: mockShowToast, hide: jest.fn() }),
+}));
+
+const mockPush = jest.fn();
+jest.mock("expo-router", () => ({
+  useRouter: () => ({ push: (...args: unknown[]) => mockPush(...args) }),
 }));
 
 const mockAdd = addBookmark as jest.Mock;
@@ -42,7 +54,11 @@ function article(id: number) {
 }
 
 function wrapper({ children }: { children: React.ReactNode }) {
-  return <BookmarksProvider>{children}</BookmarksProvider>;
+  return (
+    <LanguagePreferenceProvider>
+      <BookmarksProvider>{children}</BookmarksProvider>
+    </LanguagePreferenceProvider>
+  );
 }
 
 describe("useBookmarks", () => {
@@ -116,6 +132,28 @@ describe("useBookmarks", () => {
 
     expect(mockAdd).not.toHaveBeenCalled();
     expect(mockRemove).not.toHaveBeenCalled();
+  });
+
+  it("shows a toast on save but not on un-save", async () => {
+    const { result } = await renderHook(() => useBookmarks(), { wrapper });
+    await waitFor(() => expect(result.current.bookmarks).toEqual([]));
+
+    await act(async () => {
+      result.current.toggleBookmark(article(1));
+    });
+    expect(mockShowToast).toHaveBeenCalledTimes(1);
+    expect(mockShowToast.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        message: expect.any(String),
+        action: expect.objectContaining({ label: expect.any(String) }),
+      })
+    );
+
+    mockShowToast.mockClear();
+    await act(async () => {
+      result.current.toggleBookmark(article(1));
+    });
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it("writes through to the server when signed in", async () => {

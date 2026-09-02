@@ -24,6 +24,11 @@ jest.mock("@/api/articles", () => ({
 }));
 
 const mockPush = jest.fn();
+jest.mock("@/contexts/toast-context", () => ({
+  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
+  useToast: () => ({ show: jest.fn(), hide: jest.fn() }),
+}));
+
 jest.mock("expo-router", () => {
   const { useEffect } = jest.requireActual("react");
   return {

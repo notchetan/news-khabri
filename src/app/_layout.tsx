@@ -29,6 +29,7 @@ import {
   ThemePreferenceProvider,
   useThemePreference,
 } from "@/contexts/theme-preference";
+import { ToastProvider } from "@/contexts/toast-context";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -149,11 +150,13 @@ export default function RootLayout() {
                   <NotificationPreferenceProvider>
                     <DebugPreferenceProvider>
                       <AuthProvider>
-                        <BookmarksProvider>
-                          <OnboardingProvider>
-                            <AppContent />
-                          </OnboardingProvider>
-                        </BookmarksProvider>
+                        <ToastProvider>
+                          <BookmarksProvider>
+                            <OnboardingProvider>
+                              <AppContent />
+                            </OnboardingProvider>
+                          </BookmarksProvider>
+                        </ToastProvider>
                       </AuthProvider>
                     </DebugPreferenceProvider>
                   </NotificationPreferenceProvider>

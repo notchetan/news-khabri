@@ -129,14 +129,19 @@ export default function FloatingDetailHeader({
               { paddingTop: topPadding, opacity: centerTitleOpacity },
             ]}
           >
-            <ThemedText
-              testID={`${testIDPrefix}-center-title`}
-              numberOfLines={1}
-              style={styles.centerTitle}
-              accessibilityRole="header"
+            <GlassView
+              style={[styles.centerGlass, glassFallbackStyle]}
+              glassEffectStyle="regular"
             >
-              {centerTitle}
-            </ThemedText>
+              <ThemedText
+                testID={`${testIDPrefix}-center-title`}
+                numberOfLines={1}
+                style={styles.centerTitle}
+                accessibilityRole="header"
+              >
+                {centerTitle}
+              </ThemedText>
+            </GlassView>
           </Animated.View>
         )}
 
@@ -257,12 +262,21 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: "center",
   },
+  // Same liquid-glass pill treatment as the back/brand pills (see "Pill
+  // shape" in docs/article-header-layout.md); wraps the inline title so
+  // all three read as one set.
+  centerGlass: {
+    alignSelf: "center",
+    borderRadius: Radius.full,
+    overflow: "hidden",
+    maxWidth: "55%",
+  },
   centerTitle: {
     fontSize: 16,
     fontWeight: "700",
     lineHeight: Math.ceil(16 * 1.4),
+    paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
-    maxWidth: "55%",
     ...Platform.select({
       android: { includeFontPadding: false, textAlignVertical: "center" },
       default: {},

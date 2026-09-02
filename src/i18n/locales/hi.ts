@@ -24,7 +24,9 @@ const hi: Record<keyof typeof en, string> = {
   save: "सहेजें",
   removeBookmark: "सहेजे गए से हटाएँ",
   savedArticlesTitle: "सहेजे गए",
-  savedCountTemplate: "{count} सहेजे गए",
+  savedTitleCountTemplate: "सहेजे गए ({count})",
+  articleSaved: "लेख सहेजा गया।",
+  toastCheckNow: "अभी देखें",
   clearAll: "सभी हटाएँ",
   clearAllConfirmTitle: "सभी सहेजे गए लेख हटाएँ?",
   clearAllConfirmMessage:

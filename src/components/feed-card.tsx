@@ -9,7 +9,9 @@ import { concentricRadius } from "@/utils/corner-radius";
 import { useTheme } from "@/hooks/use-theme";
 import { guardedNavigate } from "@/utils/navigation-guard";
 
-const CARD_PADDING = 12;
+// Exported so screens that place their own headings above a list of these
+// cards can line the heading's edges up with the card's inner content.
+export const CARD_PADDING = 12;
 const IMAGE_RADIUS = concentricRadius(Radius.large, CARD_PADDING);
 
 type Props = {

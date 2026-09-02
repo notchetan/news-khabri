@@ -24,7 +24,9 @@ const en = {
   save: "Save",
   removeBookmark: "Remove from saved",
   savedArticlesTitle: "Saved",
-  savedCountTemplate: "{count} saved",
+  savedTitleCountTemplate: "Saved ({count})",
+  articleSaved: "Article saved.",
+  toastCheckNow: "Check now",
   noSavedArticles: "No saved articles yet",
   noSavedArticlesDescription:
     "Tap the bookmark icon on any article to save it for later",

@@ -22,7 +22,9 @@ const ta: Record<keyof typeof en, string> = {
   save: "சேமி",
   removeBookmark: "சேமித்தவற்றிலிருந்து அகற்று",
   savedArticlesTitle: "சேமித்தவை",
-  savedCountTemplate: "{count} சேமிக்கப்பட்டது",
+  savedTitleCountTemplate: "சேமித்தவை ({count})",
+  articleSaved: "கட்டுரை சேமிக்கப்பட்டது.",
+  toastCheckNow: "இப்போது பார்",
   clearAll: "அனைத்தையும் அழி",
   clearAllConfirmTitle: "சேமித்த அனைத்துக் கட்டுரைகளையும் அழிக்கவா?",
   clearAllConfirmMessage:

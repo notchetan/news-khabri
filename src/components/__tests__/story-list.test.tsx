@@ -17,6 +17,11 @@ jest.mock("@/hooks/use-color-scheme", () => ({
   useColorScheme: () => "light",
 }));
 
+jest.mock("@/contexts/toast-context", () => ({
+  ToastProvider: ({ children }: { children: React.ReactNode }) => children,
+  useToast: () => ({ show: jest.fn(), hide: jest.fn() }),
+}));
+
 jest.mock("@/api/stories", () => ({
   ...jest.requireActual("@/api/stories"),
   fetchStoryFeed: jest.fn(),

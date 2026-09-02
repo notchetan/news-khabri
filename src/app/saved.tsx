@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { Alert, Animated, FlatList, Platform, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import FeedCard from "@/components/feed-card";
+import FeedCard, { CARD_PADDING } from "@/components/feed-card";
 import FloatingDetailHeader, {
   getContentTopPadding,
   useHeaderScrollY,
@@ -67,28 +67,36 @@ export default function SavedScreen() {
     ]);
   };
 
+  const count = bookmarks.length;
+  // "Saved (6)" once anything's saved, plain "Saved" when empty - the
+  // same string the header pill shows once the big title scrolls away.
+  const savedLabel =
+    count > 0
+      ? t("savedTitleCountTemplate", { count: String(count) })
+      : t("savedArticlesTitle");
+
   const listHeader = (
-    <View style={styles.titleBlock}>
-      <ThemedText type="subtitle" accessibilityRole="header">
-        {t("savedArticlesTitle")}
+    <View style={styles.titleRow}>
+      <ThemedText
+        testID="saved-large-title"
+        type="subtitle"
+        accessibilityRole="header"
+        style={styles.titleText}
+      >
+        {savedLabel}
       </ThemedText>
-      {bookmarks.length > 0 && (
-        <View style={styles.subtitleRow}>
-          <ThemedText themeColor="textSecondary" type="small">
-            {t("savedCountTemplate", { count: String(bookmarks.length) })}
+      {count > 0 && (
+        <Pressable
+          testID="saved-clear-all"
+          onPress={confirmClearAll}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t("clearAll")}
+        >
+          <ThemedText type="small" style={[styles.clearAll, { color: theme.danger }]}>
+            {t("clearAll")}
           </ThemedText>
-          <Pressable
-            testID="saved-clear-all"
-            onPress={confirmClearAll}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={t("clearAll")}
-          >
-            <ThemedText type="small" style={[styles.clearAll, { color: theme.danger }]}>
-              {t("clearAll")}
-            </ThemedText>
-          </Pressable>
-        </View>
+        </Pressable>
       )}
     </View>
   );
@@ -101,7 +109,7 @@ export default function SavedScreen() {
         onGoBack={goBack}
         onHeaderHeightChange={setHeaderHeight}
         testIDPrefix="saved"
-        centerTitle={t("savedArticlesTitle")}
+        centerTitle={savedLabel}
         opaque
       />
 
@@ -165,12 +173,17 @@ const styles = StyleSheet.create({
   // Explicit flex:1 - see AGENTS.md's ScrollView-needs-explicit-flex lesson.
   list: { flex: 1 },
   listContent: { paddingHorizontal: Spacing.three, gap: Spacing.three, flexGrow: 1 },
-  titleBlock: { gap: Spacing.one, marginBottom: Spacing.one },
-  subtitleRow: {
+  // marginHorizontal: CARD_PADDING lines the title's left edge and the
+  // Clear All button's right edge up with the cards' own inner content,
+  // not their outer edge (requests from the Saved-screen polish pass).
+  titleRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginHorizontal: CARD_PADDING,
+    marginBottom: Spacing.two,
   },
+  titleText: { flexShrink: 1 },
   clearAll: { fontWeight: "600" },
   empty: {
     flex: 1,

@@ -26,7 +26,9 @@ const or: Record<keyof typeof en, string> = {
   save: "ସେଭ୍ କରନ୍ତୁ",
   removeBookmark: "ସେଭ୍ କରାଯାଇଥିବାରୁ ବାହାର କରନ୍ତୁ",
   savedArticlesTitle: "ସେଭ୍ ହୋଇଛି",
-  savedCountTemplate: "{count} ସେଭ୍ ହୋଇଛି",
+  savedTitleCountTemplate: "ସେଭ୍ ହୋଇଛି ({count})",
+  articleSaved: "ଆର୍ଟିକିଲ୍ ସେଭ୍ ହୋଇଛି।",
+  toastCheckNow: "ବର୍ତ୍ତମାନ ଦେଖନ୍ତୁ",
   clearAll: "ସବୁ ସଫା କରନ୍ତୁ",
   clearAllConfirmTitle: "ସେଭ୍ ହୋଇଥିବା ସମସ୍ତ ଆର୍ଟିକିଲ୍ ସଫା କରିବେ?",
   clearAllConfirmMessage:
