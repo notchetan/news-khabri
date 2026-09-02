@@ -12,6 +12,11 @@ import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
 import PreferencesScreen from "../index";
 
+// This screen mounts 7 nested providers (6 preference contexts + AuthProvider),
+// each with its own AsyncStorage/SecureStore read - past the 5s default on a
+// loaded CI runner, even though nothing here is actually hanging.
+jest.setTimeout(15000);
+
 jest.mock("@/hooks/use-color-scheme", () => ({
   useColorScheme: () => "light",
 }));
