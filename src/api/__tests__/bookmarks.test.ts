@@ -1,4 +1,9 @@
-import { addBookmark, fetchBookmarks, removeBookmark } from "../bookmarks";
+import {
+  addBookmark,
+  clearBookmarks,
+  fetchBookmarks,
+  removeBookmark,
+} from "../bookmarks";
 
 function mockFetchOnce(value: unknown, ok = true) {
   global.fetch = jest
@@ -54,6 +59,20 @@ describe("bookmarks API client", () => {
     );
   });
 
+  it("clearBookmarks DELETEs /me/bookmarks with the bearer token", async () => {
+    mockFetchOnce(undefined);
+
+    await clearBookmarks("session-token");
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringMatching(/\/me\/bookmarks$/),
+      expect.objectContaining({
+        method: "DELETE",
+        headers: { Authorization: "Bearer session-token" },
+      })
+    );
+  });
+
   it("throws when a response is not ok", async () => {
     mockFetchOnce(undefined, false);
     await expect(fetchBookmarks("t")).rejects.toThrow("Failed to fetch bookmarks");
@@ -63,5 +82,8 @@ describe("bookmarks API client", () => {
 
     mockFetchOnce(undefined, false);
     await expect(removeBookmark("t", 1)).rejects.toThrow("Failed to remove bookmark");
+
+    mockFetchOnce(undefined, false);
+    await expect(clearBookmarks("t")).rejects.toThrow("Failed to clear bookmarks");
   });
 });

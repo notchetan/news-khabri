@@ -22,6 +22,12 @@ const mr: Record<keyof typeof en, string> = {
   save: "जतन करा",
   removeBookmark: "जतन केलेल्यांमधून काढा",
   savedArticlesTitle: "जतन केलेले",
+  savedCountTemplate: "{count} जतन केले",
+  clearAll: "सर्व साफ करा",
+  clearAllConfirmTitle: "जतन केलेले सर्व लेख साफ करायचे?",
+  clearAllConfirmMessage:
+    "यामुळे तुमच्या जतन केलेल्या यादीतील प्रत्येक लेख काढून टाकला जाईल. हे पूर्ववत करता येणार नाही.",
+  cancel: "रद्द करा",
   noSavedArticles: "अद्याप कोणताही लेख जतन केलेला नाही",
   noSavedArticlesDescription:
     "कोणताही लेख नंतर वाचण्यासाठी बुकमार्क चिन्हावर टॅप करा",

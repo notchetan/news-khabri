@@ -22,6 +22,12 @@ const kn: Record<keyof typeof en, string> = {
   save: "ಉಳಿಸಿ",
   removeBookmark: "ಉಳಿಸಿದವುಗಳಿಂದ ತೆಗೆದುಹಾಕಿ",
   savedArticlesTitle: "ಉಳಿಸಲಾಗಿದೆ",
+  savedCountTemplate: "{count} ಉಳಿಸಲಾಗಿದೆ",
+  clearAll: "ಎಲ್ಲವನ್ನೂ ತೆರವುಗೊಳಿಸಿ",
+  clearAllConfirmTitle: "ಉಳಿಸಿದ ಎಲ್ಲಾ ಲೇಖನಗಳನ್ನು ತೆರವುಗೊಳಿಸಬೇಕೇ?",
+  clearAllConfirmMessage:
+    "ಇದು ನಿಮ್ಮ ಉಳಿಸಿದ ಪಟ್ಟಿಯಿಂದ ಪ್ರತಿ ಲೇಖನವನ್ನೂ ತೆಗೆದುಹಾಕುತ್ತದೆ. ಇದನ್ನು ರದ್ದುಗೊಳಿಸಲಾಗದು.",
+  cancel: "ರದ್ದುಮಾಡಿ",
   noSavedArticles: "ಇನ್ನೂ ಯಾವುದೇ ಲೇಖನವನ್ನು ಉಳಿಸಿಲ್ಲ",
   noSavedArticlesDescription:
     "ನಂತರ ಓದಲು ಯಾವುದೇ ಲೇಖನದಲ್ಲಿ ಬುಕ್‌ಮಾರ್ಕ್ ಐಕಾನ್ ಟ್ಯಾಪ್ ಮಾಡಿ",

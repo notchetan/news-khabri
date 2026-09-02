@@ -22,6 +22,12 @@ const ml: Record<keyof typeof en, string> = {
   save: "സംരക്ഷിക്കുക",
   removeBookmark: "സംരക്ഷിച്ചവയിൽ നിന്ന് നീക്കുക",
   savedArticlesTitle: "സംരക്ഷിച്ചവ",
+  savedCountTemplate: "{count} സംരക്ഷിച്ചു",
+  clearAll: "എല്ലാം മായ്ക്കുക",
+  clearAllConfirmTitle: "സംരക്ഷിച്ച എല്ലാ ലേഖനങ്ങളും മായ്ക്കണോ?",
+  clearAllConfirmMessage:
+    "ഇത് നിങ്ങളുടെ സംരക്ഷിച്ച പട്ടികയിൽ നിന്ന് എല്ലാ ലേഖനവും നീക്കം ചെയ്യും. ഇത് പഴയപടിയാക്കാനാവില്ല.",
+  cancel: "റദ്ദാക്കുക",
   noSavedArticles: "ഇതുവരെ ലേഖനങ്ങളൊന്നും സംരക്ഷിച്ചിട്ടില്ല",
   noSavedArticlesDescription:
     "പിന്നീട് വായിക്കാൻ ഏതെങ്കിലും ലേഖനത്തിലെ ബുക്ക്‌മാർക്ക് ഐക്കണിൽ ടാപ്പ് ചെയ്യുക",

@@ -1,12 +1,18 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
-import { addBookmark, fetchBookmarks, removeBookmark } from "@/api/bookmarks";
+import {
+  addBookmark,
+  clearBookmarks,
+  fetchBookmarks,
+  removeBookmark,
+} from "@/api/bookmarks";
 import { BOOKMARKS_STORAGE_KEY, BookmarksProvider, useBookmarks } from "../bookmarks-context";
 
 jest.mock("@/api/bookmarks", () => ({
   addBookmark: jest.fn().mockResolvedValue(undefined),
   removeBookmark: jest.fn().mockResolvedValue(undefined),
+  clearBookmarks: jest.fn().mockResolvedValue(undefined),
   fetchBookmarks: jest.fn().mockResolvedValue([]),
 }));
 
@@ -19,6 +25,7 @@ jest.mock("@/contexts/auth-context", () => ({
 
 const mockAdd = addBookmark as jest.Mock;
 const mockRemove = removeBookmark as jest.Mock;
+const mockClear = clearBookmarks as jest.Mock;
 const mockFetch = fetchBookmarks as jest.Mock;
 
 function article(id: number) {
@@ -158,6 +165,39 @@ describe("useBookmarks", () => {
       (await AsyncStorage.getItem(BOOKMARKS_STORAGE_KEY)) ?? "[]"
     );
     expect(stored.map((b: { id: number }) => b.id)).toEqual([3, 2]);
+  });
+
+  it("clearBookmarks empties the list and persists it (signed out: no server call)", async () => {
+    await AsyncStorage.setItem(
+      BOOKMARKS_STORAGE_KEY,
+      JSON.stringify([article(1), article(2)])
+    );
+    const { result } = await renderHook(() => useBookmarks(), { wrapper });
+    await waitFor(() => expect(result.current.bookmarks).toHaveLength(2));
+
+    await act(async () => {
+      result.current.clearBookmarks();
+    });
+
+    expect(result.current.bookmarks).toEqual([]);
+    expect(mockClear).not.toHaveBeenCalled();
+    await waitFor(async () => {
+      expect(await AsyncStorage.getItem(BOOKMARKS_STORAGE_KEY)).toBe("[]");
+    });
+  });
+
+  it("clearBookmarks hits the server when signed in", async () => {
+    mockToken = "session-token";
+    mockFetch.mockResolvedValue([article(1)]);
+    const { result } = await renderHook(() => useBookmarks(), { wrapper });
+    await waitFor(() => expect(result.current.bookmarks).toHaveLength(1));
+
+    await act(async () => {
+      result.current.clearBookmarks();
+    });
+
+    expect(result.current.bookmarks).toEqual([]);
+    expect(mockClear).toHaveBeenCalledWith("session-token");
   });
 
   it("keeps the cached list on sign-out", async () => {

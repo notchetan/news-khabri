@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { Alert } from "react-native";
 
 import { BookmarksProvider } from "@/contexts/bookmarks-context";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
@@ -116,5 +117,39 @@ describe("SavedScreen", () => {
     await renderScreen();
     fireEvent.press(screen.getByLabelText("Back"));
     expect(mockBack).toHaveBeenCalled();
+  });
+
+  it("shows a saved count and no Clear All when the list is empty", async () => {
+    await renderScreen();
+    await waitFor(() => {
+      expect(screen.getByText("No saved articles yet")).toBeTruthy();
+    });
+    expect(screen.queryByTestId("saved-clear-all")).toBeNull();
+  });
+
+  it("Clear All asks for confirmation, then empties the list on confirm", async () => {
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    await renderScreen([makeBookmark(1), makeBookmark(2)]);
+    await waitFor(() => {
+      expect(screen.getByText("Saved article 1")).toBeTruthy();
+    });
+    expect(screen.getByText("2 saved")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("saved-clear-all"));
+
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    const buttons = alertSpy.mock.calls[0][2] as { text: string; style?: string; onPress?: () => void }[];
+    const destructive = buttons.find((b) => b.style === "destructive");
+    expect(destructive).toBeTruthy();
+
+    fireEvent(screen.getByTestId("saved-list"), "layout", {
+      nativeEvent: { layout: { width: 300, height: 600 } },
+    });
+    destructive!.onPress?.();
+
+    await waitFor(() => {
+      expect(screen.getByText("No saved articles yet")).toBeTruthy();
+    });
+    alertSpy.mockRestore();
   });
 });

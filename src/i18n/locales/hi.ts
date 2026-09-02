@@ -24,6 +24,12 @@ const hi: Record<keyof typeof en, string> = {
   save: "सहेजें",
   removeBookmark: "सहेजे गए से हटाएँ",
   savedArticlesTitle: "सहेजे गए",
+  savedCountTemplate: "{count} सहेजे गए",
+  clearAll: "सभी हटाएँ",
+  clearAllConfirmTitle: "सभी सहेजे गए लेख हटाएँ?",
+  clearAllConfirmMessage:
+    "इससे आपकी सहेजी गई सूची से हर लेख हट जाएगा। इसे वापस नहीं किया जा सकता।",
+  cancel: "रद्द करें",
   noSavedArticles: "अभी तक कोई लेख सहेजा नहीं गया",
   noSavedArticlesDescription:
     "किसी भी लेख को बाद में पढ़ने के लिए बुकमार्क आइकन पर टैप करें",

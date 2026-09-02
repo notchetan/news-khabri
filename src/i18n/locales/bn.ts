@@ -26,6 +26,12 @@ const bn: Record<keyof typeof en, string> = {
   save: "সংরক্ষণ করুন",
   removeBookmark: "সংরক্ষিত থেকে সরান",
   savedArticlesTitle: "সংরক্ষিত",
+  savedCountTemplate: "{count}টি সংরক্ষিত",
+  clearAll: "সব মুছুন",
+  clearAllConfirmTitle: "সব সংরক্ষিত নিবন্ধ মুছবেন?",
+  clearAllConfirmMessage:
+    "এটি আপনার সংরক্ষিত তালিকা থেকে প্রতিটি নিবন্ধ সরিয়ে দেবে। এটি আর ফেরানো যাবে না।",
+  cancel: "বাতিল করুন",
   noSavedArticles: "এখনও কোনো নিবন্ধ সংরক্ষণ করা হয়নি",
   noSavedArticlesDescription:
     "পরে পড়ার জন্য যেকোনো নিবন্ধে বুকমার্ক আইকনে ট্যাপ করুন",

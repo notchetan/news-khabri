@@ -24,9 +24,15 @@ const en = {
   save: "Save",
   removeBookmark: "Remove from saved",
   savedArticlesTitle: "Saved",
+  savedCountTemplate: "{count} saved",
   noSavedArticles: "No saved articles yet",
   noSavedArticlesDescription:
     "Tap the bookmark icon on any article to save it for later",
+  clearAll: "Clear All",
+  clearAllConfirmTitle: "Clear all saved articles?",
+  clearAllConfirmMessage:
+    "This removes every article from your saved list. This can't be undone.",
+  cancel: "Cancel",
   preferencesTitle: "Preferences",
   appearance: "Appearance",
   appearanceAutomaticDesc: "Match your device's system setting",

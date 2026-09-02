@@ -47,3 +47,12 @@ export async function removeBookmark(token: string, articleId: number): Promise<
   });
   if (!res.ok) throw new Error("Failed to remove bookmark");
 }
+
+// Clears the whole list in one call - the "Clear all" action.
+export async function clearBookmarks(token: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/me/bookmarks`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to clear bookmarks");
+}

@@ -26,6 +26,12 @@ const or: Record<keyof typeof en, string> = {
   save: "ସେଭ୍ କରନ୍ତୁ",
   removeBookmark: "ସେଭ୍ କରାଯାଇଥିବାରୁ ବାହାର କରନ୍ତୁ",
   savedArticlesTitle: "ସେଭ୍ ହୋଇଛି",
+  savedCountTemplate: "{count} ସେଭ୍ ହୋଇଛି",
+  clearAll: "ସବୁ ସଫା କରନ୍ତୁ",
+  clearAllConfirmTitle: "ସେଭ୍ ହୋଇଥିବା ସମସ୍ତ ଆର୍ଟିକିଲ୍ ସଫା କରିବେ?",
+  clearAllConfirmMessage:
+    "ଏହା ଆପଣଙ୍କ ସେଭ୍ ତାଲିକାରୁ ପ୍ରତ୍ୟେକ ଆର୍ଟିକିଲ୍ ହଟାଇଦେବ। ଏହାକୁ ପୂର୍ବାବସ୍ଥାକୁ ଆଣିହେବ ନାହିଁ।",
+  cancel: "ବାତିଲ୍ କରନ୍ତୁ",
   noSavedArticles: "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଆର୍ଟିକିଲ୍ ସେଭ୍ ହୋଇନାହିଁ",
   noSavedArticlesDescription:
     "ପରେ ପଢ଼ିବା ପାଇଁ ଯେକୌଣସି ଆର୍ଟିକିଲ୍‌ର ବୁକମାର୍କ ଆଇକନ୍ ଟାପ୍ କରନ୍ତୁ",

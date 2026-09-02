@@ -22,6 +22,12 @@ const ta: Record<keyof typeof en, string> = {
   save: "சேமி",
   removeBookmark: "சேமித்தவற்றிலிருந்து அகற்று",
   savedArticlesTitle: "சேமித்தவை",
+  savedCountTemplate: "{count} சேமிக்கப்பட்டது",
+  clearAll: "அனைத்தையும் அழி",
+  clearAllConfirmTitle: "சேமித்த அனைத்துக் கட்டுரைகளையும் அழிக்கவா?",
+  clearAllConfirmMessage:
+    "இது உங்கள் சேமித்த பட்டியலிலிருந்து ஒவ்வொரு கட்டுரையையும் நீக்கும். இதை மீட்டெடுக்க முடியாது.",
+  cancel: "ரத்துசெய்",
   noSavedArticles: "இதுவரை எந்தக் கட்டுரையும் சேமிக்கப்படவில்லை",
   noSavedArticlesDescription:
     "எந்தக் கட்டுரையையும் பின்னர் படிக்க புக்மார்க் ஐகானைத் தட்டவும்",

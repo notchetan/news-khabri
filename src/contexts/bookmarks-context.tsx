@@ -12,6 +12,7 @@ import {
 
 import {
   addBookmark,
+  clearBookmarks as clearBookmarksRequest,
   fetchBookmarks,
   removeBookmark,
   type BookmarkedArticle,
@@ -31,6 +32,7 @@ type BookmarksContextValue = {
   bookmarks: BookmarkedArticle[];
   isBookmarked: (articleId: number) => boolean;
   toggleBookmark: (article: BookmarkedArticle) => void;
+  clearBookmarks: () => void;
 };
 
 const BookmarksContext = createContext<BookmarksContextValue | undefined>(undefined);
@@ -124,9 +126,18 @@ export function BookmarksProvider({ children }: { children: ReactNode }) {
     [bookmarks, bookmarkedIds, persist, token]
   );
 
+  const clearBookmarks = useCallback(() => {
+    persist([]);
+    if (token) {
+      // One call clears the whole server-side list - see the backend's
+      // docs/bookmarks.md. Swallow-error like the toggles above.
+      clearBookmarksRequest(token).catch(() => {});
+    }
+  }, [persist, token]);
+
   const value = useMemo(
-    () => ({ bookmarks, isBookmarked, toggleBookmark }),
-    [bookmarks, isBookmarked, toggleBookmark]
+    () => ({ bookmarks, isBookmarked, toggleBookmark, clearBookmarks }),
+    [bookmarks, isBookmarked, toggleBookmark, clearBookmarks]
   );
 
   return <BookmarksContext.Provider value={value}>{children}</BookmarksContext.Provider>;
