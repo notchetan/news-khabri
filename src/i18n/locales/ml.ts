@@ -19,6 +19,12 @@ const ml: Record<keyof typeof en, string> = {
   signInDescription: "നിങ്ങളുടെ മുൻഗണനകൾ എല്ലാ ഉപകരണങ്ങളിലും സമന്വയിപ്പിക്കാൻ സൈൻ ഇൻ ചെയ്യുക",
   signInWithGoogle: "Google ഉപയോഗിച്ച് സൈൻ ഇൻ ചെയ്യുക",
   signOut: "സൈൻ ഔട്ട് ചെയ്യുക",
+  save: "സംരക്ഷിക്കുക",
+  removeBookmark: "സംരക്ഷിച്ചവയിൽ നിന്ന് നീക്കുക",
+  savedArticlesTitle: "സംരക്ഷിച്ചവ",
+  noSavedArticles: "ഇതുവരെ ലേഖനങ്ങളൊന്നും സംരക്ഷിച്ചിട്ടില്ല",
+  noSavedArticlesDescription:
+    "പിന്നീട് വായിക്കാൻ ഏതെങ്കിലും ലേഖനത്തിലെ ബുക്ക്‌മാർക്ക് ഐക്കണിൽ ടാപ്പ് ചെയ്യുക",
   preferencesTitle: "ക്രമീകരണങ്ങൾ",
   appearance: "രൂപം",
   appearanceAutomaticDesc: "നിങ്ങളുടെ ഉപകരണത്തിന്റെ സിസ്റ്റം ക്രമീകരണവുമായി പൊരുത്തപ്പെടുത്തുക",

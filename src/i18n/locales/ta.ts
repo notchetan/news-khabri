@@ -19,6 +19,12 @@ const ta: Record<keyof typeof en, string> = {
   signInDescription: "உங்கள் விருப்பங்களை எல்லா சாதனங்களிலும் ஒத்திசைக்க உள்நுழையவும்",
   signInWithGoogle: "Google மூலம் உள்நுழையவும்",
   signOut: "வெளியேறு",
+  save: "சேமி",
+  removeBookmark: "சேமித்தவற்றிலிருந்து அகற்று",
+  savedArticlesTitle: "சேமித்தவை",
+  noSavedArticles: "இதுவரை எந்தக் கட்டுரையும் சேமிக்கப்படவில்லை",
+  noSavedArticlesDescription:
+    "எந்தக் கட்டுரையையும் பின்னர் படிக்க புக்மார்க் ஐகானைத் தட்டவும்",
   preferencesTitle: "அமைப்புகள்",
   appearance: "தோற்றம்",
   appearanceAutomaticDesc: "உங்கள் சாதனத்தின் சிஸ்டம் அமைப்புடன் பொருத்தவும்",

@@ -21,6 +21,12 @@ const hi: Record<keyof typeof en, string> = {
   signInDescription: "अपनी प्राथमिकताओं को सभी डिवाइस पर सिंक करने के लिए साइन इन करें",
   signInWithGoogle: "Google से साइन इन करें",
   signOut: "साइन आउट करें",
+  save: "सहेजें",
+  removeBookmark: "सहेजे गए से हटाएँ",
+  savedArticlesTitle: "सहेजे गए",
+  noSavedArticles: "अभी तक कोई लेख सहेजा नहीं गया",
+  noSavedArticlesDescription:
+    "किसी भी लेख को बाद में पढ़ने के लिए बुकमार्क आइकन पर टैप करें",
   preferencesTitle: "सेटिंग्स",
   appearance: "दिखावट",
   appearanceAutomaticDesc: "आपके डिवाइस की सिस्टम सेटिंग से मेल खाएं",

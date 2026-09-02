@@ -20,6 +20,12 @@ const gu: Record<keyof typeof en, string> = {
   signInDescription: "તમારી પસંદગીઓને બધા ડિવાઇસ પર સિંક કરવા માટે સાઇન ઇન કરો",
   signInWithGoogle: "Google સાથે સાઇન ઇન કરો",
   signOut: "સાઇન આઉટ કરો",
+  save: "સાચવો",
+  removeBookmark: "સાચવેલમાંથી દૂર કરો",
+  savedArticlesTitle: "સાચવેલ",
+  noSavedArticles: "હજી સુધી કોઈ લેખ સાચવ્યો નથી",
+  noSavedArticlesDescription:
+    "કોઈપણ લેખને પછીથી વાંચવા માટે બુકમાર્ક આઇકન પર ટૅપ કરો",
   preferencesTitle: "સેટિંગ્સ",
   appearance: "દેખાવ",
   appearanceAutomaticDesc: "તમારા ડિવાઇસની સિસ્ટમ સેટિંગ સાથે મેળ ખાય",

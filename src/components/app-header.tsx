@@ -53,29 +53,47 @@ export default function AppHeader({ title }: Props) {
         </ThemedText>
       </View>
 
-      <Pressable
-        testID="app-header-profile-button"
-        onPress={() => router.push("/profile")}
-        hitSlop={8}
-        accessibilityRole="button"
-        accessibilityLabel={t("tabProfile")}
-      >
-        {user?.avatarUrl ? (
-          <Image
-            testID="app-header-avatar"
-            source={{ uri: user.avatarUrl }}
-            style={styles.avatar}
-          />
-        ) : (
+      <View style={styles.actions}>
+        <Pressable
+          testID="app-header-saved-button"
+          onPress={() => router.push("/saved")}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t("savedArticlesTitle")}
+        >
           <SymbolView
-            name="person.crop.circle"
-            size={28}
+            name="bookmark"
+            size={24}
             weight="regular"
             tintColor={theme.text}
-            fallback={<Ionicons name="person-circle" size={28} color={theme.text} />}
+            fallback={<Ionicons name="bookmark-outline" size={24} color={theme.text} />}
           />
-        )}
-      </Pressable>
+        </Pressable>
+
+        <Pressable
+          testID="app-header-profile-button"
+          onPress={() => router.push("/profile")}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t("tabProfile")}
+        >
+          {user?.avatarUrl ? (
+            <Image
+              testID="app-header-avatar"
+              source={{ uri: user.avatarUrl }}
+              style={styles.avatar}
+            />
+          ) : (
+            <SymbolView
+              name="person.crop.circle"
+              size={28}
+              weight="regular"
+              tintColor={theme.text}
+              fallback={<Ionicons name="person-circle" size={28} color={theme.text} />}
+            />
+          )}
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -103,6 +121,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   logo: { width: 28, height: 28 },
+  actions: { flexDirection: "row", alignItems: "center", gap: Spacing.three },
   avatar: { width: 28, height: 28, borderRadius: Radius.full },
   // See docs/cross-script-text-rendering.md.
   title: {

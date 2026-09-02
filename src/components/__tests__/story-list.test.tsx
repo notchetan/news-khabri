@@ -5,6 +5,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 import { fetchMe } from "@/api/auth";
 import { fetchStoryFeed, STORIES_PAGE_SIZE, type Story } from "@/api/stories";
 import { AuthProvider } from "@/contexts/auth-context";
+import { BookmarksProvider } from "@/contexts/bookmarks-context";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
@@ -86,7 +87,9 @@ function renderList(props: Partial<React.ComponentProps<typeof StoryList>> = {})
           <SourcesPreferenceProvider>
             <DebugPreferenceProvider>
               <AuthProvider>
-                <StoryList {...props} />
+                <BookmarksProvider>
+                  <StoryList {...props} />
+                </BookmarksProvider>
               </AuthProvider>
             </DebugPreferenceProvider>
           </SourcesPreferenceProvider>

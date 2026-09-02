@@ -23,6 +23,12 @@ const or: Record<keyof typeof en, string> = {
   signInDescription: "ଆପଣଙ୍କର ପସନ୍ଦଗୁଡ଼ିକୁ ସମସ୍ତ ଡିଭାଇସରେ ସିଙ୍କ କରିବାକୁ ସାଇନ୍ ଇନ୍ କରନ୍ତୁ",
   signInWithGoogle: "Google ସହିତ ସାଇନ୍ ଇନ୍ କରନ୍ତୁ",
   signOut: "ସାଇନ୍ ଆଉଟ୍ କରନ୍ତୁ",
+  save: "ସେଭ୍ କରନ୍ତୁ",
+  removeBookmark: "ସେଭ୍ କରାଯାଇଥିବାରୁ ବାହାର କରନ୍ତୁ",
+  savedArticlesTitle: "ସେଭ୍ ହୋଇଛି",
+  noSavedArticles: "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଆର୍ଟିକିଲ୍ ସେଭ୍ ହୋଇନାହିଁ",
+  noSavedArticlesDescription:
+    "ପରେ ପଢ଼ିବା ପାଇଁ ଯେକୌଣସି ଆର୍ଟିକିଲ୍‌ର ବୁକମାର୍କ ଆଇକନ୍ ଟାପ୍ କରନ୍ତୁ",
   preferencesTitle: "ସେଟିଂସ୍",
   appearance: "ରୂପ",
   appearanceAutomaticDesc: "ଆପଣଙ୍କ ଡିଭାଇସର ସିଷ୍ଟମ୍ ସେଟିଂ ସହିତ ମେଳ କରନ୍ତୁ",

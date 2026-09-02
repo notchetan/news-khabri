@@ -18,6 +18,16 @@ jest.mock("@/api/articles", () => ({
   fetchArticles: jest.fn(),
 }));
 
+// This screen renders ArticleList, which reads the bookmark toggle state -
+// stubbed here since none of these assertions are about bookmarking.
+jest.mock("@/contexts/bookmarks-context", () => ({
+  useBookmarks: () => ({
+    bookmarks: [],
+    isBookmarked: () => false,
+    toggleBookmark: jest.fn(),
+  }),
+}));
+
 const mockBack = jest.fn();
 const mockReplace = jest.fn();
 let mockCanGoBack = true;

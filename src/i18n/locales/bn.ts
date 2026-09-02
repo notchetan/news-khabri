@@ -23,6 +23,12 @@ const bn: Record<keyof typeof en, string> = {
   signInDescription: "আপনার সব ডিভাইসে পছন্দসমূহ সিঙ্ক করতে সাইন ইন করুন",
   signInWithGoogle: "Google দিয়ে সাইন ইন করুন",
   signOut: "সাইন আউট করুন",
+  save: "সংরক্ষণ করুন",
+  removeBookmark: "সংরক্ষিত থেকে সরান",
+  savedArticlesTitle: "সংরক্ষিত",
+  noSavedArticles: "এখনও কোনো নিবন্ধ সংরক্ষণ করা হয়নি",
+  noSavedArticlesDescription:
+    "পরে পড়ার জন্য যেকোনো নিবন্ধে বুকমার্ক আইকনে ট্যাপ করুন",
   preferencesTitle: "সেটিংস",
   appearance: "চেহারা",
   appearanceAutomaticDesc: "আপনার ডিভাইসের সিস্টেম সেটিংয়ের সাথে মিলান",

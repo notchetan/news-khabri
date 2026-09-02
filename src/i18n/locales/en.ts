@@ -19,6 +19,14 @@ const en = {
   signInDescription: "Sign in to sync your preferences across devices",
   signInWithGoogle: "Sign in with Google",
   signOut: "Sign out",
+  // Bookmarks - the toggle on articles/feed cards, and the Saved screen
+  // reached from the header icon and the Profile screen.
+  save: "Save",
+  removeBookmark: "Remove from saved",
+  savedArticlesTitle: "Saved",
+  noSavedArticles: "No saved articles yet",
+  noSavedArticlesDescription:
+    "Tap the bookmark icon on any article to save it for later",
   preferencesTitle: "Preferences",
   appearance: "Appearance",
   appearanceAutomaticDesc: "Match your device's system setting",

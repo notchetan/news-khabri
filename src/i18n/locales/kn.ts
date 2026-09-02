@@ -19,6 +19,12 @@ const kn: Record<keyof typeof en, string> = {
   signInDescription: "ನಿಮ್ಮ ಎಲ್ಲಾ ಸಾಧನಗಳಲ್ಲಿ ಆದ್ಯತೆಗಳನ್ನು ಸಿಂಕ್ ಮಾಡಲು ಸೈನ್ ಇನ್ ಮಾಡಿ",
   signInWithGoogle: "Google ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಿ",
   signOut: "ಸೈನ್ ಔಟ್ ಮಾಡಿ",
+  save: "ಉಳಿಸಿ",
+  removeBookmark: "ಉಳಿಸಿದವುಗಳಿಂದ ತೆಗೆದುಹಾಕಿ",
+  savedArticlesTitle: "ಉಳಿಸಲಾಗಿದೆ",
+  noSavedArticles: "ಇನ್ನೂ ಯಾವುದೇ ಲೇಖನವನ್ನು ಉಳಿಸಿಲ್ಲ",
+  noSavedArticlesDescription:
+    "ನಂತರ ಓದಲು ಯಾವುದೇ ಲೇಖನದಲ್ಲಿ ಬುಕ್‌ಮಾರ್ಕ್ ಐಕಾನ್ ಟ್ಯಾಪ್ ಮಾಡಿ",
   preferencesTitle: "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
   appearance: "ನೋಟ",
   appearanceAutomaticDesc: "ನಿಮ್ಮ ಸಾಧನದ ಸಿಸ್ಟಂ ಸೆಟ್ಟಿಂಗ್‌ಗೆ ಹೊಂದಿಸಿ",

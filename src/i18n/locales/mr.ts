@@ -19,6 +19,12 @@ const mr: Record<keyof typeof en, string> = {
   signInDescription: "तुमची प्राधान्ये सर्व डिव्हाइसवर सिंक करण्यासाठी साइन इन करा",
   signInWithGoogle: "Google सह साइन इन करा",
   signOut: "साइन आउट करा",
+  save: "जतन करा",
+  removeBookmark: "जतन केलेल्यांमधून काढा",
+  savedArticlesTitle: "जतन केलेले",
+  noSavedArticles: "अद्याप कोणताही लेख जतन केलेला नाही",
+  noSavedArticlesDescription:
+    "कोणताही लेख नंतर वाचण्यासाठी बुकमार्क चिन्हावर टॅप करा",
   preferencesTitle: "सेटिंग्ज",
   appearance: "स्वरूप",
   appearanceAutomaticDesc: "तुमच्या डिव्हाइसच्या सिस्टम सेटिंगशी जुळवा",

@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { Share } from "react-native";
@@ -5,6 +6,7 @@ import { Share } from "react-native";
 import { fetchArticleDetail, type ArticleDetail } from "@/api/articles";
 import { Spacing } from "@/constants/theme";
 import { AuthProvider } from "@/contexts/auth-context";
+import { BookmarksProvider } from "@/contexts/bookmarks-context";
 import { FontSizePreferenceProvider } from "@/contexts/font-size-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
@@ -90,7 +92,9 @@ function renderScreen(
         <LanguagePreferenceProvider>
           <FontSizePreferenceProvider>
             <AuthProvider>
-              <ArticleDetailScreen {...props} />
+              <BookmarksProvider>
+                <ArticleDetailScreen {...props} />
+              </BookmarksProvider>
             </AuthProvider>
           </FontSizePreferenceProvider>
         </LanguagePreferenceProvider>
@@ -255,6 +259,40 @@ describe("ArticleDetailScreen", () => {
     // The share button is a sibling of that text block within the same
     // row, not a separate element above it.
     expect(within(metaRow).getByRole("button", { name: "Share" })).toBeTruthy();
+  });
+
+  it("toggles the article's bookmark state and persists it on device", async () => {
+    await AsyncStorage.clear();
+    mockFetchArticleDetail.mockResolvedValue(makeDetail({ id: 1, title: "Main article title" }));
+    await act(async () => {
+      renderScreen();
+    });
+    await waitFor(() => screen.getByText("Main article title"));
+
+    // Not saved yet - the button offers to save.
+    expect(screen.getByTestId("article-bookmark-button")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Save" })).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("article-bookmark-button"));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Remove from saved" })).toBeTruthy();
+    });
+    await waitFor(async () => {
+      const stored = JSON.parse((await AsyncStorage.getItem("bookmarks")) ?? "[]");
+      expect(stored.map((b: { id: number }) => b.id)).toEqual([1]);
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("article-bookmark-button"));
+    });
+
+    await waitFor(async () => {
+      const stored = JSON.parse((await AsyncStorage.getItem("bookmarks")) ?? "[]");
+      expect(stored).toEqual([]);
+    });
   });
 
   it("does not throw when the share sheet is dismissed or unsupported", async () => {

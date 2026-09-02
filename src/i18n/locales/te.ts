@@ -19,6 +19,12 @@ const te: Record<keyof typeof en, string> = {
   signInDescription: "మీ ప్రాధాన్యతలను అన్ని పరికరాలలో సింక్ చేయడానికి సైన్ ఇన్ చేయండి",
   signInWithGoogle: "Google తో సైన్ ఇన్ చేయండి",
   signOut: "సైన్ అవుట్ చేయండి",
+  save: "సేవ్ చేయండి",
+  removeBookmark: "సేవ్ చేసినవాటి నుండి తీసివేయండి",
+  savedArticlesTitle: "సేవ్ చేసినవి",
+  noSavedArticles: "ఇంకా ఏ కథనాన్నీ సేవ్ చేయలేదు",
+  noSavedArticlesDescription:
+    "ఏదైనా కథనాన్ని తర్వాత చదవడానికి బుక్‌మార్క్ చిహ్నాన్ని నొక్కండి",
   preferencesTitle: "సెట్టింగ్‌లు",
   appearance: "రూపం",
   appearanceAutomaticDesc: "మీ పరికరం సిస్టమ్ సెట్టింగ్‌తో సరిపోల్చండి",
