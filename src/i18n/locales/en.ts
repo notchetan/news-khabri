@@ -16,7 +16,9 @@ const en = {
   imageFailedToLoad: "Image failed to load",
   noImage: "No image",
   profileTitle: "Profile",
-  profileComingSoon: "Sign-in and personalization are coming soon",
+  signInDescription: "Sign in to sync your preferences across devices",
+  signInWithGoogle: "Sign in with Google",
+  signOut: "Sign out",
   preferencesTitle: "Preferences",
   appearance: "Appearance",
   appearanceAutomaticDesc: "Match your device's system setting",
@@ -96,13 +98,36 @@ const en = {
   sourcesDescription: "Choose which publishers' articles you want to see",
   allSources: "All sources",
   sourcesSelectedTemplate: "{count} selected",
+  signInRequiredForSources: "Sign in to choose which publishers you see",
   notifications: "Notifications",
   notificationsDescription: "Get a push notification for the most trending story",
   notificationsOff: "Off",
   notificationsEveryMinutesTemplate: "Every {minutes} minutes",
+  signInRequiredForNotifications: "Sign in for more notification timing options",
   about: "About",
   privacyPolicy: "Privacy Policy",
   termsOfService: "Terms of Service",
+  // First-launch onboarding (src/app/onboarding/) - three screens: a
+  // branded welcome, a feature summary, then an optional sign-in pitch.
+  // See onboarding-context.tsx for the "have we shown this already" flag.
+  onboardingCatchphrase: "Your day's biggest stories, without the noise.",
+  onboardingNext: "Next",
+  onboardingPrevious: "Previous",
+  onboardingFeaturesTitle: "Everything you need, nothing you don't",
+  onboardingFeatureNoAdsTitle: "No ads, ever",
+  onboardingFeatureNoAdsDesc:
+    "A clean reading experience with nothing competing for your attention",
+  onboardingFeatureLanguageTitle: "Read in your language",
+  onboardingFeatureLanguageDesc: "News in 10 Indian languages, not just English",
+  onboardingFeatureSourcesTitle: "Choose your sources",
+  onboardingFeatureSourcesDesc: "Pick exactly which publishers show up in your feed",
+  onboardingFeatureNotificationsTitle: "Notifications on your terms",
+  onboardingFeatureNotificationsDesc:
+    "Get alerted about trending stories, as often as you want",
+  onboardingSignInTitle: "Sign in to unlock more",
+  onboardingSignInDescription:
+    "Sign in with Google to sync your source picks and notification settings across every device you use",
+  onboardingSkip: "Skip for now",
 } as const;
 
 export default en;

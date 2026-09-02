@@ -1,7 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 
+import { fetchMe } from "@/api/auth";
 import { Colors } from "@/constants/theme";
+import { AuthProvider } from "@/contexts/auth-context";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { FontSizePreferenceProvider } from "@/contexts/font-size-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
@@ -28,6 +30,32 @@ jest.mock("expo-notifications", () => ({
   getExpoPushTokenAsync: jest.fn(),
 }));
 
+jest.mock("@/api/auth", () => ({
+  fetchMe: jest.fn(),
+  signInWithGoogle: jest.fn(),
+  putPreferences: jest.fn(),
+}));
+
+const mockGetItemAsync = jest.fn().mockResolvedValue(null);
+jest.mock("expo-secure-store", () => ({
+  getItemAsync: (...args: unknown[]) => mockGetItemAsync(...args),
+  setItemAsync: jest.fn().mockResolvedValue(undefined),
+  deleteItemAsync: jest.fn().mockResolvedValue(undefined),
+}));
+
+const mockFetchMe = fetchMe as jest.Mock;
+
+// Sources and full notification-interval customization both require an
+// account - see requirements 3/4 in docs/google-sign-in.md's UI section.
+// Tests that exercise those signed-in-only rows opt into this.
+function mockSignedIn() {
+  mockGetItemAsync.mockResolvedValue("stored-session-token");
+  mockFetchMe.mockResolvedValue({
+    user: { id: 1, email: "chetan@example.com", name: "Chetan Shetty", avatarUrl: null },
+    preferences: null,
+  });
+}
+
 function renderScreen() {
   return render(
     <ThemePreferenceProvider>
@@ -36,7 +64,9 @@ function renderScreen() {
           <NotificationPreferenceProvider>
             <FontSizePreferenceProvider>
               <DebugPreferenceProvider>
-                <PreferencesScreen />
+                <AuthProvider>
+                  <PreferencesScreen />
+                </AuthProvider>
               </DebugPreferenceProvider>
             </FontSizePreferenceProvider>
           </NotificationPreferenceProvider>
@@ -50,6 +80,7 @@ describe("PreferencesScreen", () => {
   beforeEach(async () => {
     await AsyncStorage.clear();
     jest.clearAllMocks();
+    mockGetItemAsync.mockResolvedValue(null);
   });
 
   it("renders the three preference sections with the automatic/medium/English defaults selected", async () => {
@@ -145,41 +176,12 @@ describe("PreferencesScreen", () => {
     expect(mockPush).toHaveBeenCalledWith("/preferences/language");
   });
 
-  it("shows 'All sources' by default and navigates to the sources picker screen when tapped", async () => {
+  it("shows 'All sources' by default", async () => {
     await act(async () => {
       renderScreen();
     });
 
     expect(screen.getByText("All sources")).toBeTruthy();
-
-    fireEvent.press(screen.getByRole("button", { name: "Sources" }));
-
-    expect(mockPush).toHaveBeenCalledWith("/preferences/sources");
-  });
-
-  it("shows 'Off' by default and navigates to the notifications picker screen when tapped", async () => {
-    await act(async () => {
-      renderScreen();
-    });
-
-    expect(screen.getByText("Off")).toBeTruthy();
-
-    fireEvent.press(screen.getByRole("button", { name: "Notifications" }));
-
-    expect(mockPush).toHaveBeenCalledWith("/preferences/notifications");
-  });
-
-  it("shows the chosen interval once notifications are on, instead of 'Off'", async () => {
-    await AsyncStorage.setItem("notificationPreference", "15");
-
-    await act(async () => {
-      renderScreen();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText("Every 15 minutes")).toBeTruthy();
-    });
-    expect(screen.queryByText("Off")).toBeNull();
   });
 
   it("shows a count once sources are selected, instead of 'All sources'", async () => {
@@ -196,6 +198,92 @@ describe("PreferencesScreen", () => {
       expect(screen.getByText("2 selected")).toBeTruthy();
     });
     expect(screen.queryByText("All sources")).toBeNull();
+  });
+
+  it("disables the Sources row and shows a sign-in prompt when signed out", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    const sourcesButton = screen.getByRole("button", { name: "Sources" });
+    expect(sourcesButton).toHaveProp(
+      "accessibilityState",
+      expect.objectContaining({ disabled: true })
+    );
+    expect(
+      screen.getByText("Sign in to choose which publishers you see")
+    ).toBeTruthy();
+
+    fireEvent.press(sourcesButton);
+    expect(mockPush).not.toHaveBeenCalledWith("/preferences/sources");
+  });
+
+  it("enables the Sources row and navigates to the sources picker screen when tapped, once signed in", async () => {
+    mockSignedIn();
+    await act(async () => {
+      renderScreen();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Sources" })).toHaveProp(
+        "accessibilityState",
+        expect.objectContaining({ disabled: false })
+      );
+    });
+
+    fireEvent.press(screen.getByRole("button", { name: "Sources" }));
+
+    expect(mockPush).toHaveBeenCalledWith("/preferences/sources");
+  });
+
+  it("shows a plain on/off toggle (defaulting 'on' to 15 minutes) and a sign-in prompt for notifications when signed out", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    expect(screen.queryByRole("button", { name: "Notifications" })).toBeNull();
+    const toggle = screen.getByRole("switch", { name: "Notifications" });
+    expect(toggle).toHaveProp("value", false);
+    expect(
+      screen.getByText("Sign in for more notification timing options")
+    ).toBeTruthy();
+
+    await act(async () => {
+      fireEvent(toggle, "valueChange", true);
+    });
+
+    await waitFor(async () => {
+      expect(await AsyncStorage.getItem("notificationPreference")).toBe("15");
+    });
+  });
+
+  it("shows 'Off' by default and navigates to the notifications picker screen when tapped, once signed in", async () => {
+    mockSignedIn();
+    await act(async () => {
+      renderScreen();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Off")).toBeTruthy();
+    });
+
+    fireEvent.press(screen.getByRole("button", { name: "Notifications" }));
+
+    expect(mockPush).toHaveBeenCalledWith("/preferences/notifications");
+  });
+
+  it("shows the chosen interval once notifications are on, instead of 'Off', once signed in", async () => {
+    mockSignedIn();
+    await AsyncStorage.setItem("notificationPreference", "15");
+
+    await act(async () => {
+      renderScreen();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Every 15 minutes")).toBeTruthy();
+    });
+    expect(screen.queryByText("Off")).toBeNull();
   });
 
   it("shows the selected language's own endonym as the current value, not its English name", async () => {

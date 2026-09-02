@@ -19,6 +19,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { LANGUAGE_ENDONYMS } from "@/constants/languages";
 import { NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
+import { useAuth } from "@/contexts/auth-context";
 import { useDebugPreference } from "@/contexts/debug-preference";
 import {
   FontSizePreference,
@@ -80,8 +81,11 @@ export default function PreferencesScreen() {
     useFontSizePreference();
   const { language } = useLanguagePreference();
   const { selectedSources } = useSourcesPreference();
-  const { interval: notificationInterval } = useNotificationPreference();
+  const { interval: notificationInterval, setInterval: setNotificationInterval } =
+    useNotificationPreference();
   const { debugEnabled, setDebugEnabled } = useDebugPreference();
+  const { user } = useAuth();
+  const isSignedIn = user != null;
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -256,10 +260,12 @@ export default function PreferencesScreen() {
         />
 
         <Pressable
-          onPress={() => router.push("/preferences/sources")}
-          style={styles.legalRow}
+          onPress={() => isSignedIn && router.push("/preferences/sources")}
+          disabled={!isSignedIn}
+          style={[styles.legalRow, !isSignedIn && styles.disabledRow]}
           accessibilityRole="button"
           accessibilityLabel={t("sources")}
+          accessibilityState={{ disabled: !isSignedIn }}
         >
           <ThemedText type="default" accessibilityRole="header">{t("sources")}</ThemedText>
           <View style={styles.languagePickerValue}>
@@ -282,41 +288,57 @@ export default function PreferencesScreen() {
           </View>
         </Pressable>
         <ThemedText themeColor="textSecondary" style={styles.description}>
-          {t("sourcesDescription")}
+          {isSignedIn ? t("sourcesDescription") : t("signInRequiredForSources")}
         </ThemedText>
 
         <View
           style={[styles.divider, styles.sectionSpacing, { backgroundColor: theme.backgroundSelected }]}
         />
 
-        <Pressable
-          onPress={() => router.push("/preferences/notifications")}
-          style={styles.legalRow}
-          accessibilityRole="button"
-          accessibilityLabel={t("notifications")}
-        >
-          <ThemedText type="default" accessibilityRole="header">{t("notifications")}</ThemedText>
-          <View style={styles.languagePickerValue}>
-            <ThemedText themeColor="textSecondary">
-              {notificationInterval === 0
-                ? t("notificationsOff")
-                : t("notificationsEveryMinutesTemplate", { minutes: String(notificationInterval) })}
-            </ThemedText>
-            <SymbolView
-              name="chevron.right"
-              size={14}
-              weight="semibold"
-              tintColor={theme.textSecondary}
-              fallback={
-                <ThemedText themeColor="textSecondary" style={styles.legalChevronFallback}>
-                  ›
-                </ThemedText>
-              }
+        {isSignedIn ? (
+          <Pressable
+            onPress={() => router.push("/preferences/notifications")}
+            style={styles.legalRow}
+            accessibilityRole="button"
+            accessibilityLabel={t("notifications")}
+          >
+            <ThemedText type="default" accessibilityRole="header">{t("notifications")}</ThemedText>
+            <View style={styles.languagePickerValue}>
+              <ThemedText themeColor="textSecondary">
+                {notificationInterval === 0
+                  ? t("notificationsOff")
+                  : t("notificationsEveryMinutesTemplate", { minutes: String(notificationInterval) })}
+              </ThemedText>
+              <SymbolView
+                name="chevron.right"
+                size={14}
+                weight="semibold"
+                tintColor={theme.textSecondary}
+                fallback={
+                  <ThemedText themeColor="textSecondary" style={styles.legalChevronFallback}>
+                    ›
+                  </ThemedText>
+                }
+              />
+            </View>
+          </Pressable>
+        ) : (
+          // Signed-out readers get a plain on/off toggle, not the full
+          // picker - see "Sources vs. Notifications" in
+          // docs/preferences-screen.md.
+          <View style={styles.toggleRow}>
+            <ThemedText type="default" accessibilityRole="header">{t("notifications")}</ThemedText>
+            <Switch
+              value={notificationInterval !== 0}
+              onValueChange={(enabled) => setNotificationInterval(enabled ? 15 : 0)}
+              trackColor={{ false: theme.backgroundSelected, true: theme.tint }}
+              accessibilityRole="switch"
+              accessibilityLabel={t("notifications")}
             />
           </View>
-        </Pressable>
+        )}
         <ThemedText themeColor="textSecondary" style={styles.description}>
-          {t("notificationsDescription")}
+          {isSignedIn ? t("notificationsDescription") : t("signInRequiredForNotifications")}
         </ThemedText>
 
         <View
@@ -427,6 +449,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: Spacing.two,
   },
+  disabledRow: { opacity: 0.5 },
   legalChevronFallback: { fontSize: 18, fontWeight: "600" },
   languagePickerValue: { flexDirection: "row", alignItems: "center", gap: Spacing.one },
   // One centered line, dot-separated - see docs/preferences-screen.md.

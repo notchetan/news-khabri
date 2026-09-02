@@ -14,6 +14,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { Colors } from "@/constants/theme";
+import { AuthProvider } from "@/contexts/auth-context";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { FontSizePreferenceProvider } from "@/contexts/font-size-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
@@ -21,6 +22,7 @@ import {
   NotificationPreferenceProvider,
   useNotificationPreference,
 } from "@/contexts/notification-preference";
+import { OnboardingProvider, useOnboarding } from "@/contexts/onboarding-context";
 import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
 import {
   ThemePreferenceProvider,
@@ -70,7 +72,18 @@ const queryClient = new QueryClient({
 function AppContent() {
   const { resolvedScheme } = useThemePreference();
   const { interval: notificationInterval } = useNotificationPreference();
+  const { hasCompletedOnboarding } = useOnboarding();
   const router = useRouter();
+
+  // First launch only - send the reader through onboarding/ before they
+  // ever see the real app. Held behind the same AsyncStorage read that
+  // gates the return `null` below, so this only ever fires once, right as
+  // hasCompletedOnboarding resolves to false.
+  useEffect(() => {
+    if (hasCompletedOnboarding === false) {
+      router.replace("/onboarding");
+    }
+  }, [hasCompletedOnboarding, router]);
 
   // Belt-and-suspenders alongside AppLightTheme/AppDarkTheme above - see
   // docs/navigation-white-flash.md.
@@ -104,6 +117,14 @@ function AppContent() {
     }
   }, [router, notificationInterval]);
 
+  // Nothing to render yet - the native splash screen (see
+  // SplashScreen.preventAutoHideAsync() above) just stays up a little
+  // longer, since AnimatedSplashOverlay below never gets a chance to call
+  // hideAsync(). Avoids ever painting the tabs behind the redirect above.
+  if (hasCompletedOnboarding === null) {
+    return null;
+  }
+
   return (
     <ThemeProvider value={resolvedScheme === "dark" ? AppDarkTheme : AppLightTheme}>
       <StatusBar style={resolvedScheme === "dark" ? "light" : "dark"} />
@@ -126,7 +147,11 @@ export default function RootLayout() {
                 <SourcesPreferenceProvider>
                   <NotificationPreferenceProvider>
                     <DebugPreferenceProvider>
-                      <AppContent />
+                      <AuthProvider>
+                        <OnboardingProvider>
+                          <AppContent />
+                        </OnboardingProvider>
+                      </AuthProvider>
                     </DebugPreferenceProvider>
                   </NotificationPreferenceProvider>
                 </SourcesPreferenceProvider>

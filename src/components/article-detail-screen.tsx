@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
 
 import { fetchArticleDetail } from "@/api/articles";
+import { recordRead } from "@/api/reads";
 import ArticleImage from "@/components/article-image";
 import FloatingDetailHeader, {
   getContentTopPadding,
@@ -28,6 +29,7 @@ import FloatingDetailHeader, {
 import Squircle from "@/components/squircle";
 import { ThemedText } from "@/components/themed-text";
 import { NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
+import { useAuth } from "@/contexts/auth-context";
 import { useFontSizePreference } from "@/contexts/font-size-preference";
 import { useTheme } from "@/hooks/use-theme";
 import { formatPublishedDate } from "@/utils/format-date";
@@ -50,6 +52,7 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   const theme = useTheme();
   const { t } = useTranslation();
   const { scale: fontScale } = useFontSizePreference();
+  const { token } = useAuth();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const [showCaption, setShowCaption] = useState(false);
@@ -86,6 +89,15 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
     scrollY.setValue(0);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   }, [activeId, scrollY]);
+
+  // Feeds the backend's personalized-ranking signal - see the backend's
+  // docs/personalization.md. Fire-and-forget, only while signed in; a
+  // failed read-record isn't worth surfacing to the reader (matches
+  // auth-context.tsx's own putPreferences swallow-error convention).
+  useEffect(() => {
+    if (!token) return;
+    recordRead(token, activeId).catch(() => {});
+  }, [token, activeId]);
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],

@@ -10,13 +10,16 @@ import {
 
 import { registerPushSubscription } from "@/api/notifications";
 import { useLanguagePreference } from "@/contexts/language-preference";
+import { notifyPreferenceChanged, onPreferenceChanged } from "@/utils/preference-sync";
 
 // 0 = off. Matches the backend's own VALID_INTERVALS (routes/push.js) -
 // keep the two in sync if this ever changes.
 export type NotificationInterval = 0 | 5 | 15 | 30 | 60 | 120;
 
 const VALID_INTERVALS: NotificationInterval[] = [0, 5, 15, 30, 60, 120];
-const STORAGE_KEY = "notificationPreference";
+export const NOTIFICATION_STORAGE_KEY = "notificationPreference";
+export const DEFAULT_NOTIFICATION_INTERVAL: NotificationInterval = 0;
+const STORAGE_KEY = NOTIFICATION_STORAGE_KEY;
 // See "Why the push token is cached locally" in docs/push-notifications.md.
 const PUSH_TOKEN_STORAGE_KEY = "notificationPushToken";
 
@@ -42,6 +45,14 @@ async function registerForPushNotifications(
   language: string
 ) {
   try {
+    // Turning notifications off doesn't need a fresh permission prompt or
+    // push token - reuse whatever's already cached, if anything is.
+    if (interval === 0) {
+      const cachedToken = await AsyncStorage.getItem(PUSH_TOKEN_STORAGE_KEY);
+      if (cachedToken) await registerPushSubscription(cachedToken, 0, language);
+      return;
+    }
+
     const Notifications: typeof import("expo-notifications") = require("expo-notifications");
 
     if (!notificationHandlerConfigured) {
@@ -81,13 +92,21 @@ export function NotificationPreferenceProvider({
   children: ReactNode;
 }) {
   const { language } = useLanguagePreference();
-  const [interval, setIntervalState] = useState<NotificationInterval>(0);
+  const [interval, setIntervalState] = useState<NotificationInterval>(
+    DEFAULT_NOTIFICATION_INTERVAL
+  );
 
+  // Also re-reads on every AuthProvider preference pull - see
+  // docs/google-sign-in.md.
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
-      const parsed = Number(stored) as NotificationInterval;
-      if (VALID_INTERVALS.includes(parsed)) setIntervalState(parsed);
-    });
+    const load = () => {
+      AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
+        const parsed = Number(stored) as NotificationInterval;
+        if (VALID_INTERVALS.includes(parsed)) setIntervalState(parsed);
+      });
+    };
+    load();
+    return onPreferenceChanged(load);
   }, []);
 
   // Re-registers whenever the interval or the active language changes -
@@ -102,12 +121,11 @@ export function NotificationPreferenceProvider({
   const setInterval = (next: NotificationInterval) => {
     setIntervalState(next);
     AsyncStorage.setItem(STORAGE_KEY, String(next));
-    if (next === 0) {
-      // See "Why the push token is cached locally" in docs/push-notifications.md.
-      AsyncStorage.getItem(PUSH_TOKEN_STORAGE_KEY).then((token) => {
-        if (token) registerPushSubscription(token, 0, language).catch(() => {});
-      });
-    }
+    notifyPreferenceChanged();
+    // The effect above skips interval === 0 (nothing to do on mount when
+    // notifications are already off) - explicitly turning them off here is
+    // the one path that still needs to tell the server.
+    if (next === 0) registerForPushNotifications(0, language);
   };
 
   return (

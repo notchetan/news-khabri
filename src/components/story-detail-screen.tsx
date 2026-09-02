@@ -1,4 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { recordRead } from "@/api/reads";
 import { fetchStoryDetail } from "@/api/stories";
 import ArticleImage from "@/components/article-image";
 import FloatingDetailHeader, {
@@ -7,6 +8,7 @@ import FloatingDetailHeader, {
 } from "@/components/floating-detail-header";
 import { ThemedText } from "@/components/themed-text";
 import { NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
+import { useAuth } from "@/contexts/auth-context";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 import { formatRelativeTime } from "@/utils/format-date";
@@ -40,6 +42,7 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
   const router = useRouter();
   const theme = useTheme();
   const { t } = useTranslation();
+  const { token } = useAuth();
   const insets = useSafeAreaInsets();
   // Continuous scroll-position-driven collapse - see
   // docs/animated-scroll-collapse.md.
@@ -127,6 +130,15 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
       });
     }
   }, [isSingleton, representativeArticleId, articleBasePath, router]);
+
+  // Feeds the backend's personalized-ranking signal via the story's own
+  // representative article - see the backend's docs/personalization.md and
+  // article-detail-screen.tsx's identical hook for a plain article page.
+  // Fire-and-forget, only while signed in.
+  useEffect(() => {
+    if (!token || representativeArticleId == null) return;
+    recordRead(token, representativeArticleId).catch(() => {});
+  }, [token, representativeArticleId]);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.background }}>

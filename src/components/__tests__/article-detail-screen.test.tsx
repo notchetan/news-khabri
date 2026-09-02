@@ -4,6 +4,7 @@ import { Share } from "react-native";
 
 import { fetchArticleDetail, type ArticleDetail } from "@/api/articles";
 import { Spacing } from "@/constants/theme";
+import { AuthProvider } from "@/contexts/auth-context";
 import { FontSizePreferenceProvider } from "@/contexts/font-size-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
@@ -16,6 +17,22 @@ jest.mock("@/hooks/use-color-scheme", () => ({
 jest.mock("@/api/articles", () => ({
   ...jest.requireActual("@/api/articles"),
   fetchArticleDetail: jest.fn(),
+}));
+
+jest.mock("@/api/auth", () => ({
+  fetchMe: jest.fn(),
+  signInWithGoogle: jest.fn(),
+  putPreferences: jest.fn(),
+}));
+
+jest.mock("@/api/reads", () => ({
+  recordRead: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock("expo-secure-store", () => ({
+  getItemAsync: jest.fn().mockResolvedValue(null),
+  setItemAsync: jest.fn().mockResolvedValue(undefined),
+  deleteItemAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockBack = jest.fn();
@@ -72,7 +89,9 @@ function renderScreen(
       <ThemePreferenceProvider>
         <LanguagePreferenceProvider>
           <FontSizePreferenceProvider>
-            <ArticleDetailScreen {...props} />
+            <AuthProvider>
+              <ArticleDetailScreen {...props} />
+            </AuthProvider>
           </FontSizePreferenceProvider>
         </LanguagePreferenceProvider>
       </ThemePreferenceProvider>
@@ -87,13 +106,22 @@ describe("ArticleDetailScreen", () => {
   });
 
   it("shows a loading skeleton, then the article content once it resolves", async () => {
-    mockFetchArticleDetail.mockResolvedValue(makeDetail());
+    // A manually-resolved promise, not mockResolvedValue - see "Testing
+    // components that render under AuthProvider" in docs/google-sign-in.md.
+    let resolveDetail: (detail: ArticleDetail) => void;
+    mockFetchArticleDetail.mockImplementation(
+      () => new Promise<ArticleDetail>((resolve) => { resolveDetail = resolve; })
+    );
 
     await act(async () => {
       renderScreen();
     });
 
     expect(screen.getByRole("progressbar")).toBeTruthy();
+
+    await act(async () => {
+      resolveDetail(makeDetail());
+    });
 
     await waitFor(() => {
       expect(screen.getByText("Main article title")).toBeTruthy();

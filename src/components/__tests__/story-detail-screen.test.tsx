@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 import { Share } from "react-native";
 
 import { fetchStoryDetail, type StoryDetail } from "@/api/stories";
+import { AuthProvider } from "@/contexts/auth-context";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
 import StoryDetailScreen from "../story-detail-screen";
@@ -14,6 +15,22 @@ jest.mock("@/hooks/use-color-scheme", () => ({
 jest.mock("@/api/stories", () => ({
   ...jest.requireActual("@/api/stories"),
   fetchStoryDetail: jest.fn(),
+}));
+
+jest.mock("@/api/auth", () => ({
+  fetchMe: jest.fn(),
+  signInWithGoogle: jest.fn(),
+  putPreferences: jest.fn(),
+}));
+
+jest.mock("@/api/reads", () => ({
+  recordRead: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock("expo-secure-store", () => ({
+  getItemAsync: jest.fn().mockResolvedValue(null),
+  setItemAsync: jest.fn().mockResolvedValue(undefined),
+  deleteItemAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock("@/utils/format-date", () => ({
@@ -89,7 +106,9 @@ function renderScreen() {
     <QueryClientProvider client={queryClient}>
       <ThemePreferenceProvider>
         <LanguagePreferenceProvider>
-          <StoryDetailScreen articleBasePath="/article" homePath="/" />
+          <AuthProvider>
+            <StoryDetailScreen articleBasePath="/article" homePath="/" />
+          </AuthProvider>
         </LanguagePreferenceProvider>
       </ThemePreferenceProvider>
     </QueryClientProvider>

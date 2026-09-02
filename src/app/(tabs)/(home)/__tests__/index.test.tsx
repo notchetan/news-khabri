@@ -4,6 +4,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 
 import { fetchArticles, fetchCategories, type Article } from "@/api/articles";
 import { fetchStoryFeed, type Story } from "@/api/stories";
+import { AuthProvider } from "@/contexts/auth-context";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
@@ -27,6 +28,18 @@ jest.mock("@/api/stories", () => ({
 
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: jest.fn() }),
+}));
+
+jest.mock("@/api/auth", () => ({
+  fetchMe: jest.fn(),
+  signInWithGoogle: jest.fn(),
+  putPreferences: jest.fn(),
+}));
+
+jest.mock("expo-secure-store", () => ({
+  getItemAsync: jest.fn().mockResolvedValue(null),
+  setItemAsync: jest.fn().mockResolvedValue(undefined),
+  deleteItemAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockFetchArticles = fetchArticles as jest.Mock;
@@ -82,7 +95,9 @@ function renderScreen() {
         <LanguagePreferenceProvider>
           <SourcesPreferenceProvider>
             <DebugPreferenceProvider>
-              <HomeScreen />
+              <AuthProvider>
+                <HomeScreen />
+              </AuthProvider>
             </DebugPreferenceProvider>
           </SourcesPreferenceProvider>
         </LanguagePreferenceProvider>
@@ -153,7 +168,7 @@ describe("HomeScreen", () => {
     });
 
     await waitFor(() => {
-      expect(mockFetchStoryFeed).toHaveBeenCalledWith("en", undefined, 20, []);
+      expect(mockFetchStoryFeed).toHaveBeenCalledWith("en", undefined, 20, [], null);
     });
     expect(mockFetchArticles).not.toHaveBeenCalled();
   });
@@ -207,7 +222,7 @@ describe("HomeScreen", () => {
     });
 
     await waitFor(() => {
-      expect(mockFetchStoryFeed).toHaveBeenCalledWith("en", undefined, 20, []);
+      expect(mockFetchStoryFeed).toHaveBeenCalledWith("en", undefined, 20, [], null);
     });
   });
 

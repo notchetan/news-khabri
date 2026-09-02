@@ -1,30 +1,27 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { Platform, Pressable, StyleSheet } from "react-native";
+import { Image, Platform, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Spacing } from "@/constants/theme";
+import { Radius, Spacing } from "@/constants/theme";
+import { useAuth } from "@/contexts/auth-context";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 
-// Placeholder for the future sign-in/account screen. No account system
-// exists yet, so this is intentionally just a coming-soon placeholder
-// rather than a login form that doesn't do anything.
-//
-// This used to be its own tab (see app-tabs.tsx's own comment on why it no
-// longer is) - now a plain pushed screen at the top level, reachable from
-// the profile button in AppHeader on every tab that shows one. Its own
-// back button below follows the same pattern as legal-document-screen.tsx,
-// since it's no longer inside any tab's own Stack that would otherwise
-// supply one.
+// Reachable from the profile button in AppHeader on every tab that shows
+// one. Its own back button below follows the same pattern as
+// legal-document-screen.tsx, since it's no longer inside any tab's own
+// Stack that would otherwise supply one (see app-tabs.tsx's own comment on
+// why Profile is no longer a tab itself).
 export default function ProfileScreen() {
   const theme = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { user, isLoading, signInError, signIn, signOut } = useAuth();
 
   const topPadding = Platform.select({
     default: insets.top,
@@ -59,19 +56,73 @@ export default function ProfileScreen() {
       </Pressable>
 
       <ThemedView style={styles.content}>
-        <SymbolView
-          name="person.crop.circle"
-          size={48}
-          weight="regular"
-          tintColor={theme.textSecondary}
-          fallback={<Ionicons name="person-circle" size={48} color={theme.textSecondary} />}
-        />
-        <ThemedText type="subtitle" style={styles.title} accessibilityRole="header">
-          {t("profileTitle")}
-        </ThemedText>
-        <ThemedText themeColor="textSecondary" style={styles.message}>
-          {t("profileComingSoon")}
-        </ThemedText>
+        {isLoading ? null : user ? (
+          <>
+            {user.avatarUrl ? (
+              <Image
+                testID="profile-avatar"
+                source={{ uri: user.avatarUrl }}
+                style={styles.avatar}
+              />
+            ) : (
+              <SymbolView
+                name="person.crop.circle"
+                size={64}
+                weight="regular"
+                tintColor={theme.textSecondary}
+                fallback={<Ionicons name="person-circle" size={64} color={theme.textSecondary} />}
+              />
+            )}
+            <ThemedText type="subtitle" style={styles.title} accessibilityRole="header">
+              {user.name || user.email}
+            </ThemedText>
+            {user.name && (
+              <ThemedText themeColor="textSecondary" style={styles.email}>
+                {user.email}
+              </ThemedText>
+            )}
+            <Pressable
+              onPress={signOut}
+              style={[styles.button, { backgroundColor: theme.backgroundElement }]}
+              accessibilityRole="button"
+              accessibilityLabel={t("signOut")}
+            >
+              <ThemedText type="default">{t("signOut")}</ThemedText>
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <SymbolView
+              name="person.crop.circle"
+              size={48}
+              weight="regular"
+              tintColor={theme.textSecondary}
+              fallback={<Ionicons name="person-circle" size={48} color={theme.textSecondary} />}
+            />
+            <ThemedText type="subtitle" style={styles.title} accessibilityRole="header">
+              {t("profileTitle")}
+            </ThemedText>
+            <ThemedText themeColor="textSecondary" style={styles.message}>
+              {t("signInDescription")}
+            </ThemedText>
+            <Pressable
+              onPress={signIn}
+              style={[styles.button, styles.signInButton, { backgroundColor: theme.tint }]}
+              accessibilityRole="button"
+              accessibilityLabel={t("signInWithGoogle")}
+            >
+              <Ionicons name="logo-google" size={18} color={theme.tintText} />
+              <ThemedText type="default" style={{ color: theme.tintText }}>
+                {t("signInWithGoogle")}
+              </ThemedText>
+            </Pressable>
+            {signInError && (
+              <ThemedText themeColor="textSecondary" style={styles.error}>
+                {signInError}
+              </ThemedText>
+            )}
+          </>
+        )}
       </ThemedView>
     </ThemedView>
   );
@@ -93,6 +144,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: Spacing.five,
   },
+  avatar: { width: 64, height: 64, borderRadius: Radius.full },
   title: { marginTop: Spacing.three, textAlign: "center" },
+  email: { marginTop: Spacing.half, textAlign: "center" },
   message: { marginTop: Spacing.two, textAlign: "center" },
+  button: {
+    marginTop: Spacing.four,
+    paddingHorizontal: Spacing.five,
+    paddingVertical: Spacing.three,
+    borderRadius: Radius.full,
+  },
+  signInButton: { flexDirection: "row", alignItems: "center", gap: Spacing.two },
+  error: { marginTop: Spacing.three, textAlign: "center" },
 });
