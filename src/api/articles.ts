@@ -19,7 +19,10 @@ export type Article = {
 };
 
 export type ArticleDetail = Article & {
-  content: string | null;
+  // The RSS summary snippet - the app shows this plus a link to the
+  // publisher, rather than the full scraped body (which the backend no
+  // longer serves). May be null / light HTML - see utils/strip-html.ts.
+  description: string | null;
   image_caption: string | null;
   read_time_minutes: number | null;
   related: Article[];

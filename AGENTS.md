@@ -95,10 +95,11 @@ new one.
   cleaned up). Don't reach for `jest.useFakeTimers()` to paper over this
   in one test — it bled into unrelated tests the one time it was tried
   here; fix the leak at the source instead.
-- `patches/react-native-render-html+6.3.4.patch` is applied via
-  `patch-package` on `postinstall`. If a dependency reinstall ever wipes
-  out an expected behavior in rendered HTML content, check here before
-  assuming the library changed.
+- `react-native-render-html` was removed along with its `patch-package`
+  patch: the article-detail screen no longer renders a scraped HTML body,
+  it shows the RSS `description` snippet (flattened by
+  `utils/strip-html.ts`) plus a "Read on <source>" link. The backend
+  stopped serving `content` at the same time.
 - `patches/react-native-screens+4.16.0.patch` (same `patch-package` /
   `postinstall` mechanism) extends an upstream `formSheet`-only
   background-color workaround to `push` too - see
