@@ -75,7 +75,7 @@ function makeDetail(overrides: Partial<ArticleDetail> = {}): ArticleDetail {
     fetched_at: "2026-01-15T18:31:00Z",
     language: "en",
     read_time_minutes: null,
-    content: "<p>Article body text.</p>",
+    description: "<p>A short summary of the article &amp; what happened.</p>",
     image_caption: null,
     related: [],
     ...overrides,
@@ -154,18 +154,36 @@ describe("ArticleDetailScreen", () => {
     });
   });
 
-  it("shows a content-error message when the article has no scraped content", async () => {
-    mockFetchArticleDetail.mockResolvedValue(makeDetail({ content: null }));
+  it("shows the summary as plain text, with HTML tags and entities stripped", async () => {
+    mockFetchArticleDetail.mockResolvedValue(
+      makeDetail({
+        description: "<p>Markets <b>rallied</b> today &amp; closed higher.</p>",
+      })
+    );
 
     await act(async () => {
       renderScreen();
     });
 
     await waitFor(() => {
-      expect(
-        screen.getByText("We couldn't load the full text for this article.")
-      ).toBeTruthy();
+      expect(screen.getByTestId("article-summary")).toHaveTextContent(
+        "Markets rallied today & closed higher."
+      );
     });
+  });
+
+  it("still shows the 'Read on' link when the article has no summary", async () => {
+    mockFetchArticleDetail.mockResolvedValue(
+      makeDetail({ source: "NDTV", description: null })
+    );
+
+    await act(async () => {
+      renderScreen();
+    });
+
+    await waitFor(() => screen.getByText("Main article title"));
+    expect(screen.queryByTestId("article-summary")).toBeNull();
+    expect(screen.getByRole("link", { name: "Read on NDTV" })).toBeTruthy();
   });
 
   it("calls router.back() when the back button is pressed and history exists", async () => {

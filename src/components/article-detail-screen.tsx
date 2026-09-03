@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import * as WebBrowser from "expo-web-browser";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Platform,
@@ -11,11 +11,9 @@ import {
   Share,
   StyleSheet,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import RenderHtml from "react-native-render-html";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
 
@@ -35,6 +33,7 @@ import { useBookmarks } from "@/contexts/bookmarks-context";
 import { useFontSizePreference } from "@/contexts/font-size-preference";
 import { useTheme } from "@/hooks/use-theme";
 import { formatPublishedDate } from "@/utils/format-date";
+import { stripHtml } from "@/utils/strip-html";
 import { useTranslation } from "@/i18n/translations";
 import { useQuery } from "@tanstack/react-query";
 
@@ -57,7 +56,6 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   const { token } = useAuth();
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
   const [showCaption, setShowCaption] = useState(false);
   const [activeId, setActiveId] = useState(Number(id));
   const [sequence, setSequence] = useState<number[]>([]);
@@ -211,35 +209,9 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   };
 
   const publishedLabel = data ? formatPublishedDate(data.published_at) : null;
-
-  // react-native-render-html warns about costly rerenders if these props
-  // are recreated (new object identity) on every render - memoize them so
-  // they only change when what they actually depend on changes.
-  const htmlSource = useMemo(
-    () => ({ html: data?.content ?? "" }),
-    [data?.content]
-  );
-  const renderBaseStyle = useMemo(
-    () => ({
-      color: theme.text,
-      fontSize: 16 * fontScale,
-      lineHeight: 24 * fontScale,
-    }),
-    [theme.text, fontScale]
-  );
-  const renderTagsStyles = useMemo(
-    () => ({
-      p: { marginBottom: Spacing.three },
-      // Token-consistent only, not squircle-clipped - these come from
-      // react-native-render-html's own image rendering for arbitrary
-      // scraped article HTML, which doesn't have a hook for our Squircle
-      // component.
-      img: { borderRadius: Radius.small, marginVertical: Spacing.three },
-      a: { color: theme.text, textDecorationLine: "underline" as const },
-      figcaption: { color: theme.textSecondary, fontSize: 13 * fontScale },
-    }),
-    [theme.text, theme.textSecondary, fontScale]
-  );
+  // The RSS snippet, flattened to plain text - the app summarises and
+  // links out rather than reproducing the publisher's full article body.
+  const summary = data?.description ? stripHtml(data.description) : "";
 
   return (
     <GestureDetector gesture={swipeGesture}>
@@ -379,30 +351,26 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
               </View>
             </View>
 
-            {data.content ? (
-              <RenderHtml
-                contentWidth={width - Spacing.four * 2}
-                source={htmlSource}
-                baseStyle={renderBaseStyle}
-                tagsStyles={renderTagsStyles}
-              />
-            ) : (
-              <ThemedText themeColor="textSecondary" style={styles.noContent}>
-                {t("articleContentError")}
+            {summary ? (
+              <ThemedText
+                testID="article-summary"
+                style={[
+                  styles.summary,
+                  { fontSize: 16 * fontScale, lineHeight: 24 * fontScale },
+                ]}
+              >
+                {summary}
               </ThemedText>
-            )}
+            ) : null}
 
             <TouchableOpacity
+              testID="article-read-original"
               onPress={openOriginal}
-              // textSecondary, not backgroundSelected - matches the
-              // preferences footer divider's own color (see
-              // preferences/index.tsx), not the subtler tone the related-
-              // articles rows below still use for their own separators.
-              style={[styles.readOriginal, { borderColor: theme.textSecondary }]}
+              style={[styles.readOriginal, { backgroundColor: theme.tint }]}
               accessibilityRole="link"
               accessibilityLabel={t("readOnTemplate", { source: data.source })}
             >
-              <ThemedText type="linkPrimary">
+              <ThemedText style={[styles.readOriginalText, { color: theme.tintText }]}>
                 {t("readOnTemplate", { source: data.source })}
               </ThemedText>
             </TouchableOpacity>
@@ -616,15 +584,17 @@ const styles = StyleSheet.create({
   },
   metaTextBlock: { gap: 2 },
   meta: {},
-  noContent: { marginTop: Spacing.two },
-  // See "Spacing consistency with the rest of the app" in
-  // docs/article-header-layout.md.
+  summary: { marginTop: Spacing.two },
+  // The primary action on this screen now - a filled button, since the
+  // full article lives on the publisher's site, not here.
   readOriginal: {
-    marginTop: Spacing.three,
+    marginTop: Spacing.four,
     paddingVertical: Spacing.three,
-    borderTopWidth: 1,
+    paddingHorizontal: Spacing.four,
+    borderRadius: Radius.full,
     alignItems: "center",
   },
+  readOriginalText: { fontSize: 15, fontWeight: "600" },
   relatedSection: { marginTop: Spacing.three },
   relatedHeading: { letterSpacing: 0.5, marginBottom: Spacing.two },
   relatedRow: {
