@@ -1,7 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { Alert } from "react-native";
 
-import { fetchMe, putPreferences, signInWithGoogle } from "@/api/auth";
+import { deleteAccount, fetchMe, putPreferences, signInWithGoogle } from "@/api/auth";
 import { AuthProvider } from "@/contexts/auth-context";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
@@ -15,6 +16,7 @@ jest.mock("@/api/auth", () => ({
   fetchMe: jest.fn(),
   signInWithGoogle: jest.fn(),
   putPreferences: jest.fn(),
+  deleteAccount: jest.fn(),
 }));
 
 const mockGetItemAsync = jest.fn();
@@ -53,6 +55,20 @@ jest.mock("expo-router", () => ({
 const mockFetchMe = fetchMe as jest.Mock;
 const mockSignInWithGoogle = signInWithGoogle as jest.Mock;
 const mockPutPreferences = putPreferences as jest.Mock;
+const mockDeleteAccount = deleteAccount as jest.Mock;
+
+// Auto-answers Alert.alert by pressing whichever button the test cares
+// about - "destructive" for a confirm, or the sole button for an error.
+function autoConfirmAlert(choice: "destructive" | "cancel" = "destructive") {
+  return jest
+    .spyOn(Alert, "alert")
+    .mockImplementation((_title, _message, buttons) => {
+      const list = buttons ?? [];
+      const pick =
+        list.find((b) => b.style === choice) ?? (list.length === 1 ? list[0] : undefined);
+      pick?.onPress?.();
+    });
+}
 
 function renderScreen() {
   return render(
@@ -79,6 +95,11 @@ describe("ProfileScreen", () => {
     mockSetItemAsync.mockResolvedValue(undefined);
     mockDeleteItemAsync.mockResolvedValue(undefined);
     mockPutPreferences.mockResolvedValue(undefined);
+    mockDeleteAccount.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it("shows a sign-in prompt (no stored session) rather than a real profile", async () => {
@@ -237,6 +258,64 @@ describe("ProfileScreen", () => {
       expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeTruthy();
     });
     expect(mockDeleteItemAsync).toHaveBeenCalledWith("sessionToken");
+  });
+
+  async function signInForDeletion() {
+    mockSuccessfulGoogleSignIn();
+    mockSignInWithGoogle.mockResolvedValue({
+      token: "session-token",
+      user: { id: 1, email: "chetan@example.com", name: "Chetan Shetty", avatarUrl: null },
+      preferences: null,
+    });
+    mockGoogleSignOutCall.mockResolvedValue(null);
+
+    await act(async () => {
+      renderScreen();
+    });
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeTruthy();
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByRole("button", { name: "Sign in with Google" }));
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId("profile-delete-account")).toBeTruthy();
+    });
+  }
+
+  it("deleting the account calls the API, clears the session, and returns to the sign-in prompt", async () => {
+    await signInForDeletion();
+    const alertSpy = autoConfirmAlert("destructive");
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("profile-delete-account"));
+    });
+
+    expect(alertSpy).toHaveBeenCalled();
+    expect(mockDeleteAccount).toHaveBeenCalledWith("session-token");
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeTruthy();
+    });
+    expect(mockDeleteItemAsync).toHaveBeenCalledWith("sessionToken");
+  });
+
+  it("keeps the reader signed in and shows an error if account deletion fails", async () => {
+    await signInForDeletion();
+    mockDeleteAccount.mockRejectedValueOnce(new Error("network"));
+    const alertSpy = autoConfirmAlert("destructive");
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("profile-delete-account"));
+    });
+
+    expect(mockDeleteAccount).toHaveBeenCalledWith("session-token");
+    // Second Alert.alert call is the failure notice.
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith("Couldn't delete your account. Please try again.");
+    });
+    // Still signed in - the destructive path didn't clear the session.
+    expect(screen.getByTestId("profile-delete-account")).toBeTruthy();
+    expect(mockDeleteItemAsync).not.toHaveBeenCalledWith("sessionToken");
   });
 
   it("shows an error message when Google sign-in fails", async () => {

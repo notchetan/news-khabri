@@ -19,6 +19,12 @@ const en = {
   signInDescription: "Sign in to sync your preferences across devices",
   signInWithGoogle: "Sign in with Google",
   signOut: "Sign out",
+  deleteAccount: "Delete account",
+  deleteAccountConfirmTitle: "Delete account?",
+  deleteAccountConfirmMessage:
+    "This permanently deletes your account and everything synced to it — saved articles, preferences, and reading history. This can't be undone.",
+  deleteAccountConfirm: "Delete",
+  deleteAccountError: "Couldn't delete your account. Please try again.",
   // Bookmarks - the toggle on articles/feed cards, and the Saved screen
   // reached from the header icon and the Profile screen.
   save: "Save",

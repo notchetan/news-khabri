@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import {
+  deleteAccount as deleteAccountRequest,
   fetchMe,
   putPreferences,
   signInWithGoogle,
@@ -45,6 +46,11 @@ type AuthContextValue = {
   signInError: string | null;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
+  // Permanently deletes the server-side account, then tears down the local
+  // session exactly like signOut. Rejects (without clearing the session)
+  // if the server call fails, so the caller can surface an error and let
+  // the reader retry.
+  deleteAccount: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -204,7 +210,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signOut = async () => {
+  const clearLocalSession = async () => {
     try {
       const {
         GoogleSignin,
@@ -219,8 +225,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const signOut = async () => {
+    await clearLocalSession();
+  };
+
+  const deleteAccount = async () => {
+    if (!token) return;
+    // Let a failure here propagate - the session stays intact so the
+    // reader can retry rather than being half-signed-out with a live
+    // server account.
+    await deleteAccountRequest(token);
+    await clearLocalSession();
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, signInError, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{ user, token, isLoading, signInError, signIn, signOut, deleteAccount }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -5,18 +5,18 @@ import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTranslation } from "@/i18n/translations";
 
-// DRAFT - a reasonable starting point, not legal advice, and not reviewed
-// by a lawyer. Deliberately avoids inventing specifics we don't actually
-// have (a registered entity name, a specific jurisdiction beyond "India")
-// rather than asserting something that might not be true. English-only,
-// same reasoning as about.tsx.
+// A reasonable starting point, not legal advice, and not reviewed by a
+// lawyer - get one before a public launch. Deliberately avoids inventing
+// specifics we don't actually have (a registered entity name, a specific
+// jurisdiction beyond "India") rather than asserting something that might
+// not be true. English-only, same reasoning as about.tsx.
 export default function TermsScreen() {
   const { t } = useTranslation();
 
   return (
     <LegalDocumentScreen title={t("termsOfService")}>
       <ThemedText themeColor="textSecondary" style={styles.updated}>
-        Last updated: August 27, 2026
+        Last updated: September 3, 2026
       </ThemedText>
 
       <ThemedText style={styles.paragraph}>
@@ -33,6 +33,17 @@ export default function TermsScreen() {
         write or edit the underlying news, and we don't guarantee its
         accuracy, completeness, or timeliness - that responsibility sits
         with each original publisher.
+      </ThemedText>
+
+      <ThemedText type="smallBold" style={styles.heading}>
+        ACCOUNTS
+      </ThemedText>
+      <ThemedText style={styles.paragraph}>
+        You can use News Khabri without an account. Signing in is optional
+        and uses your Google account; you're responsible for keeping that
+        account secure. You can delete your News Khabri account, and the
+        data synced to it, at any time from the Profile screen. See the
+        Privacy Policy for what signing in stores.
       </ThemedText>
 
       <ThemedText type="smallBold" style={styles.heading}>
