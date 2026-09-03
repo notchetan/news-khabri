@@ -1,4 +1,4 @@
-const BASE_URL = "http://192.168.0.55:3000";
+import { API_BASE_URL as BASE_URL } from "./config";
 
 export type Article = {
   id: number;

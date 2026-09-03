@@ -21,9 +21,25 @@ npx expo start
 ```
 
 That prints a QR code plus options to open the app in a development
-build, an Android emulator, or an iOS simulator. The app expects the
-backend API to be running and reachable - see `src/api/` for the base URL
-configuration.
+build, an Android emulator, or an iOS simulator.
+
+### Backend API URL
+
+The app reads `EXPO_PUBLIC_API_URL` (resolved in `src/api/config.ts`,
+falling back to `http://localhost:3000`). The committed `.env` default
+works for the iOS simulator and `expo start` on the same machine.
+Anything else needs an untracked `.env.local`:
+
+```bash
+# Android emulator
+EXPO_PUBLIC_API_URL=http://10.0.2.2:3000
+# physical device (same Wi-Fi)
+EXPO_PUBLIC_API_URL=http://192.168.x.x:3000
+```
+
+Release builds set it per EAS build profile (`eas.json` → `build.<profile>.env`)
+and it **must be `https`** — iOS App Transport Security blocks plaintext
+`http`.
 
 ## Project structure
 

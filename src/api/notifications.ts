@@ -1,4 +1,4 @@
-const BASE_URL = "http://192.168.0.55:3000";
+import { API_BASE_URL as BASE_URL } from "./config";
 
 // Registers (or updates) this device's push token with the backend -
 // called every time the interval or language preference changes, not just
