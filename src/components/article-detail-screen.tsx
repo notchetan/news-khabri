@@ -22,6 +22,7 @@ import { scheduleOnRN } from "react-native-worklets";
 import { fetchArticleDetail } from "@/api/articles";
 import { recordRead } from "@/api/reads";
 import ArticleImage from "@/components/article-image";
+import ErrorState from "@/components/error-state";
 import FloatingDetailHeader, {
   getContentTopPadding,
   useHeaderScrollY,
@@ -70,7 +71,7 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   // docs/article-header-layout.md.
   const [headerHeight, setHeaderHeight] = useState(0);
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["article", activeId],
     queryFn: () => fetchArticleDetail(activeId),
   });
@@ -253,11 +254,11 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
         {isLoading ? (
           <ArticleDetailSkeleton headerHeight={headerHeight} topPadding={topPadding} />
         ) : error || !data ? (
-          <View style={styles.centerFill}>
-            <ThemedText themeColor="textSecondary">
-              {t("articleLoadError")}
-            </ThemedText>
-          </View>
+          <ErrorState
+            testID="article-detail-error"
+            message={t("articleLoadError")}
+            onRetry={refetch}
+          />
         ) : (
           <ScrollView
             ref={scrollRef}

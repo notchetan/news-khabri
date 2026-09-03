@@ -1,4 +1,5 @@
 import { ARTICLES_PAGE_SIZE, cursorFor, fetchArticles } from "@/api/articles";
+import ErrorState from "@/components/error-state";
 import FeedCard from "@/components/feed-card";
 import ArticleListSkeleton from "@/components/article-list-skeleton";
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
@@ -69,9 +70,11 @@ export default function ArticleList({ category, search, basePath }: Props) {
 
   if (error) {
     return (
-      <Text style={[styles.message, { color: theme.text }]}>
-        {t("articlesLoadError")}
-      </Text>
+      <ErrorState
+        testID="article-list-error"
+        message={t("articlesLoadError")}
+        onRetry={refetch}
+      />
     );
   }
 

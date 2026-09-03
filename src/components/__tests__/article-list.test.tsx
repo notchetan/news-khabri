@@ -103,8 +103,8 @@ describe("ArticleList", () => {
     expect(screen.getByText("NDTV")).toBeTruthy();
   });
 
-  it("shows an error message when the articles request fails", async () => {
-    mockFetchArticles.mockRejectedValue(new Error("network down"));
+  it("shows an error message with a working retry when the articles request fails", async () => {
+    mockFetchArticles.mockRejectedValueOnce(new Error("network down"));
 
     await act(async () => {
       renderList();
@@ -114,6 +114,29 @@ describe("ArticleList", () => {
       expect(
         screen.getByText("Something went wrong loading articles.")
       ).toBeTruthy();
+    });
+
+    // Retry succeeds this time - the list replaces the error state.
+    mockFetchArticles.mockResolvedValueOnce([
+      {
+        id: 1,
+        title: "Recovered article",
+        link: "https://example.com/1",
+        source: "NDTV",
+        category: "national",
+        published_at: "2026-08-25T12:00:00Z",
+        image_url: null,
+        fetched_at: "2026-08-25 12:00:00",
+        language: "en",
+      },
+    ]);
+
+    await act(async () => {
+      fireEvent.press(screen.getByRole("button", { name: "Try again" }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Recovered article")).toBeTruthy();
     });
   });
 

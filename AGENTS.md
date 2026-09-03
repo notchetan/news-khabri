@@ -35,7 +35,19 @@ new one.
   React 19, RN 0.81.
 - Data fetching: `@tanstack/react-query` over a thin `fetch`-based client
   in `src/api/` (`articles.ts`, `stories.ts`). No client-side caching
-  logic of our own — react-query owns that.
+  logic of our own — react-query owns that. Every query-backed screen
+  renders `components/error-state.tsx` (message + optional "Try again"
+  wired to react-query's `refetch`) for its failure state — don't
+  hand-roll a bare `<Text>` error again.
+- `src/app/_layout.tsx` exports an `ErrorBoundary` (expo-router picks it
+  up). It renders *outside* every provider, so it's deliberately
+  self-contained: react-native's own `useColorScheme` + raw `Colors`
+  tokens + English copy, no `useTheme`/`useTranslation`. `src/app/+not-found.tsx`
+  handles unmatched routes and *is* inside the tree, so it uses the normal
+  hooks.
+- OTA updates via `expo-updates` (`runtimeVersion` policy `appVersion`,
+  channel URL in `app.json`). Inert until `eas update` is actually
+  pushing; no runtime code of ours touches it.
 - Preferences (theme, language, font size, debug mode) each live in
   their own React Context under `src/contexts/`, persisted to
   `AsyncStorage`, one provider per concern rather than one big settings

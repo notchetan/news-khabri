@@ -4,11 +4,18 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useRouter, Stack } from "expo-router";
+import { useRouter, Stack, type ErrorBoundaryProps } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import * as SystemUI from "expo-system-ui";
 import { useEffect } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -32,6 +39,45 @@ import {
 import { ToastProvider } from "@/contexts/toast-context";
 
 SplashScreen.preventAutoHideAsync();
+
+// expo-router renders this in place of the tree that threw, so it sits
+// *outside* every provider below - it can't use useTheme/useTranslation.
+// Deliberately minimal and self-contained: react-native's own
+// useColorScheme + raw Colors tokens + English copy, since the thing that
+// crashed could be i18n or a context itself. `retry` re-mounts the route.
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  const scheme = useColorScheme();
+  const palette = scheme === "dark" ? Colors.dark : Colors.light;
+
+  return (
+    <View style={[boundaryStyles.container, { backgroundColor: palette.background }]}>
+      <Text style={[boundaryStyles.title, { color: palette.text }]}>
+        The app hit an unexpected error.
+      </Text>
+      {__DEV__ && (
+        <Text style={[boundaryStyles.detail, { color: palette.textSecondary }]}>
+          {error.message}
+        </Text>
+      )}
+      <Pressable
+        onPress={retry}
+        style={[boundaryStyles.button, { backgroundColor: palette.tint }]}
+        accessibilityRole="button"
+        accessibilityLabel="Try again"
+      >
+        <Text style={[boundaryStyles.buttonText, { color: palette.tintText }]}>Try again</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+const boundaryStyles = StyleSheet.create({
+  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32, gap: 12 },
+  title: { fontSize: 17, fontWeight: "600", textAlign: "center" },
+  detail: { fontSize: 13, textAlign: "center" },
+  button: { marginTop: 12, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 9999 },
+  buttonText: { fontSize: 15, fontWeight: "600" },
+});
 
 // Overrides React Navigation's own stock Theme colors with this app's own
 // tokens - see docs/navigation-white-flash.md.
