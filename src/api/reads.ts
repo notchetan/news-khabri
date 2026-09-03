@@ -1,4 +1,4 @@
-const BASE_URL = "http://192.168.0.55:3000";
+import { API_BASE_URL as BASE_URL } from "./config";
 
 // Records that this signed-in user opened an article - the backend's own
 // signal for /stories/top's personalized ranking (see the backend's

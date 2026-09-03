@@ -1,4 +1,4 @@
-const BASE_URL = "http://192.168.0.55:3000";
+import { API_BASE_URL as BASE_URL } from "./config";
 
 // One saved article as the backend returns it from GET /me/bookmarks -
 // the same card-shaped fields the feed already uses (so BookmarkedArticle
