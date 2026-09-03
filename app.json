@@ -8,7 +8,11 @@
     "scheme": "newskhabri",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/app-icon-ios.png",
+      "icon": {
+        "light": "./assets/images/app-icons/light.png",
+        "dark": "./assets/images/app-icons/dark.png",
+        "tinted": "./assets/images/app-icons/tinted.png"
+      },
       "bundleIdentifier": "com.newskhabri.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
