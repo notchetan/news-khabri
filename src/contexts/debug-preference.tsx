@@ -49,7 +49,14 @@ export function DebugPreferenceProvider({
   };
 
   return (
-    <DebugPreferenceContext.Provider value={{ debugEnabled, setDebugEnabled }}>
+    // Debug mode is a developer aid (the ranking-score pills on feed
+    // cards), never a shipped user feature - force it off in a release
+    // build even if a previous dev build left "true" in AsyncStorage. The
+    // toggle that sets it is also only rendered when __DEV__ (see
+    // preferences/index.tsx).
+    <DebugPreferenceContext.Provider
+      value={{ debugEnabled: __DEV__ && debugEnabled, setDebugEnabled }}
+    >
       {children}
     </DebugPreferenceContext.Provider>
   );

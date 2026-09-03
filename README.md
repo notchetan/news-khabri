@@ -1,6 +1,6 @@
 # News Khabri
 
-An Indian news aggregator for iOS, Android, and web. News Khabri pulls
+An Indian news aggregator for iOS and Android. News Khabri pulls
 articles from multiple Indian publishers' public RSS feeds, groups
 same-event coverage across sources into a single story, and ranks
 everything by a mix of source count, recency, and significance -
@@ -21,9 +21,9 @@ npx expo start
 ```
 
 That prints a QR code plus options to open the app in a development
-build, an Android emulator, an iOS simulator, or the web. The app
-expects the backend API to be running and reachable - see
-`src/api/` for the base URL configuration.
+build, an Android emulator, or an iOS simulator. The app expects the
+backend API to be running and reachable - see `src/api/` for the base URL
+configuration.
 
 ## Project structure
 
@@ -50,7 +50,6 @@ src/
 | --- | --- |
 | `npm start` | Start the Expo dev server |
 | `npm run android` / `ios` | Build and install a native dev client (requires Android Studio / Xcode - this is a real native build, not just starting Metro) |
-| `npm run web` | Start targeting web |
 | `npm test` | Run the Jest test suite |
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with coverage |

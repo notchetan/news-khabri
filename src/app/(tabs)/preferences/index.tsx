@@ -341,27 +341,34 @@ export default function PreferencesScreen() {
           {isSignedIn ? t("notificationsDescription") : t("signInRequiredForNotifications")}
         </ThemedText>
 
-        <View
-          style={[styles.divider, styles.sectionSpacing, { backgroundColor: theme.backgroundSelected }]}
-        />
+        {/* Developer-only: the toggle for the ranking-score debug pills.
+            Never rendered in a release build (see also debug-preference.tsx,
+            which forces the value off when !__DEV__). */}
+        {__DEV__ && (
+          <>
+            <View
+              style={[styles.divider, styles.sectionSpacing, { backgroundColor: theme.backgroundSelected }]}
+            />
 
-        <View style={styles.toggleRow}>
-          <ThemedText type="default" accessibilityRole="header">{t("debugMode")}</ThemedText>
-          <Switch
-            value={debugEnabled}
-            onValueChange={setDebugEnabled}
-            // Without this, the "on" track defaults to the OS's stock green -
-            // clashing with this app's warm palette. thumbColor is left alone
-            // so the platform's own native thumb rendering (white on iOS)
-            // stays untouched.
-            trackColor={{ false: theme.backgroundSelected, true: theme.tint }}
-            accessibilityRole="switch"
-            accessibilityLabel={t("debugMode")}
-          />
-        </View>
-        <ThemedText themeColor="textSecondary" style={styles.description}>
-          {t("debugModeDescription")}
-        </ThemedText>
+            <View style={styles.toggleRow}>
+              <ThemedText type="default" accessibilityRole="header">{t("debugMode")}</ThemedText>
+              <Switch
+                value={debugEnabled}
+                onValueChange={setDebugEnabled}
+                // Without this, the "on" track defaults to the OS's stock green -
+                // clashing with this app's warm palette. thumbColor is left alone
+                // so the platform's own native thumb rendering (white on iOS)
+                // stays untouched.
+                trackColor={{ false: theme.backgroundSelected, true: theme.tint }}
+                accessibilityRole="switch"
+                accessibilityLabel={t("debugMode")}
+              />
+            </View>
+            <ThemedText themeColor="textSecondary" style={styles.description}>
+              {t("debugModeDescription")}
+            </ThemedText>
+          </>
+        )}
       </ScrollView>
 
       {/* Pinned above the tab bar, not scrolling with the rest - see

@@ -68,6 +68,13 @@ new one.
 - Full directory layout is in `README.md` — not repeated here since it's
   easy for the two to drift; check the README first for "where does X
   live".
+- **Web is not a target.** `react-native-web`/`react-dom`, the `web`
+  block in `app.json`, the `.web.tsx`/`.web.ts` variants, and `global.css`
+  were removed — the app ships iOS + Android only. The inline
+  `Platform.select({ web: … })` / `Platform.OS === "web"` branches that
+  remain are harmless dead paths on native; leave them unless you're
+  touching that code for another reason. Don't re-add a web build without
+  a real reason to ship one.
 
 ## Testing & verification discipline
 
