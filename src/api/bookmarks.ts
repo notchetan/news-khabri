@@ -40,6 +40,22 @@ export async function addBookmark(token: string, articleId: number): Promise<voi
   if (!res.ok) throw new Error("Failed to add bookmark");
 }
 
+// Replays a whole guest list at sign-in in one request (see the backend's
+// docs/bookmarks.md) instead of N parallel addBookmark calls. Same
+// swallow-error convention as addBookmark.
+export async function addBookmarksBulk(
+  token: string,
+  articleIds: number[]
+): Promise<void> {
+  if (articleIds.length === 0) return;
+  const res = await fetch(`${BASE_URL}/me/bookmarks/bulk`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ articleIds }),
+  });
+  if (!res.ok) throw new Error("Failed to sync bookmarks");
+}
+
 export async function removeBookmark(token: string, articleId: number): Promise<void> {
   const res = await fetch(`${BASE_URL}/me/bookmarks/${articleId}`, {
     method: "DELETE",

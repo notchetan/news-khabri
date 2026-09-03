@@ -13,6 +13,7 @@ import {
 
 import {
   addBookmark,
+  addBookmarksBulk,
   clearBookmarks as clearBookmarksRequest,
   fetchBookmarks,
   removeBookmark,
@@ -88,9 +89,11 @@ export function BookmarksProvider({ children }: { children: ReactNode }) {
 
     (async () => {
       const local = await readStored();
-      await Promise.all(
-        local.map((article) => addBookmark(token, article.id).catch(() => {}))
-      );
+      // One request, not N - see the backend's docs/bookmarks.md.
+      await addBookmarksBulk(
+        token,
+        local.map((article) => article.id)
+      ).catch(() => {});
       try {
         const server = await fetchBookmarks(token);
         persist(server);
