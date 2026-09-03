@@ -59,9 +59,14 @@ export async function fetchMe(
   return res.json();
 }
 
+// A partial patch: send only the fields this device actually changed. The
+// backend updates just those columns and leaves the rest alone, so two
+// signed-in devices editing different preferences don't clobber each
+// other. Sending the full bundle still works (first sync of a new
+// account).
 export async function putPreferences(
   token: string,
-  preferences: PreferenceBundle
+  preferences: Partial<PreferenceBundle>
 ): Promise<void> {
   const res = await fetch(`${BASE_URL}/me/preferences`, {
     method: "PUT",
