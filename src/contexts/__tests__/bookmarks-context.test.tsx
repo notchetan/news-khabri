@@ -3,6 +3,7 @@ import { act, renderHook, waitFor } from "@testing-library/react-native";
 
 import {
   addBookmark,
+  addBookmarksBulk,
   clearBookmarks,
   fetchBookmarks,
   removeBookmark,
@@ -12,6 +13,7 @@ import { BOOKMARKS_STORAGE_KEY, BookmarksProvider, useBookmarks } from "../bookm
 
 jest.mock("@/api/bookmarks", () => ({
   addBookmark: jest.fn().mockResolvedValue(undefined),
+  addBookmarksBulk: jest.fn().mockResolvedValue(undefined),
   removeBookmark: jest.fn().mockResolvedValue(undefined),
   clearBookmarks: jest.fn().mockResolvedValue(undefined),
   fetchBookmarks: jest.fn().mockResolvedValue([]),
@@ -36,6 +38,7 @@ jest.mock("expo-router", () => ({
 }));
 
 const mockAdd = addBookmark as jest.Mock;
+const mockBulk = addBookmarksBulk as jest.Mock;
 const mockRemove = removeBookmark as jest.Mock;
 const mockClear = clearBookmarks as jest.Mock;
 const mockFetch = fetchBookmarks as jest.Mock;
@@ -196,9 +199,9 @@ describe("useBookmarks", () => {
     await waitFor(() => {
       expect(result.current.bookmarks.map((b) => b.id)).toEqual([3, 2]);
     });
-    // Every locally-saved id was pushed up before adopting the server list.
-    expect(mockAdd).toHaveBeenCalledWith("session-token", 1);
-    expect(mockAdd).toHaveBeenCalledWith("session-token", 2);
+    // The whole local list went up in one call before adopting the server list.
+    expect(mockBulk).toHaveBeenCalledTimes(1);
+    expect(mockBulk).toHaveBeenCalledWith("session-token", [1, 2]);
     const stored = JSON.parse(
       (await AsyncStorage.getItem(BOOKMARKS_STORAGE_KEY)) ?? "[]"
     );
