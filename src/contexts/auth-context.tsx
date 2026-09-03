@@ -3,6 +3,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -129,11 +130,31 @@ async function readLocalPreferencesBundle(): Promise<PreferenceBundle> {
   };
 }
 
+// Fields whose value differs between the last-synced bundle and the
+// current one - the only fields worth PUTting. `sources` is an object, so
+// compare it serialized.
+function diffPreferenceBundle(
+  prev: PreferenceBundle,
+  next: PreferenceBundle
+): Partial<PreferenceBundle> {
+  const changed: Partial<PreferenceBundle> = {};
+  (Object.keys(next) as (keyof PreferenceBundle)[]).forEach((key) => {
+    const a = key === "sources" ? JSON.stringify(prev[key]) : prev[key];
+    const b = key === "sources" ? JSON.stringify(next[key]) : next[key];
+    if (a !== b) (changed as Record<string, unknown>)[key] = next[key];
+  });
+  return changed;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [signInError, setSignInError] = useState<string | null>(null);
+  // The preference bundle this device last got in sync with the server -
+  // the baseline the next local change is diffed against, so only the
+  // changed field(s) get PUT.
+  const lastSyncedBundleRef = useRef<PreferenceBundle | null>(null);
 
   // Restores a previous session on launch, validated against the server
   // (not just "a token exists locally") so a revoked/expired session
@@ -150,6 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setToken(stored);
         setUser(me);
         await applyServerPreferences(preferences);
+        lastSyncedBundleRef.current = await readLocalPreferencesBundle();
       } catch {
         await storeToken(null);
       } finally {
@@ -158,17 +180,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  // Pushes the full current preference bundle to the server whenever any
-  // of them changes locally, for as long as this device is signed in.
+  // On any local preference change, PUT just the field(s) that actually
+  // differ from the last-synced baseline - so a second signed-in device
+  // changing a *different* preference isn't overwritten. Until this device
+  // has a baseline, the first change pushes the whole bundle.
   useEffect(() => {
-    if (!token) return undefined;
+    if (!token) {
+      lastSyncedBundleRef.current = null;
+      return undefined;
+    }
     return onPreferenceChanged(() => {
       readLocalPreferencesBundle().then((bundle) => {
-        putPreferences(token, bundle).catch(() => {
-          // A transient network failure here just means this one change
-          // doesn't sync immediately - the next preference change (or the
-          // next sign-in's own pull) will still converge eventually.
-        });
+        const prev = lastSyncedBundleRef.current;
+        const payload = prev ? diffPreferenceBundle(prev, bundle) : bundle;
+        if (Object.keys(payload).length === 0) return;
+        putPreferences(token, payload)
+          .then(() => {
+            lastSyncedBundleRef.current = bundle;
+          })
+          .catch(() => {
+            // A transient network failure just means this one change
+            // doesn't sync immediately - the next change (or the next
+            // sign-in's own pull) still converges.
+          });
       });
     });
   }, [token]);
@@ -199,11 +233,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // An existing account's saved preferences become this device's
         // source of truth.
         await applyServerPreferences(preferences);
+        lastSyncedBundleRef.current = await readLocalPreferencesBundle();
       } else {
         // A brand new account - seed it with whatever this device
         // currently has, rather than leaving it empty.
         const bundle = await readLocalPreferencesBundle();
         await putPreferences(sessionToken, bundle).catch(() => {});
+        lastSyncedBundleRef.current = bundle;
       }
     } catch (err) {
       setSignInError(err instanceof Error ? err.message : "Sign-in failed");

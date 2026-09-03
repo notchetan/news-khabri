@@ -106,7 +106,7 @@ describe("AuthProvider preference sync", () => {
 
   // The push side of the sync bus - see "The preference sync bus" in
   // docs/google-sign-in.md for why this doesn't rely on provider nesting order.
-  it("pushes the full preference bundle to the server when a preference changes while signed in", async () => {
+  it("pushes only the field that changed, not the whole bundle, once a device has a synced baseline", async () => {
     mockGoogleSignInCall.mockResolvedValue({
       type: "success",
       data: { idToken: "google-id-token" },
@@ -135,11 +135,10 @@ describe("AuthProvider preference sync", () => {
     });
 
     await waitFor(() => {
-      expect(mockPutPreferences).toHaveBeenCalledWith(
-        "session-token",
-        expect.objectContaining({ theme: "night" })
-      );
+      expect(mockPutPreferences).toHaveBeenCalledWith("session-token", { theme: "night" });
     });
+    // Not a whole-bundle push.
+    expect(mockPutPreferences.mock.calls.at(-1)?.[1]).toEqual({ theme: "night" });
   });
 
   it("does not push preference changes while signed out", async () => {
