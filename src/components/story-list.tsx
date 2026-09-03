@@ -1,5 +1,6 @@
 import { fetchStoryFeed, STORIES_PAGE_SIZE, STORY_FEED_MAX_LIMIT } from "@/api/stories";
 import ArticleListSkeleton from "@/components/article-list-skeleton";
+import ErrorState from "@/components/error-state";
 import FeedCard from "@/components/feed-card";
 import { useInfiniteQuery, keepPreviousData } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -78,7 +79,11 @@ export default function StoryList({ category }: Props) {
 
   if (error) {
     return (
-      <Text style={[styles.message, { color: theme.text }]}>{t("storiesLoadError")}</Text>
+      <ErrorState
+        testID="story-list-error"
+        message={t("storiesLoadError")}
+        onRetry={refetch}
+      />
     );
   }
 

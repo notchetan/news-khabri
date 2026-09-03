@@ -7,6 +7,13 @@
     "icon": "./assets/images/icon.png",
     "scheme": "newskhabri",
     "userInterfaceStyle": "automatic",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/685e0278-f360-4526-bd84-8a945e996225",
+      "fallbackToCacheTimeout": 0
+    },
     "ios": {
       "icon": {
         "light": "./assets/images/app-icons/light.png",

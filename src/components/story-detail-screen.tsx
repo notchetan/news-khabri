@@ -2,6 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { recordRead } from "@/api/reads";
 import { fetchStoryDetail } from "@/api/stories";
 import ArticleImage from "@/components/article-image";
+import ErrorState from "@/components/error-state";
 import FloatingDetailHeader, {
   getContentTopPadding,
   useHeaderScrollY,
@@ -52,7 +53,7 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
   const [headerHeight, setHeaderHeight] = useState(0);
 
   const storyId = Number(id);
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["story", storyId],
     queryFn: () => fetchStoryDetail(storyId),
   });
@@ -155,9 +156,11 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
           <ActivityIndicator />
         </View>
       ) : error || !data ? (
-        <View style={styles.centerFill}>
-          <ThemedText themeColor="textSecondary">{t("storyLoadError")}</ThemedText>
-        </View>
+        <ErrorState
+          testID="story-detail-error"
+          message={t("storyLoadError")}
+          onRetry={refetch}
+        />
       ) : (
         <ScrollView
           testID="story-scroll-view"
