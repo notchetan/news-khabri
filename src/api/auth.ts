@@ -70,3 +70,14 @@ export async function putPreferences(
   });
   if (!res.ok) throw new Error("Failed to save preferences");
 }
+
+// Permanently deletes the account and everything the server has synced to
+// it (preferences, bookmarks, reading history). The backend clears every
+// referencing table in one transaction - see its docs/google-sign-in.md.
+export async function deleteAccount(token: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/me`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to delete account");
+}

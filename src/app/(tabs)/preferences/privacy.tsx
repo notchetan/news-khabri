@@ -5,37 +5,78 @@ import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTranslation } from "@/i18n/translations";
 
-// DRAFT - reflects what the app actually does today as accurately as
-// possible, not generic boilerplate, but this is not legal advice and
-// should get a real review before shipping publicly. English-only, same
-// reasoning as about.tsx.
+// Describes what the app actually does today, as accurately as we can put
+// it - not generic boilerplate. Still not legal advice; get a real review
+// before a public launch, and keep the "Last updated" date and the
+// account/sync/notification sections in step with the code. English-only,
+// same reasoning as about.tsx: the row label that links here is localized
+// (see preferences/index.tsx), the document itself isn't, because an
+// approximate translation of a privacy commitment could misrepresent it.
 export default function PrivacyScreen() {
   const { t } = useTranslation();
 
   return (
     <LegalDocumentScreen title={t("privacyPolicy")}>
       <ThemedText themeColor="textSecondary" style={styles.updated}>
-        Last updated: August 27, 2026
+        Last updated: September 3, 2026
+      </ThemedText>
+
+      <ThemedText style={styles.paragraph}>
+        News Khabri can be used without an account. Signing in is optional
+        and only adds cross-device sync and personalised ranking, described
+        below.
       </ThemedText>
 
       <ThemedText type="smallBold" style={styles.heading}>
-        WHAT WE COLLECT
+        USING THE APP WITHOUT AN ACCOUNT
       </ThemedText>
       <ThemedText style={styles.paragraph}>
-        News Khabri doesn't require an account or sign-up, and we don't
-        collect your name, email, or any personal identifier. Your
-        appearance, language, and article font-size preferences are saved
-        only on your own device and are never sent to us.
+        Your appearance, language, article font-size, source, and
+        notification preferences, and your saved articles, are stored only
+        on your own device. Loading articles means your device requests
+        them from our servers, the same as any app fetching content over
+        the internet; we don't attach a personal identifier to those
+        requests or build a profile of what you read.
       </ThemedText>
 
       <ThemedText type="smallBold" style={styles.heading}>
-        WHAT HAPPENS WHEN YOU USE THE APP
+        IF YOU SIGN IN WITH GOOGLE
       </ThemedText>
       <ThemedText style={styles.paragraph}>
-        Loading articles means your device requests them from our servers,
-        the same as any app fetching content over the internet. We don't
-        attach a personal identifier to these requests or build a profile
-        of what you read.
+        We receive and store your Google account's name, email address,
+        profile picture URL, and a stable Google account identifier, so we
+        can recognise your account on a future sign-in. We use this only to
+        operate your account — not for advertising, and we don't sell it.
+      </ThemedText>
+      <ThemedText style={styles.paragraph}>
+        While you are signed in, the preferences listed above and your
+        saved articles are also stored on our servers and synced to your
+        account so they follow you across devices. We also record which
+        articles you open while signed in, and use that history to
+        personalise how stories are ranked for you. Signing out stops new
+        reading history from being recorded.
+      </ThemedText>
+
+      <ThemedText type="smallBold" style={styles.heading}>
+        NOTIFICATIONS
+      </ThemedText>
+      <ThemedText style={styles.paragraph}>
+        If you turn on notifications, we store your device's push token,
+        the frequency you chose, and your current language on our servers
+        so we can send the trending-story notification. Turning
+        notifications off stops them; the token is removed once the device
+        is no longer reachable.
+      </ThemedText>
+
+      <ThemedText type="smallBold" style={styles.heading}>
+        DELETING YOUR ACCOUNT AND DATA
+      </ThemedText>
+      <ThemedText style={styles.paragraph}>
+        You can delete your account at any time from the Profile screen.
+        This permanently removes your account and everything synced to it —
+        your synced preferences, saved articles, and reading history. Data
+        kept only on your device is cleared by signing out or uninstalling
+        the app. Questions or requests: support@newskhabri.app.
       </ThemedText>
 
       <ThemedText type="smallBold" style={styles.heading}>
@@ -44,16 +85,17 @@ export default function PrivacyScreen() {
       <ThemedText style={styles.paragraph}>
         Tapping "Read on [Source]" or an article's original link opens that
         publisher's own website, outside News Khabri. Once you're there,
-        their privacy policy applies, not ours.
+        their privacy policy applies, not ours. Sign-in is handled by
+        Google, whose own privacy policy covers that step.
       </ThemedText>
 
       <ThemedText type="smallBold" style={styles.heading}>
         NO ADS OR ANALYTICS TODAY
       </ThemedText>
       <ThemedText style={styles.paragraph}>
-        News Khabri doesn't currently run advertising or analytics of any
-        kind. If that ever changes, this policy will be updated first, and
-        the change will be reflected here.
+        News Khabri doesn't currently run advertising or third-party
+        analytics of any kind. If that ever changes, this policy will be
+        updated first, and the change will be reflected here.
       </ThemedText>
 
       <ThemedText type="smallBold" style={styles.heading}>

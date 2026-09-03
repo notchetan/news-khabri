@@ -1,7 +1,8 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { Image, Platform, Pressable, StyleSheet } from "react-native";
+import { useState } from "react";
+import { Alert, Image, Platform, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
@@ -21,7 +22,8 @@ export default function ProfileScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, isLoading, signInError, signIn, signOut } = useAuth();
+  const { user, isLoading, signInError, signIn, signOut, deleteAccount } = useAuth();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const topPadding = Platform.select({
     default: insets.top,
@@ -34,6 +36,30 @@ export default function ProfileScreen() {
     } else {
       router.replace("/");
     }
+  };
+
+  const confirmDeleteAccount = () => {
+    Alert.alert(
+      t("deleteAccountConfirmTitle"),
+      t("deleteAccountConfirmMessage"),
+      [
+        { text: t("cancel"), style: "cancel" },
+        {
+          text: t("deleteAccountConfirm"),
+          style: "destructive",
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              await deleteAccount();
+            } catch {
+              Alert.alert(t("deleteAccountError"));
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -88,6 +114,19 @@ export default function ProfileScreen() {
               accessibilityLabel={t("signOut")}
             >
               <ThemedText type="default">{t("signOut")}</ThemedText>
+            </Pressable>
+            <Pressable
+              testID="profile-delete-account"
+              onPress={confirmDeleteAccount}
+              disabled={isDeleting}
+              style={[styles.deleteButton, isDeleting && styles.deleteButtonDisabled]}
+              accessibilityRole="button"
+              accessibilityLabel={t("deleteAccount")}
+              accessibilityState={{ disabled: isDeleting }}
+            >
+              <ThemedText type="default" style={{ color: theme.danger }}>
+                {t("deleteAccount")}
+              </ThemedText>
             </Pressable>
           </>
         ) : (
@@ -168,4 +207,13 @@ const styles = StyleSheet.create({
   },
   signInButton: { flexDirection: "row", alignItems: "center", gap: Spacing.two },
   error: { marginTop: Spacing.three, textAlign: "center" },
+  // Text-only, no fill - a quieter treatment than the filled buttons
+  // above, since it's a destructive action the reader shouldn't reach for
+  // by habit.
+  deleteButton: {
+    marginTop: Spacing.three,
+    paddingHorizontal: Spacing.five,
+    paddingVertical: Spacing.two,
+  },
+  deleteButtonDisabled: { opacity: 0.5 },
 });

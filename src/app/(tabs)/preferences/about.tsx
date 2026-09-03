@@ -17,8 +17,10 @@ export default function AboutScreen() {
     <LegalDocumentScreen title={t("about")}>
       <ThemedText style={styles.paragraph}>
         News Khabri brings together news from multiple Indian publishers -
-        in English, Hindi, and Gujarati - in one place, so you can see
-        what's actually happening without checking a dozen apps.
+        in English and nine Indian languages (Hindi, Bengali, Gujarati,
+        Kannada, Malayalam, Marathi, Odia, Tamil, Telugu) - in one place,
+        so you can see what's actually happening without checking a dozen
+        apps.
       </ThemedText>
 
       <ThemedText type="smallBold" style={styles.heading}>
@@ -41,6 +43,17 @@ export default function AboutScreen() {
         "Read on [Source]" opens the original article on the source's own
         site. News Khabri is an independent app and isn't affiliated with
         any of the publishers whose content it aggregates.
+      </ThemedText>
+
+      <ThemedText type="smallBold" style={styles.heading}>
+        YOUR ACCOUNT
+      </ThemedText>
+      <ThemedText style={styles.paragraph}>
+        You can use News Khabri without signing in. Signing in with Google
+        is optional - it syncs your preferences and saved articles across
+        devices and personalises story ranking. You can delete your
+        account and its data any time from the Profile screen. See the
+        Privacy Policy for the details.
       </ThemedText>
 
       <ThemedText type="smallBold" style={styles.heading}>
