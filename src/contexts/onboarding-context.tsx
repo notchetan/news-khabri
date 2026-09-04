@@ -28,14 +28,26 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   >(null);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
-      setHasCompletedOnboarding(stored === "true");
-    });
+    AsyncStorage.getItem(STORAGE_KEY)
+      .then((stored) => {
+        setHasCompletedOnboarding(stored === "true");
+      })
+      .catch(() => {
+        // The root layout renders nothing (holding the native splash up)
+        // while this is null, so an unhandled rejection here left the app
+        // stuck on the splash screen forever with no way out. A read we
+        // can't complete means we don't know they've onboarded - send them
+        // through it rather than hanging.
+        setHasCompletedOnboarding(false);
+      });
   }, []);
 
   const completeOnboarding = async () => {
     setHasCompletedOnboarding(true);
-    await AsyncStorage.setItem(STORAGE_KEY, "true");
+    // Best-effort: failing to persist means onboarding shows again next
+    // launch, which is a far better outcome than rejecting here and
+    // stranding the reader on the last onboarding screen.
+    await AsyncStorage.setItem(STORAGE_KEY, "true").catch(() => {});
   };
 
   return (
