@@ -37,7 +37,11 @@ import {
   useThemePreference,
 } from "@/contexts/theme-preference";
 import { ToastProvider } from "@/contexts/toast-context";
+import { captureException, initSentry, wrap } from "@/observability/sentry";
 import { storyHref } from "@/utils/navigation";
+
+// Before anything renders - inert until EXPO_PUBLIC_SENTRY_DSN is set.
+initSentry();
 
 SplashScreen.preventAutoHideAsync();
 
@@ -49,6 +53,11 @@ SplashScreen.preventAutoHideAsync();
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   const scheme = useColorScheme();
   const palette = scheme === "dark" ? Colors.dark : Colors.light;
+
+  // Report the crash that got us here (no-op until Sentry is configured).
+  useEffect(() => {
+    captureException(error);
+  }, [error]);
 
   return (
     <View style={[boundaryStyles.container, { backgroundColor: palette.background }]}>
@@ -181,7 +190,7 @@ function AppContent() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
@@ -212,3 +221,7 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+// Sentry.wrap adds the error-boundary/profiler hooks; a passthrough when
+// Sentry is disabled.
+export default wrap(RootLayout);
