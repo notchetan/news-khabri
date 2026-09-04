@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 
-import { Keyboard, TextInput } from "react-native";
+import { TextInput } from "react-native";
 
 import { fetchArticles, fetchCategories, type Article } from "@/api/articles";
 import { AuthProvider } from "@/contexts/auth-context";
@@ -144,118 +144,6 @@ describe("SearchScreen", () => {
     });
     expect(screen.getByRole("button", { name: "National" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Business" })).toBeTruthy();
-  });
-
-  it("gives every row the same fixed height (measured height / 5 reference rows) regardless of how many categories exist", async () => {
-    mockFetchCategories.mockResolvedValue([
-      "national", "business", "sports", "tech", "world",
-      "entertainment", "cricket", "lifestyle", "education", "science",
-    ]);
-
-    await act(async () => {
-      renderScreen();
-    });
-    await waitFor(() => {
-      expect(screen.getByTestId("grid-row-4")).toBeTruthy();
-    });
-
-    await act(async () => {
-      fireEvent(screen.getByTestId("category-grid"), "layout", {
-        nativeEvent: { layout: { height: 814, width: 400, x: 0, y: 0 } },
-      });
-    });
-
-    // (814 - 32 padding - 64 row-gaps) / 5 reference rows = 143.6.
-    for (let i = 0; i < 5; i++) {
-      expect(screen.getByTestId(`grid-row-${i}`)).toHaveStyle({ height: 143.6 });
-    }
-  });
-
-  it("applies the exact same row height to a language with far fewer categories than English, given the same measured space", async () => {
-    mockFetchCategories.mockResolvedValue(["business", "sports"]);
-
-    await act(async () => {
-      renderScreen();
-    });
-    await waitFor(() => {
-      expect(screen.getByTestId("grid-row-0")).toBeTruthy();
-    });
-
-    await act(async () => {
-      fireEvent(screen.getByTestId("category-grid"), "layout", {
-        nativeEvent: { layout: { height: 814, width: 400, x: 0, y: 0 } },
-      });
-    });
-
-    // Same 143.6 as the 10-category case above - a language with only one
-    // row of categories gets the same card size as one with five, not a
-    // row stretched to fill all the leftover space.
-    expect(screen.getByTestId("grid-row-0")).toHaveStyle({ height: 143.6 });
-    expect(screen.queryByTestId("grid-row-1")).toBeNull();
-  });
-
-  it("keeps the category cards the same size across a keyboard show/hide, never resizing to the keyboard-shrunk measurement", async () => {
-    mockFetchCategories.mockResolvedValue(["national", "business"]);
-
-    // jest-expo's Keyboard mock doesn't support emitting events directly
-    // (no Keyboard.emit) - capture the real listener the screen itself
-    // registers via Keyboard.addListener and invoke it directly instead,
-    // which exercises the same code path (setKeyboardVisible) the real
-    // native keyboard events would.
-    const listeners: Record<string, () => void> = {};
-    const addListenerSpy = jest
-      .spyOn(Keyboard, "addListener")
-      .mockImplementation((eventName, callback) => {
-        listeners[eventName] = () => (callback as () => void)();
-        return { remove: jest.fn() } as unknown as ReturnType<typeof Keyboard.addListener>;
-      });
-
-    await act(async () => {
-      renderScreen();
-    });
-    await waitFor(() => {
-      expect(screen.getByTestId("grid-row-0")).toBeTruthy();
-    });
-
-    // Establish the real, keyboard-closed reference size.
-    await act(async () => {
-      fireEvent(screen.getByTestId("category-grid"), "layout", {
-        nativeEvent: { layout: { height: 814, width: 400, x: 0, y: 0 } },
-      });
-    });
-    expect(screen.getByTestId("grid-row-0")).toHaveStyle({ height: 143.6 });
-
-    // The screen picks the iOS ("Will") or Android ("Did") event names
-    // based on Platform.OS - find whichever pair actually got registered
-    // rather than assuming one platform.
-    const showListener = listeners["keyboardWillShow"] ?? listeners["keyboardDidShow"];
-    const hideListener = listeners["keyboardWillHide"] ?? listeners["keyboardDidHide"];
-    expect(showListener).toBeDefined();
-    expect(hideListener).toBeDefined();
-
-    // The keyboard opening shrinks the grid's available height - a layout
-    // pass fired while it's up (KeyboardAvoidingView resizing the
-    // container) must not overwrite the remembered closed-state size.
-    // The state update from showListener needs its own act() to actually
-    // flush before the layout event fires - otherwise handleGridLayout
-    // still runs against the pre-update (stale) keyboardVisible closure.
-    await act(async () => {
-      showListener?.();
-    });
-    await act(async () => {
-      fireEvent(screen.getByTestId("category-grid"), "layout", {
-        nativeEvent: { layout: { height: 400, width: 400, x: 0, y: 0 } },
-      });
-    });
-    expect(screen.getByTestId("grid-row-0")).toHaveStyle({ height: 143.6 });
-
-    // And it stays fixed once the keyboard closes again too.
-    await act(async () => {
-      hideListener?.();
-    });
-    expect(screen.getByTestId("grid-row-0")).toHaveStyle({ height: 143.6 });
-
-    addListenerSpy.mockRestore();
   });
 
   it("translates known category values into the currently active language", async () => {

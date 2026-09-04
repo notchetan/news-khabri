@@ -6,14 +6,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Keyboard,
   KeyboardAvoidingView,
-  LayoutChangeEvent,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -29,21 +28,15 @@ import { getCategoryIcon } from "@/utils/category-icon";
 const SEARCH_DEBOUNCE_MS = 300;
 const SEARCH_MIN_LENGTH = 2;
 
-// See docs/search-category-grid.md for the grid-sizing rationale below.
-const REFERENCE_GRID_ROWS = 5;
-const GRID_VERTICAL_PADDING = Spacing.three * 2;
-const GRID_ROW_GAPS = Spacing.three * (REFERENCE_GRID_ROWS - 1);
-
-// Groups a flat list into pairs for a 2-column grid - [1,2,3,4,5] ->
-// [[1,2],[3,4],[5]]. See docs/search-category-grid.md for why not
-// FlatList's own numColumns/columnWrapperStyle.
-function chunkIntoPairs<T>(items: T[]): T[][] {
-  const pairs: T[][] = [];
-  for (let i = 0; i < items.length; i += 2) {
-    pairs.push(items.slice(i, i + 2));
-  }
-  return pairs;
-}
+// The category grid is a plain 2-up flex-wrap. Card width is half the
+// screen (minus the container padding and the one inter-column gap), and
+// height is that width over a fixed ratio - so every card is identical
+// regardless of how many categories a language has, and there's no layout
+// measurement involved. See git history for the onLayout-probe version
+// this replaced.
+const GRID_PADDING = Spacing.three;
+const GRID_GAP = Spacing.three;
+const CARD_ASPECT_RATIO = 1.4;
 
 export default function SearchScreen() {
   const { language } = useLanguagePreference();
@@ -52,13 +45,13 @@ export default function SearchScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const tabBarInset = useTabBarInset();
+  const { width: screenWidth } = useWindowDimensions();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const searchInputRef = useRef<TextInput>(null);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
-  // Frozen to the keyboard-closed measurement only - see
-  // docs/search-category-grid.md.
-  const [closedHeight, setClosedHeight] = useState<number | null>(null);
+
+  const cardWidth = (screenWidth - GRID_PADDING * 2 - GRID_GAP) / 2;
+  const cardHeight = cardWidth / CARD_ASPECT_RATIO;
 
   // Focus the search box (and raise the keyboard) every time this tab gains
   // focus - matches how Apple's own App Store/Podcasts/Music Search tabs
@@ -69,33 +62,6 @@ export default function SearchScreen() {
       searchInputRef.current?.focus();
     }, [])
   );
-
-  useEffect(() => {
-    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-    const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
-    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
-
-  const handleGridLayout = (event: LayoutChangeEvent) => {
-    if (keyboardVisible) return;
-    setClosedHeight(event.nativeEvent.layout.height);
-  };
-
-  // Before the first closed-keyboard layout pass reports a real number,
-  // cardRowHeight is undefined and gridRow falls back to flex:1 (see its
-  // style below) - a brief, harmless default, never a visible jump since
-  // it only affects an already-empty grid.
-  const cardRowHeight = closedHeight
-    ? Math.max(
-        (closedHeight - GRID_VERTICAL_PADDING - GRID_ROW_GAPS) / REFERENCE_GRID_ROWS,
-        0
-      )
-    : undefined;
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -158,50 +124,36 @@ export default function SearchScreen() {
         ) : (
           <ScrollView
             testID="category-grid"
-            onLayout={handleGridLayout}
             style={styles.gridScrollView}
             contentContainerStyle={styles.gridContent}
           >
-            {chunkIntoPairs(categories ?? []).map((pair, rowIndex) => (
-              <View
-                key={rowIndex}
-                testID={`grid-row-${rowIndex}`}
-                style={[
-                  styles.gridRow,
-                  cardRowHeight ? { height: cardRowHeight } : styles.gridRowFallback,
-                ]}
-              >
-                {pair.map((cat) => {
-                  const labelKey = categoryLabelKey(cat);
-                  const label = labelKey ? t(labelKey) : cat.charAt(0).toUpperCase() + cat.slice(1);
-                  return (
-                    <Squircle
-                      key={cat}
-                      radius={Radius.large}
-                      backgroundColor={theme.backgroundElement}
-                      onPress={() =>
-                        router.push({
-                          pathname: "/search/category/[category]",
-                          params: { category: cat },
-                        })
-                      }
-                      accessibilityRole="button"
-                      accessibilityLabel={label}
-                      style={styles.card}
-                    >
-                      <Text style={styles.cardIcon}>{getCategoryIcon(cat)}</Text>
-                      <Text style={[styles.cardLabel, { color: theme.text }]}>
-                        {label}
-                      </Text>
-                    </Squircle>
-                  );
-                })}
-                {/* An odd final category needs a same-size invisible spacer,
-                    or its lone card would stretch to fill the whole row's
-                    width instead of staying a normal-width tile. */}
-                {pair.length === 1 && <View style={styles.cardSpacer} />}
-              </View>
-            ))}
+            {(categories ?? []).map((cat) => {
+              const labelKey = categoryLabelKey(cat);
+              const label = labelKey
+                ? t(labelKey)
+                : cat.charAt(0).toUpperCase() + cat.slice(1);
+              return (
+                <Squircle
+                  key={cat}
+                  radius={Radius.large}
+                  backgroundColor={theme.backgroundElement}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/search/category/[category]",
+                      params: { category: cat },
+                    })
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel={label}
+                  style={[styles.card, { width: cardWidth, height: cardHeight }]}
+                >
+                  <Text style={styles.cardIcon}>{getCategoryIcon(cat)}</Text>
+                  <Text style={[styles.cardLabel, { color: theme.text }]}>
+                    {label}
+                  </Text>
+                </Squircle>
+              );
+            })}
           </ScrollView>
         )}
       </KeyboardAvoidingView>
@@ -228,21 +180,15 @@ const styles = StyleSheet.create({
     // a no-op on native, which has no such default to suppress.
     outlineWidth: 0,
   },
-  // Explicit outer flex:1, not just flexGrow on contentContainerStyle - see
-  // AGENTS.md's ScrollView-needs-explicit-flex lesson; without it,
-  // handleGridLayout measured a height that didn't reflect the tab-bar
-  // reservation at all.
   gridScrollView: { flex: 1 },
-  // gap must stay in sync with GRID_ROW_GAPS above.
-  gridContent: { flexGrow: 1, padding: Spacing.three, gap: Spacing.three },
-  gridRow: { flexDirection: "row", gap: Spacing.three },
-  // Only used for the one frame before the first onLayout measurement
-  // lands (cardRowHeight is still undefined then) - stretches like the old
-  // design did, briefly, rather than collapsing to zero height.
-  gridRowFallback: { flex: 1 },
-  cardSpacer: { flex: 1 },
+  gridContent: {
+    padding: GRID_PADDING,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: GRID_GAP,
+    alignContent: "flex-start",
+  },
   card: {
-    flex: 1,
     paddingVertical: Spacing.three,
     alignItems: "center",
     justifyContent: "center",
