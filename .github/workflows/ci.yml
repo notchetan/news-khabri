@@ -21,7 +21,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Matches package.json's "engines" (and the backend's CI) -
+          # @testing-library/react-native@14 needs Node >=22.13, and Node 20
+          # is deprecated on GitHub's runners. Keep this >= the engines floor.
+          node-version: 24
           cache: npm
 
       # postinstall runs patch-package automatically (see AGENTS.md's note
