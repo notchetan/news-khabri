@@ -56,6 +56,20 @@ new one.
 - OTA updates via `expo-updates` (`runtimeVersion` policy `appVersion`,
   channel URL in `app.json`). Inert until `eas update` is actually
   pushing; no runtime code of ours touches it.
+- Crash/error reporting via `@sentry/react-native`, wired through
+  `src/observability/sentry.ts` (`initSentry()` called at the top of
+  `_layout.tsx`, `wrap()` around its default export, `captureException()`
+  from the root `ErrorBoundary`). Same "inert until configured" shape as
+  `expo-updates`: **no-op unless `EXPO_PUBLIC_SENTRY_DSN` is set AND not
+  `__DEV__`** — `Sentry.init` is never called otherwise, so there's no
+  transport. Turning it on also needs `SENTRY_ORG` / `SENTRY_PROJECT` /
+  `SENTRY_AUTH_TOKEN` as EAS build secrets (source-map upload; the config
+  plugin `warnOnce`s without them but doesn't fail) and a native rebuild.
+  `jest.setup.js` mocks the native module. A `metro.config.js` wrapping
+  `getSentryExpoConfig` (for EAS Update / OTA source-map debug-ids) was
+  left out on purpose for now — it broke the metro config loader on
+  Node 26 + Windows, and OTA itself is still inert; add it alongside
+  turning OTA on.
 - Preferences (theme, language, font size, sources, notifications, debug
   mode) each have their own React Context + `useXxxPreference()` hook
   under `src/contexts/`, one provider per concern rather than one big
