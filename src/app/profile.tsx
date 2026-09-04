@@ -1,7 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Image, Platform, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -23,9 +23,14 @@ export default function ProfileScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, isLoading, signInError, signIn, signInWithApple, signOut, deleteAccount } =
+  const { user, isLoading, signInError, clearSignInError, signIn, signInWithApple, signOut, deleteAccount } =
     useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // signInError lives in AuthProvider, which outlives this screen - without
+  // this, a failure from one visit was still on screen the next time you
+  // opened Profile.
+  useEffect(() => clearSignInError, [clearSignInError]);
 
   const topPadding = Platform.select({
     default: insets.top,
@@ -160,8 +165,11 @@ export default function ProfileScreen() {
               </ThemedText>
             </Pressable>
             {signInError && (
-              <ThemedText themeColor="textSecondary" style={styles.error}>
-                {signInError}
+              <ThemedText
+                testID="profile-sign-in-error"
+                style={[styles.error, { color: theme.danger }]}
+              >
+                {t("unexpectedError")}
               </ThemedText>
             )}
           </>

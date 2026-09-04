@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Radius, Spacing } from "@/constants/theme";
 import { useLanguagePreference } from "@/contexts/language-preference";
+import { useSourcesPreference } from "@/contexts/sources-preference";
 import { useTabBarInset } from "@/hooks/use-tab-bar-inset";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
@@ -40,6 +41,7 @@ const CARD_ASPECT_RATIO = 1.4;
 
 export default function SearchScreen() {
   const { language } = useLanguagePreference();
+  const { selectedSources } = useSourcesPreference();
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
@@ -73,9 +75,12 @@ export default function SearchScreen() {
     return () => clearTimeout(timeout);
   }, [query]);
 
+  // Scoped by the reader's source filter too - without it the grid
+  // advertised categories the selected publishers don't carry, which then
+  // opened onto an empty feed.
   const { data: categories } = useQuery({
-    queryKey: ["categories", language],
-    queryFn: () => fetchCategories(language),
+    queryKey: ["categories", language, selectedSources],
+    queryFn: () => fetchCategories(language, selectedSources),
   });
 
   const topPadding = Platform.select({

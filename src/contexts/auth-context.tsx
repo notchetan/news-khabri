@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -20,6 +21,7 @@ import {
   type ServerPreferences,
 } from "@/api/auth";
 import { registerPushSubscription } from "@/api/notifications";
+import { captureException } from "@/observability/sentry";
 import { DEBUG_STORAGE_KEY } from "@/contexts/debug-preference";
 import {
   DEFAULT_FONT_SIZE_PREFERENCE,
@@ -58,6 +60,9 @@ type AuthContextValue = {
   // separate entry point - the UI shows both on iOS.
   signIn: () => Promise<void>;
   signInWithApple: () => Promise<void>;
+  // Screens call this on unmount so a failure from one visit doesn't greet
+  // the reader on their next one.
+  clearSignInError: () => void;
   signOut: () => Promise<void>;
   // Permanently deletes the server-side account, then tears down the local
   // session exactly like signOut. Rejects (without clearing the session)
@@ -217,6 +222,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [signInError, setSignInError] = useState<string | null>(null);
+  // Stable identity on purpose: screens use this as an unmount cleanup
+  // (`useEffect(() => clearSignInError, [clearSignInError])`), so a fresh
+  // closure every render would re-run that cleanup on every re-render and
+  // wipe the error the moment it was set.
+  const clearSignInError = useCallback(() => setSignInError(null), []);
   // The preference bundle this device last got in sync with the server -
   // the baseline the next local change is diffed against, so only the
   // changed field(s) get PUT.
@@ -362,7 +372,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       await establishSession(await signInWithGoogle(result.data.idToken));
     } catch (err) {
-      setSignInError(err instanceof Error ? err.message : "Sign-in failed");
+      // The raw message is a native SDK string (e.g. DEVELOPER_ERROR) - it
+      // goes to Sentry, never to the reader. The UI renders a translated
+      // generic instead; see profile.tsx / onboarding/sign-in.tsx.
+      captureException(err);
+      setSignInError("sign-in-failed");
     }
   };
 
@@ -390,7 +404,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ) {
         return;
       }
-      setSignInError(err instanceof Error ? err.message : "Sign-in failed");
+      // The raw message is a native SDK string (e.g. DEVELOPER_ERROR) - it
+      // goes to Sentry, never to the reader. The UI renders a translated
+      // generic instead; see profile.tsx / onboarding/sign-in.tsx.
+      captureException(err);
+      setSignInError("sign-in-failed");
     }
   };
 
@@ -454,6 +472,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signInError,
         signIn,
         signInWithApple: signInWithAppleFlow,
+        clearSignInError,
         signOut,
         deleteAccount,
       }}

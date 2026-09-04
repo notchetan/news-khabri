@@ -134,8 +134,12 @@ describe("OnboardingSignInScreen", () => {
       fireEvent.press(screen.getByRole("button", { name: "Sign in with Google" }));
     });
 
+    // A translated generic, never the raw native SDK string - the real error
+    // goes to Sentry. See auth-context.tsx.
     await waitFor(() => {
-      expect(screen.getByText("Network error")).toBeTruthy();
+      expect(screen.getByTestId("onboarding-sign-in-error")).toHaveTextContent(
+        "The app hit an unexpected error."
+      );
     });
     expect(mockReplace).not.toHaveBeenCalled();
     expect(await AsyncStorage.getItem("hasCompletedOnboarding")).toBeNull();

@@ -3,6 +3,7 @@ import { SymbolView } from "expo-symbols";
 import { Pressable, StyleSheet } from "react-native";
 
 import { fetchSources } from "@/api/articles";
+import ErrorState from "@/components/error-state";
 import LegalDocumentScreen from "@/components/legal-document-screen";
 import PageHeader from "@/components/page-header";
 import { ThemedText } from "@/components/themed-text";
@@ -24,7 +25,7 @@ export default function SourcesScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
 
-  const { data } = useQuery({
+  const { data, error, refetch } = useQuery({
     queryKey: ["sources", language],
     queryFn: () => fetchSources(language),
   });
@@ -57,6 +58,17 @@ export default function SourcesScreen() {
       <ThemedText themeColor="textSecondary" style={styles.description}>
         {t("sourcesDescription")}
       </ThemedText>
+
+      {/* Without this a failed fetch rendered a blank list under the
+          description, with no explanation and no way to retry - the one
+          query-backed screen that never got the shared ErrorState. */}
+      {error && (
+        <ErrorState
+          testID="sources-error"
+          message={t("unexpectedError")}
+          onRetry={refetch}
+        />
+      )}
 
       {sources.map((source) => {
         const selected = isAllSelected || selectedSources.includes(source);
