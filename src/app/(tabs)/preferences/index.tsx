@@ -125,7 +125,7 @@ export default function PreferencesScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.toggleRow}>
-          <ThemedText type="default" accessibilityRole="header">{t("appearance")}</ThemedText>
+          <ThemedText type="default">{t("appearance")}</ThemedText>
           <View style={styles.iconRow}>
             {APPEARANCE_OPTIONS.map((option) => {
               const selected = preference === option.value;
@@ -167,7 +167,7 @@ export default function PreferencesScreen() {
         />
 
         <View style={styles.toggleRow}>
-          <ThemedText type="default" accessibilityRole="header">{t("articleFontSize")}</ThemedText>
+          <ThemedText type="default">{t("articleFontSize")}</ThemedText>
           <View style={styles.iconRow}>
             {FONT_SIZE_OPTIONS.map((option) => {
               const selected = fontPreference === option.value;
@@ -231,7 +231,7 @@ export default function PreferencesScreen() {
           accessibilityRole="button"
           accessibilityLabel={t("language")}
         >
-          <ThemedText type="default" accessibilityRole="header">{t("language")}</ThemedText>
+          <ThemedText type="default">{t("language")}</ThemedText>
           <View style={styles.languagePickerValue}>
             <ThemedText themeColor="textSecondary">{LANGUAGE_ENDONYMS[language]}</ThemedText>
             <SymbolView
@@ -263,7 +263,7 @@ export default function PreferencesScreen() {
           accessibilityLabel={t("sources")}
           accessibilityState={{ disabled: !isSignedIn }}
         >
-          <ThemedText type="default" accessibilityRole="header">{t("sources")}</ThemedText>
+          <ThemedText type="default">{t("sources")}</ThemedText>
           <View style={styles.languagePickerValue}>
             <ThemedText themeColor="textSecondary">
               {selectedSources.length > 0
@@ -298,7 +298,7 @@ export default function PreferencesScreen() {
             accessibilityRole="button"
             accessibilityLabel={t("notifications")}
           >
-            <ThemedText type="default" accessibilityRole="header">{t("notifications")}</ThemedText>
+            <ThemedText type="default">{t("notifications")}</ThemedText>
             <View style={styles.languagePickerValue}>
               <ThemedText themeColor="textSecondary">
                 {notificationInterval === 0
@@ -323,7 +323,7 @@ export default function PreferencesScreen() {
           // picker - see "Sources vs. Notifications" in
           // docs/preferences-screen.md.
           <View style={styles.toggleRow}>
-            <ThemedText type="default" accessibilityRole="header">{t("notifications")}</ThemedText>
+            <ThemedText type="default">{t("notifications")}</ThemedText>
             <Switch
               value={notificationInterval !== 0}
               onValueChange={(enabled) => setNotificationInterval(enabled ? 15 : 0)}
@@ -347,7 +347,7 @@ export default function PreferencesScreen() {
             />
 
             <View style={styles.toggleRow}>
-              <ThemedText type="default" accessibilityRole="header">{t("debugMode")}</ThemedText>
+              <ThemedText type="default">{t("debugMode")}</ThemedText>
               <Switch
                 value={debugEnabled}
                 onValueChange={setDebugEnabled}
