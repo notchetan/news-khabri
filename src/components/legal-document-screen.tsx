@@ -5,7 +5,8 @@ import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
-import { NATIVE_TAB_BAR_HEIGHT, Spacing } from "@/constants/theme";
+import { Spacing } from "@/constants/theme";
+import { useTabBarInset } from "@/hooks/use-tab-bar-inset";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 
@@ -35,12 +36,7 @@ export default function LegalDocumentScreen({ title, children, renderHeader }: P
     default: insets.top + Spacing.two,
     web: Spacing.six,
   });
-  // Same tab-bar reservation as article-detail-screen.tsx/search/index.tsx -
-  // see docs/android-tab-bar.md.
-  const bottomPadding = Platform.select({
-    web: 0,
-    default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
-  });
+  const bottomPadding = useTabBarInset();
 
   const goBack = () => {
     if (router.canGoBack()) {

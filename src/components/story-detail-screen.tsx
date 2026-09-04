@@ -8,8 +8,9 @@ import FloatingDetailHeader, {
   useHeaderScrollY,
 } from "@/components/floating-detail-header";
 import { ThemedText } from "@/components/themed-text";
-import { NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
+import { Radius, Spacing } from "@/constants/theme";
 import { useAuth } from "@/contexts/auth-context";
+import { useTabBarInset } from "@/hooks/use-tab-bar-inset";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 import { formatRelativeTime } from "@/utils/format-date";
@@ -44,6 +45,7 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
   const { t } = useTranslation();
   const { token } = useAuth();
   const insets = useSafeAreaInsets();
+  const tabBarInset = useTabBarInset();
   // Continuous scroll-position-driven collapse - see
   // docs/animated-scroll-collapse.md.
   const scrollY = useHeaderScrollY();
@@ -65,16 +67,7 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
     default: getContentTopPadding(headerHeight, topPadding),
     web: Spacing.six,
   });
-  // Same base gap (Spacing.three) plus tab-bar reservation formula used in
-  // article-detail-screen.tsx/search/index.tsx/preferences/index.tsx - see
-  // NATIVE_TAB_BAR_HEIGHT's own comment for why insets.bottom alone isn't
-  // enough.
-  const contentBottomPadding =
-    Spacing.three +
-    Platform.select({
-      web: 0,
-      default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
-    });
+  const contentBottomPadding = Spacing.three + tabBarInset;
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -274,15 +267,13 @@ function StoryDetailSkeleton({
 }) {
   const opacity = useRef(new Animated.Value(0.4)).current;
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
+  const tabBarInset = useTabBarInset();
   const { t } = useTranslation();
   const contentTopPadding = Platform.select({
     default: getContentTopPadding(headerHeight, topPadding),
     web: Spacing.six,
   });
-  const contentBottomPadding =
-    Spacing.three +
-    Platform.select({ web: 0, default: insets.bottom + NATIVE_TAB_BAR_HEIGHT });
+  const contentBottomPadding = Spacing.three + tabBarInset;
 
   useEffect(() => {
     const pulse = Animated.loop(

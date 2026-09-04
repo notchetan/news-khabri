@@ -28,10 +28,13 @@ bar's own top edge with zero clearance when the constant was still 56.
 ## Every screen needs its own bottom-tab-bar padding reservation
 
 `useSafeAreaInsets().bottom` doesn't include the tab bar's own height
-(see `AGENTS.md`) - `NATIVE_TAB_BAR_HEIGHT` has to be added on top,
-and every screen that scrolls content behind the tab bar needs to do
-this itself, screen by screen (there's no single shared layout owner to
-put it in once).
+(see `AGENTS.md`) - `NATIVE_TAB_BAR_HEIGHT` has to be added on top.
+The `insets.bottom + NATIVE_TAB_BAR_HEIGHT` (web -> 0) formula lives in
+one place now, `src/hooks/use-tab-bar-inset.ts` (`useTabBarInset()`); it's
+the only caller of `NATIVE_TAB_BAR_HEIGHT`. But there's still no single
+shared layout owner that applies the reservation - every screen that
+scrolls content behind the tab bar calls the hook itself and adds the
+result to its own base gap, screen by screen.
 
 This matters more on Android than iOS: iOS's tab bar is translucent, so
 content scrolling behind it stays legible, just dimmed - a screen that

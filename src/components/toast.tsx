@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
-import { MaxContentWidth, NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
+import { MaxContentWidth, Radius, Spacing } from "@/constants/theme";
+import { useTabBarInset } from "@/hooks/use-tab-bar-inset";
 import { useTheme } from "@/hooks/use-theme";
 
 export type ToastConfig = {
@@ -23,7 +23,7 @@ export default function Toast({
   onHide: () => void;
 }) {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
+  const tabBarInset = useTabBarInset();
   const anim = useRef(new Animated.Value(0)).current;
   const [mounted, setMounted] = useState(false);
   const shownRef = useRef<ToastConfig | null>(null);
@@ -56,7 +56,7 @@ export default function Toast({
         // Clear the tab bar where there is one; on the tab-less screens
         // (article/story detail, Saved) it just floats a little higher,
         // which is fine for a transient toast.
-        { bottom: insets.bottom + NATIVE_TAB_BAR_HEIGHT + Spacing.two },
+        { bottom: tabBarInset + Spacing.two },
         {
           opacity: anim,
           transform: [

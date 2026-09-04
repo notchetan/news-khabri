@@ -174,14 +174,17 @@ this exact codebase. Read this before touching anything similar.
   wrapping it — never on the `KeyboardAvoidingView`'s own `style`.
 - **`useSafeAreaInsets().bottom` does not include the native tab bar's
   own height.** `expo-router/unstable-native-tabs`' `NativeTabs` exposes
-  no JS API to measure itself. Add the platform's standard tab-bar
-  content height on top of the inset (`NATIVE_TAB_BAR_HEIGHT` in
-  `src/constants/theme.ts` - see `docs/android-tab-bar.md` for why the
-  Android value is 80, not the more commonly assumed 56), don't replace
-  the inset with it. Every screen that scrolls content behind the tab
-  bar needs this reservation itself - there's no single shared layout
-  owner to add it in once, and a screen that goes without one is easy to
-  miss until tested live (see `docs/android-tab-bar.md` again).
+  no JS API to measure itself. Use `useTabBarInset()`
+  (`src/hooks/use-tab-bar-inset.ts`) - it returns `insets.bottom +
+  NATIVE_TAB_BAR_HEIGHT` (web -> 0) and is the only caller of
+  `NATIVE_TAB_BAR_HEIGHT` (`src/constants/theme.ts` - see
+  `docs/android-tab-bar.md` for why the Android value is 80, not the more
+  commonly assumed 56). Add its result on top of your own base gap; don't
+  replace the inset with it. The hook centralizes the formula but not the
+  application - every screen that scrolls content behind the tab bar
+  still calls it and adds the reservation itself, and a screen that goes
+  without one is easy to miss until tested live (see
+  `docs/android-tab-bar.md` again).
 - **A `ScrollView` needs an explicit `style={{ flex: 1 }}`, not just
   `contentContainerStyle`, to actually be constrained by its parent.**
   Without it, `onLayout` measurements on the ScrollView itself are

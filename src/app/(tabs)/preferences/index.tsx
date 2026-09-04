@@ -18,7 +18,7 @@ import AppHeader from "@/components/app-header";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { LANGUAGE_ENDONYMS } from "@/constants/languages";
-import { NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
+import { Radius, Spacing } from "@/constants/theme";
 import { useAuth } from "@/contexts/auth-context";
 import { useDebugPreference } from "@/contexts/debug-preference";
 import {
@@ -32,6 +32,7 @@ import {
   ThemePreference,
   useThemePreference,
 } from "@/contexts/theme-preference";
+import { useTabBarInset } from "@/hooks/use-tab-bar-inset";
 import { useTheme } from "@/hooks/use-theme";
 import { TranslationKey, useTranslation } from "@/i18n/translations";
 
@@ -89,6 +90,7 @@ export default function PreferencesScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const tabBarInset = useTabBarInset();
   const router = useRouter();
   // See "Font-size preview height" in docs/preferences-screen.md.
   const [previewHeight, setPreviewHeight] = useState<number | null>(null);
@@ -378,14 +380,7 @@ export default function PreferencesScreen() {
         testID="preferences-legal-footer"
         style={[
           styles.legalFooter,
-          {
-            paddingBottom:
-              Spacing.three +
-              Platform.select({
-                web: 0,
-                default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
-              }),
-          },
+          { paddingBottom: Spacing.three + tabBarInset },
         ]}
       >
         <View
