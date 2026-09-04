@@ -19,6 +19,23 @@ describe("stripHtml", () => {
     expect(stripHtml("a &weird; b")).toBe("a &weird; b");
   });
 
+  // A real feed emitting one of these used to throw a RangeError out of
+  // String.fromCodePoint, taking the article screen into the ErrorBoundary.
+  it.each([
+    ["decimal past the Unicode range", "Bad &#1114112; boom"],
+    ["absurdly large decimal", "Huge &#99999999999; boom"],
+    ["hex past the Unicode range", "Bad &#x110000; boom"],
+    ["a lone surrogate", "Bad &#55296; boom"],
+  ])("leaves an out-of-range reference alone (%s)", (_label, input) => {
+    expect(() => stripHtml(input)).not.toThrow();
+    expect(stripHtml(input)).toBe(input);
+  });
+
+  it("drops script and style blocks with their contents", () => {
+    expect(stripHtml("<style>p{color:red}</style>Hello")).toBe("Hello");
+    expect(stripHtml("<script>var x = 1;</script>Hi <b>there</b>")).toBe("Hi there");
+  });
+
   it("trims and returns plain text unchanged", () => {
     expect(stripHtml("  just text  ")).toBe("just text");
   });
