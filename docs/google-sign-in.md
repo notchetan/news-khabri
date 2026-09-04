@@ -55,12 +55,12 @@ so nesting order genuinely doesn't matter.
 
 One consequence worth knowing: a local preference change triggers a
 harmless extra "reload from storage" in its own context too (it's also
-subscribed), and a server-pulled write triggers a harmless extra push
-right back to the server with the same values it just received. Neither
-is a bug - re-reading/re-sending an unchanged value is a no-op, not a
-loop (nothing re-triggers `notifyPreferenceChanged()` from inside a load
-effect) - it just wasn't worth adding guard-flag state to avoid one
-redundant read or one redundant PUT.
+subscribed). A server-pulled write also pings the push subscriber, but
+that's now a no-op diff (the baseline is set to the pulled values first -
+see "Surviving an offline edit across a relaunch" below), not a
+full-bundle PUT. Re-reading an unchanged value is a no-op, not a loop -
+nothing re-triggers `notifyPreferenceChanged()` from inside a load
+effect.
 
 ## New account vs. existing account on sign-in
 
@@ -73,6 +73,41 @@ locally, overwriting whatever was there). This is a deliberate asymmetry,
 not an oversight: the alternative (always overwrite local with server, even
 for a device that just created the account and has nothing server-side
 yet) would silently reset a brand new sign-in back to app defaults.
+
+## Surviving an offline edit across a relaunch
+
+The push side only fires the field(s) that differ from a *baseline* -
+"the bundle this device last confirmed in sync with the server". That
+baseline used to live only in a `useRef` (`lastSyncedBundleRef`), so it
+was gone after an app restart, and the restore-on-launch path just
+overwrote every local key with the server's values unconditionally. That
+lost a real edit: change a preference while offline, the `PUT` fails, the
+app is killed before the retry - on the next launch the server (which
+never got the change) wins and the edit is gone, not even re-queued.
+
+The baseline is now also persisted, to `AsyncStorage` under
+`preferencesSyncBaseline` (`PREFERENCES_BASELINE_KEY`), written every time
+`lastSyncedBundleRef` is set (after a successful `PUT`, on sign-in, and
+after the launch reconcile) and cleared on sign-out. On launch,
+`reconcileOnRestore` compares each field three ways:
+
+- local value **==** persisted baseline -> in sync, take the **server**
+  value (picks up another device's change).
+- local value **!=** persisted baseline -> an edit this device made but
+  never synced -> **keep the local value** and re-`PUT` it now.
+
+`lastSyncedBundleRef` is set to the *server* bundle before the merged
+result is written to storage, so the existing diff-and-push machinery
+sees exactly the still-unsynced field(s) and nothing else - no
+full-bundle PUT on every launch anymore. A device with no persisted
+baseline yet (first sync, or an older build) falls back to the old
+server-wins behaviour.
+
+Same-field conflicts between two devices are still last-writer-wins -
+there are no per-field wall-clock timestamps, and cross-device clocks
+aren't trustworthy enough to want them. What's fixed is the
+single-device offline-edit-then-relaunch case, which was a guaranteed
+data loss, not a race.
 
 ## Testing components that render under `AuthProvider`
 
