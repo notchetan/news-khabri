@@ -107,6 +107,19 @@ describe("PreferencesScreen", () => {
     expect(screen.getByText("English")).toBeTruthy();
   });
 
+  // Every settings row label used to carry accessibilityRole="header", so a
+  // screen-reader user navigating by heading landed on six fake landmarks on
+  // one screen. The screen has exactly one real heading: its own title.
+  it("exposes one heading - the screen title - not one per settings row", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    const headers = screen.getAllByRole("header");
+    expect(headers).toHaveLength(1);
+    expect(headers[0]).toHaveTextContent("Preferences");
+  });
+
   it("switches the selected appearance option and updates the description", async () => {
     await act(async () => {
       renderScreen();
