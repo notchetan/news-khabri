@@ -23,8 +23,11 @@ export function initSentry(): void {
     // so nothing to sample and no quota burn. Raise this (and add a
     // navigation integration) if we later want tracing.
     tracesSampleRate: 0,
-    // The app already shows its own recovery UI (the ErrorBoundary in
-    // app/_layout.tsx); Sentry's native crash screen would double up.
+    // Attaches a JS stack to events that don't carry an Error of their own.
+    // (This comment used to describe suppressing a native crash screen,
+    // which is not what this option does and was never configured.) The
+    // app's own recovery UI is the root ErrorBoundary in app/_layout.tsx,
+    // which reports through captureException below.
     attachStacktrace: true,
   });
 }

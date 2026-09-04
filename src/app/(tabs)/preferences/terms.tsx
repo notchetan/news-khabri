@@ -2,6 +2,7 @@ import { StyleSheet } from "react-native";
 
 import LegalDocumentScreen from "@/components/legal-document-screen";
 import { ThemedText } from "@/components/themed-text";
+import { LEGAL_LAST_UPDATED } from "@/constants/legal";
 import { Spacing } from "@/constants/theme";
 import { useTranslation } from "@/i18n/translations";
 
@@ -16,7 +17,7 @@ export default function TermsScreen() {
   return (
     <LegalDocumentScreen title={t("termsOfService")}>
       <ThemedText themeColor="textSecondary" style={styles.updated}>
-        Last updated: September 3, 2026
+        Last updated: {LEGAL_LAST_UPDATED}
       </ThemedText>
 
       <ThemedText style={styles.paragraph}>
