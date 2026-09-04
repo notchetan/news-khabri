@@ -16,9 +16,8 @@ import { formatRelativeTime } from "@/utils/format-date";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Animated,
   Platform,
   ScrollView,
@@ -152,9 +151,7 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
       />
 
       {isLoading || isSingleton ? (
-        <View style={styles.centerFill} accessibilityRole="progressbar" accessibilityLabel={t("loadingStory")}>
-          <ActivityIndicator />
-        </View>
+        <StoryDetailSkeleton headerHeight={headerHeight} topPadding={topPadding} />
       ) : error || !data ? (
         <ErrorState
           testID="story-detail-error"
@@ -265,9 +262,88 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
   );
 }
 
+// Matches article-detail-screen.tsx's ArticleDetailSkeleton (same shimmer,
+// same start-below-the-header math) but shaped to this screen's layout:
+// hero, title, meta, summary, then a couple of member rows.
+function StoryDetailSkeleton({
+  headerHeight,
+  topPadding,
+}: {
+  headerHeight: number;
+  topPadding: number;
+}) {
+  const opacity = useRef(new Animated.Value(0.4)).current;
+  const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+  const contentTopPadding = Platform.select({
+    default: getContentTopPadding(headerHeight, topPadding),
+    web: Spacing.six,
+  });
+  const contentBottomPadding =
+    Spacing.three +
+    Platform.select({ web: 0, default: insets.bottom + NATIVE_TAB_BAR_HEIGHT });
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.4, duration: 700, useNativeDriver: true }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [opacity]);
+
+  const block = { backgroundColor: theme.backgroundSelected, opacity };
+
+  return (
+    <View
+      style={[
+        styles.scrollContent,
+        { paddingTop: contentTopPadding, paddingBottom: contentBottomPadding },
+      ]}
+      accessible
+      accessibilityRole="progressbar"
+      accessibilityLabel={t("loadingStory")}
+    >
+      <Animated.View style={[styles.skeletonImage, block]} />
+      <Animated.View style={[styles.skeletonLine, block]} />
+      <Animated.View style={[styles.skeletonLine, { width: "65%" }, block]} />
+      <Animated.View style={[styles.skeletonLineSmall, block]} />
+      <Animated.View style={[styles.skeletonLine, { marginTop: Spacing.four }, block]} />
+      <Animated.View style={[styles.skeletonLine, { width: "80%" }, block]} />
+      {[0, 1].map((i) => (
+        <View key={i} style={styles.skeletonMemberRow}>
+          <Animated.View style={[styles.skeletonThumb, block]} />
+          <View style={styles.skeletonMemberText}>
+            <Animated.View style={[styles.skeletonLine, { marginTop: 0 }, block]} />
+            <Animated.View style={[styles.skeletonLineSmall, { marginTop: Spacing.two }, block]} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  centerFill: { flex: 1, alignItems: "center", justifyContent: "center" },
   scrollContent: { paddingHorizontal: Spacing.four },
+  skeletonImage: { width: "100%", height: 220, borderRadius: Radius.large },
+  skeletonLine: { height: 18, borderRadius: Radius.tiny, marginTop: Spacing.three },
+  skeletonLineSmall: {
+    height: 12,
+    width: "40%",
+    borderRadius: Radius.tiny,
+    marginTop: Spacing.two,
+  },
+  skeletonMemberRow: {
+    flexDirection: "row",
+    gap: Spacing.three,
+    paddingVertical: Spacing.three,
+    marginTop: Spacing.two,
+  },
+  skeletonThumb: { width: 80, height: 80, borderRadius: Radius.medium },
+  skeletonMemberText: { flex: 1, justifyContent: "center" },
   title: { marginTop: Spacing.three },
   metaRow: {
     flexDirection: "row",
