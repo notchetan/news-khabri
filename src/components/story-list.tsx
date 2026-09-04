@@ -4,7 +4,7 @@ import ErrorState from "@/components/error-state";
 import FeedCard from "@/components/feed-card";
 import { useInfiniteQuery, keepPreviousData } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text } from "react-native";
 
 import { Spacing } from "@/constants/theme";
@@ -54,10 +54,12 @@ export default function StoryList({ category }: Props) {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    // token is part of the key so signing in/out refetches with (or
-    // without) the personalization signal, rather than serving a cached
-    // page computed under the other auth state.
-    queryKey: ["storyFeed", language, category, selectedSources, token],
+    // Whether we're signed in is part of the key so signing in/out refetches
+    // with (or without) the personalization signal, rather than serving a
+    // cached page computed under the other auth state. A boolean, not the
+    // token itself - the key does the same job either way, and the JWT has
+    // no business sitting in every cache key and devtools dump.
+    queryKey: ["storyFeed", language, category, selectedSources, !!token],
     queryFn: ({ pageParam }) =>
       fetchStoryFeed(language, category, pageParam as number, selectedSources, token),
     initialPageParam: STORIES_PAGE_SIZE,
@@ -69,12 +71,19 @@ export default function StoryList({ category }: Props) {
     placeholderData: keepPreviousData,
   });
 
-  const seenIds = new Set<number>();
-  const stories = (data?.pages.flat() ?? []).filter((story) => {
-    if (seenIds.has(story.id)) return false;
-    seenIds.add(story.id);
-    return true;
-  });
+  // Memoized on the pages for the same reason ArticleList's is: the
+  // growing-limit pagination genuinely re-sends earlier stories, so the
+  // dedupe has to stay - but without useMemo it rebuilt the Set and a new
+  // array reference on every render, changing FlatList's `data` identity
+  // and re-rendering the whole list.
+  const stories = useMemo(() => {
+    const seenIds = new Set<number>();
+    return (data?.pages.flat() ?? []).filter((story) => {
+      if (seenIds.has(story.id)) return false;
+      seenIds.add(story.id);
+      return true;
+    });
+  }, [data?.pages]);
 
   if (isLoading) return <ArticleListSkeleton />;
 

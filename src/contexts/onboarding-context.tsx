@@ -3,6 +3,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -50,10 +51,16 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     await AsyncStorage.setItem(STORAGE_KEY, "true").catch(() => {});
   };
 
+  const value = useMemo(
+    () => ({ hasCompletedOnboarding, completeOnboarding }),
+    // completeOnboarding closes over nothing that changes, so the value only
+    // needs to change when the flag does.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hasCompletedOnboarding]
+  );
+
   return (
-    <OnboardingContext.Provider
-      value={{ hasCompletedOnboarding, completeOnboarding }}
-    >
+    <OnboardingContext.Provider value={value}>
       {children}
     </OnboardingContext.Provider>
   );

@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -46,8 +47,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => clearTimer, [clearTimer]);
 
+  // show/hide are already stable useCallbacks, so memoizing the value object
+  // keeps every useToast() consumer from re-rendering each time this
+  // provider does - and it re-renders on every toast, wrapping the app.
+  const value = useMemo(() => ({ show, hide }), [show, hide]);
+
   return (
-    <ToastContext.Provider value={{ show, hide }}>
+    <ToastContext.Provider value={value}>
       {children}
       <Toast config={config} onHide={hide} />
     </ToastContext.Provider>
