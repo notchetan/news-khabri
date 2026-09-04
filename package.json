@@ -76,7 +76,6 @@
     },
     "collectCoverageFrom": [
       "src/**/*.{ts,tsx}",
-      "!src/app/**/_layout.tsx",
       "!src/**/*.d.ts"
     ]
   }
