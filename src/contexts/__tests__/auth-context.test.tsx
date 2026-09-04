@@ -8,7 +8,12 @@ import {
   signInWithApple,
   signInWithGoogle,
 } from "@/api/auth";
-import { AuthProvider, useAuth } from "@/contexts/auth-context";
+import {
+  AuthProvider,
+  PREFERENCES_BASELINE_KEY,
+  useAuth,
+} from "@/contexts/auth-context";
+import { SOURCES_STORAGE_KEY } from "@/contexts/sources-preference";
 import { ThemePreferenceProvider, useThemePreference } from "@/contexts/theme-preference";
 
 jest.mock("@/api/auth", () => ({
@@ -225,6 +230,64 @@ describe("AuthProvider preference sync", () => {
     });
     // Not a whole-bundle push.
     expect(mockPutPreferences.mock.calls.at(-1)?.[1]).toEqual({ theme: "night" });
+  });
+
+  // A failed seed used to still write the sync baseline, so the device
+  // believed the server held values it had never received - and since every
+  // later push is a baseline diff, those fields were never re-sent.
+  it("re-pushes the whole bundle on the next change when the new-account seed failed", async () => {
+    mockPutPreferences.mockRejectedValueOnce(new Error("offline"));
+
+    const { result } = await renderHook(
+      () => ({ auth: useAuth(), theme: useThemePreference() }),
+      { wrapper }
+    );
+    await signIn(result);
+    expect(mockPutPreferences).toHaveBeenCalledTimes(1); // the failed seed
+    expect(await AsyncStorage.getItem(PREFERENCES_BASELINE_KEY)).toBeNull();
+
+    mockPutPreferences.mockResolvedValue(undefined);
+    await act(async () => {
+      result.current.theme.setPreference("night");
+    });
+
+    // No baseline to diff against, so the whole bundle goes up rather than
+    // just the one field that changed.
+    await waitFor(() => {
+      expect(mockPutPreferences).toHaveBeenCalledTimes(2);
+    });
+    expect(mockPutPreferences.mock.calls.at(-1)?.[1]).toEqual(
+      expect.objectContaining({ theme: "night", fontSize: "medium", language: "en" })
+    );
+  });
+
+  it("still records the baseline when the new-account seed succeeds", async () => {
+    const { result } = await renderHook(() => ({ auth: useAuth() }), { wrapper });
+    await signIn(result);
+
+    await waitFor(async () => {
+      expect(await AsyncStorage.getItem(PREFERENCES_BASELINE_KEY)).not.toBeNull();
+    });
+  });
+
+  // A corrupt sources value threw out of readLocalPreferencesBundle. On the
+  // launch path that landed in the session-restore catch and destroyed the
+  // stored token; in the change listener it was an unhandled rejection.
+  it("survives a corrupt stored sources value instead of losing the session", async () => {
+    mockGetItemAsync.mockResolvedValue("stored-session-token");
+    await AsyncStorage.setItem(SOURCES_STORAGE_KEY, "{not json");
+    mockFetchMe.mockResolvedValue({
+      user: { id: 1, email: "chetan@example.com", name: null, avatarUrl: null },
+      preferences: null,
+    });
+
+    const { result } = await renderHook(() => ({ auth: useAuth() }), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.auth.isLoading).toBe(false);
+    });
+    expect(result.current.auth.token).toBe("stored-session-token");
+    expect(mockDeleteItemAsync).not.toHaveBeenCalled();
   });
 
   it("does not push preference changes while signed out", async () => {
