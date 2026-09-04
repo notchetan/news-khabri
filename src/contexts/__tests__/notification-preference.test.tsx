@@ -15,6 +15,14 @@ jest.mock("@/api/notifications", () => ({
   registerPushSubscription: jest.fn().mockResolvedValue(undefined),
 }));
 
+// getStoredToken reads this - no session here, so the register calls pass
+// null as the session token.
+jest.mock("expo-secure-store", () => ({
+  getItemAsync: jest.fn().mockResolvedValue(null),
+  setItemAsync: jest.fn().mockResolvedValue(undefined),
+  deleteItemAsync: jest.fn().mockResolvedValue(undefined),
+}));
+
 const mockGetPermissionsAsync = jest.fn();
 const mockRequestPermissionsAsync = jest.fn();
 const mockGetExpoPushTokenAsync = jest.fn();
@@ -102,7 +110,8 @@ describe("useNotificationPreference", () => {
       expect(mockRegisterPushSubscription).toHaveBeenCalledWith(
         "ExponentPushToken[test]",
         15,
-        "en"
+        "en",
+        null
       );
     });
     await waitFor(async () => {
@@ -135,7 +144,8 @@ describe("useNotificationPreference", () => {
       expect(mockRegisterPushSubscription).toHaveBeenCalledWith(
         "ExponentPushToken[existing]",
         0,
-        "en"
+        "en",
+        null
       );
     });
   });

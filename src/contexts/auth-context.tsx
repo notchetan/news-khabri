@@ -17,6 +17,7 @@ import {
   type PreferenceBundle,
   type ServerPreferences,
 } from "@/api/auth";
+import { registerPushSubscription } from "@/api/notifications";
 import { DEBUG_STORAGE_KEY } from "@/contexts/debug-preference";
 import {
   DEFAULT_FONT_SIZE_PREFERENCE,
@@ -26,15 +27,15 @@ import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from "@/contexts/language-pref
 import {
   DEFAULT_NOTIFICATION_INTERVAL,
   NOTIFICATION_STORAGE_KEY,
+  PUSH_TOKEN_STORAGE_KEY,
 } from "@/contexts/notification-preference";
 import {
   DEFAULT_SOURCES_SELECTIONS,
   SOURCES_STORAGE_KEY,
 } from "@/contexts/sources-preference";
 import { DEFAULT_THEME_PREFERENCE, THEME_STORAGE_KEY } from "@/contexts/theme-preference";
+import { getStoredToken, storeToken } from "@/contexts/session-token";
 import { notifyPreferenceChanged, onPreferenceChanged } from "@/utils/preference-sync";
-
-const SESSION_TOKEN_KEY = "sessionToken";
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -56,33 +57,11 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-// Neither @react-native-google-signin/google-signin nor expo-secure-store
-// is imported at this file's module scope - see "Why two new native
-// modules are required lazily, not imported" in docs/google-sign-in.md.
-
-async function getStoredToken(): Promise<string | null> {
-  try {
-    const SecureStore: typeof import("expo-secure-store") = require("expo-secure-store");
-    return await SecureStore.getItemAsync(SESSION_TOKEN_KEY);
-  } catch {
-    return null;
-  }
-}
-
-async function storeToken(token: string | null): Promise<void> {
-  try {
-    const SecureStore: typeof import("expo-secure-store") = require("expo-secure-store");
-    if (token) {
-      await SecureStore.setItemAsync(SESSION_TOKEN_KEY, token);
-    } else {
-      await SecureStore.deleteItemAsync(SESSION_TOKEN_KEY);
-    }
-  } catch {
-    // No secure storage available yet (native module not linked, or a
-    // platform/device without a keychain) - the session just won't
-    // survive an app restart, not a crash.
-  }
-}
+// @react-native-google-signin/google-signin is not imported at this
+// file's module scope - see "Why two new native modules are required
+// lazily, not imported" in docs/google-sign-in.md. getStoredToken /
+// storeToken (expo-secure-store, same convention) live in
+// contexts/session-token.ts.
 
 // Writes a server-pulled preference bundle into the exact same
 // AsyncStorage keys each individual preference context already owns, then
@@ -259,6 +238,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await storeToken(null);
     setToken(null);
     setUser(null);
+
+    // This device is a guest again - re-register its push token with no
+    // Authorization header so the backend drops the user_id it had while
+    // signed in. Notifications keep working (as a guest); best-effort, a
+    // failure just leaves the account link until the next preference
+    // change re-registers.
+    try {
+      const [pushToken, intervalRaw, language] = await Promise.all([
+        AsyncStorage.getItem(PUSH_TOKEN_STORAGE_KEY),
+        AsyncStorage.getItem(NOTIFICATION_STORAGE_KEY),
+        AsyncStorage.getItem(LANGUAGE_STORAGE_KEY),
+      ]);
+      if (pushToken) {
+        await registerPushSubscription(
+          pushToken,
+          Number(intervalRaw) || DEFAULT_NOTIFICATION_INTERVAL,
+          language || DEFAULT_LANGUAGE
+        );
+      }
+    } catch {
+      // best-effort
+    }
   };
 
   const signOut = async () => {
