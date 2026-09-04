@@ -5,6 +5,7 @@ import { useContext, useEffect, type ReactNode } from "react";
 import { registerPushSubscription } from "@/api/notifications";
 import { createPersistedPreference } from "@/contexts/create-persisted-preference";
 import { useLanguagePreference } from "@/contexts/language-preference";
+import { getStoredToken } from "@/contexts/session-token";
 
 // 0 = off. Matches the backend's own VALID_INTERVALS (routes/push.js) -
 // keep the two in sync if this ever changes.
@@ -14,7 +15,7 @@ const VALID_INTERVALS: NotificationInterval[] = [0, 5, 15, 30, 60, 120];
 export const NOTIFICATION_STORAGE_KEY = "notificationPreference";
 export const DEFAULT_NOTIFICATION_INTERVAL: NotificationInterval = 0;
 // See "Why the push token is cached locally" in docs/push-notifications.md.
-const PUSH_TOKEN_STORAGE_KEY = "notificationPushToken";
+export const PUSH_TOKEN_STORAGE_KEY = "notificationPushToken";
 
 const base = createPersistedPreference<NotificationInterval>({
   storageKey: NOTIFICATION_STORAGE_KEY,
@@ -41,11 +42,15 @@ async function registerForPushNotifications(
   language: string
 ) {
   try {
+    // Sent when signed in so the backend links the subscription to the
+    // account (see api/notifications.ts). null once signed out.
+    const sessionToken = await getStoredToken();
+
     // Turning notifications off doesn't need a fresh permission prompt or
     // push token - reuse whatever's already cached, if anything is.
     if (interval === 0) {
       const cachedToken = await AsyncStorage.getItem(PUSH_TOKEN_STORAGE_KEY);
-      if (cachedToken) await registerPushSubscription(cachedToken, 0, language);
+      if (cachedToken) await registerPushSubscription(cachedToken, 0, language, sessionToken);
       return;
     }
 
@@ -76,7 +81,7 @@ async function registerForPushNotifications(
       projectId ? { projectId } : undefined
     );
     await AsyncStorage.setItem(PUSH_TOKEN_STORAGE_KEY, pushToken);
-    await registerPushSubscription(pushToken, interval, language);
+    await registerPushSubscription(pushToken, interval, language, sessionToken);
   } catch {
     // See the function's own comment above.
   }

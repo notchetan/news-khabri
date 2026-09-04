@@ -17,6 +17,12 @@ jest.mock("@/api/auth", () => ({
   deleteAccount: jest.fn(),
 }));
 
+jest.mock("@/api/notifications", () => ({
+  registerPushSubscription: jest.fn().mockResolvedValue(undefined),
+}));
+const mockRegisterPushSubscription = jest.requireMock("@/api/notifications")
+  .registerPushSubscription as jest.Mock;
+
 const mockGetItemAsync = jest.fn();
 const mockSetItemAsync = jest.fn();
 const mockDeleteItemAsync = jest.fn();
@@ -102,6 +108,36 @@ describe("AuthProvider preference sync", () => {
 
     expect(result.current.auth.user).not.toBeNull();
     expect(result.current.auth.token).toBe("session-token");
+  });
+
+  it("on sign-out, re-registers the cached push token anonymously (no session token) so the backend drops the account link", async () => {
+    await AsyncStorage.setItem("notificationPushToken", "ExponentPushToken[dev]");
+    await AsyncStorage.setItem("notificationPreference", "15");
+    const { result } = await renderHook(() => ({ auth: useAuth() }), { wrapper });
+    await signIn(result);
+    mockRegisterPushSubscription.mockClear();
+
+    await act(async () => {
+      await result.current.auth.signOut();
+    });
+
+    expect(mockRegisterPushSubscription).toHaveBeenCalledWith(
+      "ExponentPushToken[dev]",
+      15,
+      "en"
+    );
+  });
+
+  it("on sign-out with no cached push token, does not call the push API", async () => {
+    const { result } = await renderHook(() => ({ auth: useAuth() }), { wrapper });
+    await signIn(result);
+    mockRegisterPushSubscription.mockClear();
+
+    await act(async () => {
+      await result.current.auth.signOut();
+    });
+
+    expect(mockRegisterPushSubscription).not.toHaveBeenCalled();
   });
 
   // The push side of the sync bus - see "The preference sync bus" in
