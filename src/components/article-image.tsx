@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { SymbolView } from "expo-symbols";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, View, type DimensionValue } from "react-native";
 
 import Squircle from "@/components/squircle";
@@ -32,6 +32,14 @@ export default function ArticleImage({
   const [failed, setFailed] = useState(false);
   const theme = useTheme();
   const { t } = useTranslation();
+
+  // Without this the failure sticks to the component, not to the image that
+  // actually failed - navigating between related articles reuses this same
+  // position in the tree, so a broken photo on one article left the next
+  // one showing the failure placeholder over a perfectly good URL.
+  useEffect(() => {
+    setFailed(false);
+  }, [uri]);
 
   if (!uri || failed) {
     // Two different states, two different treatments - see
