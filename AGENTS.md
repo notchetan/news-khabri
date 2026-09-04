@@ -117,9 +117,9 @@ new one.
   Studio, SDK, and a `Pixel_10_Pro_XL` AVD are installed here) - use it
   for real UI/layout verification rather than reasoning-only whenever a
   change is visual, animated, or measurement-dependent; several bugs
-  this session (missing tab bar icons, wrong tab-bar height, a swipe
-  gesture swallowing the system back gesture) were only found this way,
-  not through code review. **iOS has no local device or simulator access
+  this session (missing tab bar icons, wrong tab-bar height, a
+  since-removed related-article swipe swallowing the system back gesture)
+  were only found this way, not through code review. **iOS has no local device or simulator access
   at all** (no Mac in this environment) - verification there depends
   entirely on the user's own device, coordinated via screen recordings
   or Remote Control; say so plainly when reporting an iOS-only fix, and

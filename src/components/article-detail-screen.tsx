@@ -13,9 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { scheduleOnRN } from "react-native-worklets";
 
 import { fetchArticleDetail } from "@/api/articles";
 import { recordRead } from "@/api/reads";
@@ -39,11 +37,6 @@ import { stripHtml } from "@/utils/strip-html";
 import { useTranslation } from "@/i18n/translations";
 import { useQuery } from "@tanstack/react-query";
 
-const SWIPE_THRESHOLD = 60;
-// Keeps the related-article swipe from starting inside the screen-edge
-// strip the OS's own back gesture claims. See docs/article-swipe-gesture.md.
-const EDGE_EXCLUSION_WIDTH = 24;
-
 type Props = {
   basePath: "/article" | "/search/article";
   homePath: "/" | "/search";
@@ -60,10 +53,7 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   const insets = useSafeAreaInsets();
   const tabBarInset = useTabBarInset();
   const [showCaption, setShowCaption] = useState(false);
-  const [activeId, setActiveId] = useState(Number(id));
-  const [sequence, setSequence] = useState<number[]>([]);
-  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
-  const swipeIndicatorOpacity = useRef(new Animated.Value(0)).current;
+  const articleId = Number(id);
   // Continuous scroll-position-driven collapse, not a discrete threshold -
   // see docs/animated-scroll-collapse.md.
   const scrollY = useHeaderScrollY();
@@ -73,26 +63,15 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   const [headerHeight, setHeaderHeight] = useState(0);
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["article", activeId],
-    queryFn: () => fetchArticleDetail(activeId),
+    queryKey: ["article", articleId],
+    queryFn: () => fetchArticleDetail(articleId),
   });
-
-  // Seed a fixed swipe loop (this article + its related list) once, the
-  // first time it loads. Every article has its own, different related list,
-  // so re-deriving the loop on each swipe would make it wobble around
-  // instead of cycling through a stable set - seeding once keeps it a
-  // proper loop.
-  useEffect(() => {
-    if (data && sequence.length === 0) {
-      setSequence([data.id, ...data.related.map((item) => item.id)]);
-    }
-  }, [data, sequence.length]);
 
   useEffect(() => {
     setShowCaption(false);
     scrollY.setValue(0);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
-  }, [activeId, scrollY]);
+  }, [articleId, scrollY]);
 
   // Feeds the backend's personalized-ranking signal - see the backend's
   // docs/personalization.md. Fire-and-forget, only while signed in; a
@@ -100,8 +79,8 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   // auth-context.tsx's own putPreferences swallow-error convention).
   useEffect(() => {
     if (!token) return;
-    recordRead(token, activeId).catch(() => {});
-  }, [token, activeId]);
+    recordRead(token, articleId).catch(() => {});
+  }, [token, articleId]);
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -109,35 +88,6 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
     // driver can't animate.
     { useNativeDriver: false }
   );
-
-  const goToRelative = (direction: 1 | -1) => {
-    if (sequence.length < 2) return;
-    const idx = sequence.indexOf(activeId);
-    const nextIdx = (idx + direction + sequence.length) % sequence.length;
-    setActiveId(sequence[nextIdx]);
-
-    setSwipeDirection(direction === 1 ? "left" : "right");
-    swipeIndicatorOpacity.setValue(1);
-    Animated.timing(swipeIndicatorOpacity, {
-      toValue: 0,
-      duration: 450,
-      delay: 150,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const swipeGesture = Gesture.Pan()
-    .activeOffsetX([-10, 10])
-    .failOffsetY([-10, 10])
-    .hitSlop({ left: -EDGE_EXCLUSION_WIDTH, right: -EDGE_EXCLUSION_WIDTH })
-    .onEnd((event) => {
-      "worklet";
-      if (event.translationX < -SWIPE_THRESHOLD) {
-        scheduleOnRN(goToRelative, 1);
-      } else if (event.translationX > SWIPE_THRESHOLD) {
-        scheduleOnRN(goToRelative, -1);
-      }
-    });
 
   const topPadding = Platform.select({
     default: insets.top + Spacing.two,
@@ -206,237 +156,207 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   const summary = data?.description ? stripHtml(data.description) : "";
 
   return (
-    <GestureDetector gesture={swipeGesture}>
-      <View style={{ flex: 1, backgroundColor: theme.background }}>
-        <FloatingDetailHeader
-          scrollY={scrollY}
-          topPadding={topPadding}
-          onGoBack={goBack}
-          onHeaderHeightChange={setHeaderHeight}
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
+      <FloatingDetailHeader
+        scrollY={scrollY}
+        topPadding={topPadding}
+        onGoBack={goBack}
+        onHeaderHeightChange={setHeaderHeight}
+      />
+
+      {isLoading ? (
+        <ArticleDetailSkeleton headerHeight={headerHeight} topPadding={topPadding} />
+      ) : error || !data ? (
+        <ErrorState
+          testID="article-detail-error"
+          message={t("articleLoadError")}
+          onRetry={refetch}
         />
-
-        {isLoading ? (
-          <ArticleDetailSkeleton headerHeight={headerHeight} topPadding={topPadding} />
-        ) : error || !data ? (
-          <ErrorState
-            testID="article-detail-error"
-            message={t("articleLoadError")}
-            onRetry={refetch}
-          />
-        ) : (
-          <ScrollView
-            ref={scrollRef}
-            testID="article-scroll-view"
-            contentContainerStyle={[
-              styles.scrollContent,
-              { paddingTop: contentTopPadding, paddingBottom: contentBottomPadding },
-            ]}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-          >
-            <View style={styles.heroWrapper}>
-              <ArticleImage
-                uri={data.image_url}
-                category={data.category}
-                alt={data.title}
-                radius={Radius.large}
-              />
-              {data.image_caption && !showCaption && (
-                <Pressable
-                  style={styles.infoBadge}
-                  onPress={() => setShowCaption(true)}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel={t("showPhotoCredit")}
-                >
-                  <SymbolView
-                    name="info"
-                    size={14}
-                    weight="bold"
-                    tintColor="#fff"
-                    fallback={<ThemedText style={styles.infoBadgeText}>i</ThemedText>}
-                  />
-                </Pressable>
-              )}
-              {showCaption && data.image_caption && (
-                <Squircle
-                  radius={Radius.large}
-                  backgroundColor="rgba(0,0,0,0.72)"
-                  onPress={() => setShowCaption(false)}
-                  accessibilityRole="button"
-                  accessibilityLabel={t("hidePhotoCredit")}
-                  style={styles.imageCaptionScrim}
-                >
-                  <ThemedText style={styles.imageCaptionText}>
-                    {data.image_caption}
-                  </ThemedText>
-                </Squircle>
-              )}
-            </View>
-
-            <ThemedText
-              type="subtitle"
-              style={styles.title}
-              accessibilityRole="header"
-            >
-              {data.title}
-            </ThemedText>
-
-            <View testID="article-meta-row" style={styles.metaRow}>
-              <View testID="article-meta-text-block" style={styles.metaTextBlock}>
-                <ThemedText themeColor="textSecondary" style={styles.meta}>
-                  {data.source}
-                </ThemedText>
-                {(publishedLabel || data.read_time_minutes) && (
-                  <ThemedText themeColor="textSecondary" style={styles.meta}>
-                    {[
-                      publishedLabel,
-                      data.read_time_minutes
-                        ? t("minReadTemplate", { minutes: String(data.read_time_minutes) })
-                        : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </ThemedText>
-                )}
-              </View>
-
-              <View style={styles.metaActions}>
-                <TouchableOpacity
-                  testID="article-bookmark-button"
-                  onPress={toggleSaved}
-                  style={[styles.iconButton, { backgroundColor: theme.backgroundElement }]}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: saved }}
-                  accessibilityLabel={saved ? t("removeBookmark") : t("save")}
-                >
-                  <SymbolView
-                    name={saved ? "bookmark.fill" : "bookmark"}
-                    size={16}
-                    weight="semibold"
-                    tintColor={theme.text}
-                    fallback={
-                      <Ionicons
-                        name={saved ? "bookmark" : "bookmark-outline"}
-                        size={16}
-                        color={theme.text}
-                      />
-                    }
-                  />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={shareArticle}
-                  style={[styles.shareButton, { backgroundColor: theme.backgroundElement }]}
-                  accessibilityRole="button"
-                  accessibilityLabel={t("share")}
-                >
-                  <SymbolView
-                    name="square.and.arrow.up"
-                    size={16}
-                    weight="semibold"
-                    tintColor={theme.text}
-                    fallback={<Ionicons name="share-outline" size={16} color={theme.text} />}
-                  />
-                  <ThemedText style={styles.shareButtonText}>{t("share")}</ThemedText>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {summary ? (
-              <ThemedText
-                testID="article-summary"
-                style={[
-                  styles.summary,
-                  { fontSize: 16 * fontScale, lineHeight: 24 * fontScale },
-                ]}
-              >
-                {summary}
-              </ThemedText>
-            ) : null}
-
-            <TouchableOpacity
-              testID="article-read-original"
-              onPress={openOriginal}
-              style={[styles.readOriginal, { backgroundColor: theme.tint }]}
-              accessibilityRole="link"
-              accessibilityLabel={t("readOnTemplate", { source: data.source })}
-            >
-              <ThemedText style={[styles.readOriginalText, { color: theme.tintText }]}>
-                {t("readOnTemplate", { source: data.source })}
-              </ThemedText>
-            </TouchableOpacity>
-
-            {data.related.length > 0 && (
-              <View style={styles.relatedSection}>
-                <ThemedText
-                  type="smallBold"
-                  style={styles.relatedHeading}
-                  accessibilityRole="header"
-                >
-                  {t("relatedArticles")}
-                </ThemedText>
-                {data.related.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[styles.relatedRow, { borderColor: theme.backgroundSelected }]}
-                    onPress={() => router.push(articleHref(item.id, basePath))}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${item.title}, ${item.source}`}
-                  >
-                    <View style={styles.relatedThumb}>
-                      <ArticleImage
-                        uri={item.image_url}
-                        category={item.category}
-                        height={80}
-                        alt={item.title}
-                        radius={Radius.small}
-                      />
-                    </View>
-                    <View style={styles.relatedTextBlock}>
-                      <ThemedText numberOfLines={3} style={styles.relatedTitle}>
-                        {item.title}
-                      </ThemedText>
-                      <ThemedText themeColor="textSecondary" type="small">
-                        {item.source}
-                      </ThemedText>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </ScrollView>
-        )}
-
-        {swipeDirection && (
-          <Animated.View
-            style={[
-              styles.swipeIndicator,
-              swipeDirection === "left" ? { left: Spacing.four } : { right: Spacing.four },
-              {
-                backgroundColor: theme.text,
-                opacity: swipeIndicatorOpacity,
-                pointerEvents: "none",
-              },
-            ]}
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-          >
-            <SymbolView
-              name={swipeDirection === "left" ? "chevron.left" : "chevron.right"}
-              size={20}
-              weight="bold"
-              tintColor={theme.background}
-              fallback={
-                <ThemedText style={[styles.swipeArrow, { color: theme.background }]}>
-                  {swipeDirection === "left" ? "‹" : "›"}
-                </ThemedText>
-              }
+      ) : (
+        <ScrollView
+          ref={scrollRef}
+          testID="article-scroll-view"
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingTop: contentTopPadding, paddingBottom: contentBottomPadding },
+          ]}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+        >
+          <View style={styles.heroWrapper}>
+            <ArticleImage
+              uri={data.image_url}
+              category={data.category}
+              alt={data.title}
+              radius={Radius.large}
             />
-          </Animated.View>
-        )}
-      </View>
-    </GestureDetector>
+            {data.image_caption && !showCaption && (
+              <Pressable
+                style={styles.infoBadge}
+                onPress={() => setShowCaption(true)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={t("showPhotoCredit")}
+              >
+                <SymbolView
+                  name="info"
+                  size={14}
+                  weight="bold"
+                  tintColor="#fff"
+                  fallback={<ThemedText style={styles.infoBadgeText}>i</ThemedText>}
+                />
+              </Pressable>
+            )}
+            {showCaption && data.image_caption && (
+              <Squircle
+                radius={Radius.large}
+                backgroundColor="rgba(0,0,0,0.72)"
+                onPress={() => setShowCaption(false)}
+                accessibilityRole="button"
+                accessibilityLabel={t("hidePhotoCredit")}
+                style={styles.imageCaptionScrim}
+              >
+                <ThemedText style={styles.imageCaptionText}>
+                  {data.image_caption}
+                </ThemedText>
+              </Squircle>
+            )}
+          </View>
+
+          <ThemedText
+            type="subtitle"
+            style={styles.title}
+            accessibilityRole="header"
+          >
+            {data.title}
+          </ThemedText>
+
+          <View testID="article-meta-row" style={styles.metaRow}>
+            <View testID="article-meta-text-block" style={styles.metaTextBlock}>
+              <ThemedText themeColor="textSecondary" style={styles.meta}>
+                {data.source}
+              </ThemedText>
+              {(publishedLabel || data.read_time_minutes) && (
+                <ThemedText themeColor="textSecondary" style={styles.meta}>
+                  {[
+                    publishedLabel,
+                    data.read_time_minutes
+                      ? t("minReadTemplate", { minutes: String(data.read_time_minutes) })
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </ThemedText>
+              )}
+            </View>
+
+            <View style={styles.metaActions}>
+              <TouchableOpacity
+                testID="article-bookmark-button"
+                onPress={toggleSaved}
+                style={[styles.iconButton, { backgroundColor: theme.backgroundElement }]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: saved }}
+                accessibilityLabel={saved ? t("removeBookmark") : t("save")}
+              >
+                <SymbolView
+                  name={saved ? "bookmark.fill" : "bookmark"}
+                  size={16}
+                  weight="semibold"
+                  tintColor={theme.text}
+                  fallback={
+                    <Ionicons
+                      name={saved ? "bookmark" : "bookmark-outline"}
+                      size={16}
+                      color={theme.text}
+                    />
+                  }
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={shareArticle}
+                style={[styles.shareButton, { backgroundColor: theme.backgroundElement }]}
+                accessibilityRole="button"
+                accessibilityLabel={t("share")}
+              >
+                <SymbolView
+                  name="square.and.arrow.up"
+                  size={16}
+                  weight="semibold"
+                  tintColor={theme.text}
+                  fallback={<Ionicons name="share-outline" size={16} color={theme.text} />}
+                />
+                <ThemedText style={styles.shareButtonText}>{t("share")}</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {summary ? (
+            <ThemedText
+              testID="article-summary"
+              style={[
+                styles.summary,
+                { fontSize: 16 * fontScale, lineHeight: 24 * fontScale },
+              ]}
+            >
+              {summary}
+            </ThemedText>
+          ) : null}
+
+          <TouchableOpacity
+            testID="article-read-original"
+            onPress={openOriginal}
+            style={[styles.readOriginal, { backgroundColor: theme.tint }]}
+            accessibilityRole="link"
+            accessibilityLabel={t("readOnTemplate", { source: data.source })}
+          >
+            <ThemedText style={[styles.readOriginalText, { color: theme.tintText }]}>
+              {t("readOnTemplate", { source: data.source })}
+            </ThemedText>
+          </TouchableOpacity>
+
+          {data.related.length > 0 && (
+            <View style={styles.relatedSection}>
+              <ThemedText
+                type="smallBold"
+                style={styles.relatedHeading}
+                accessibilityRole="header"
+              >
+                {t("relatedArticles")}
+              </ThemedText>
+              {data.related.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[styles.relatedRow, { borderColor: theme.backgroundSelected }]}
+                  onPress={() => router.push(articleHref(item.id, basePath))}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${item.title}, ${item.source}`}
+                >
+                  <View style={styles.relatedThumb}>
+                    <ArticleImage
+                      uri={item.image_url}
+                      category={item.category}
+                      height={80}
+                      alt={item.title}
+                      radius={Radius.small}
+                    />
+                  </View>
+                  <View style={styles.relatedTextBlock}>
+                    <ThemedText numberOfLines={3} style={styles.relatedTitle}>
+                      {item.title}
+                    </ThemedText>
+                    <ThemedText themeColor="textSecondary" type="small">
+                      {item.source}
+                    </ThemedText>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      )}
+    </View>
   );
 }
 
@@ -492,18 +412,7 @@ function ArticleDetailSkeleton({
 }
 
 const styles = StyleSheet.create({
-  centerFill: { flex: 1, alignItems: "center", justifyContent: "center" },
   scrollContent: { paddingHorizontal: Spacing.four },
-  swipeIndicator: {
-    position: "absolute",
-    top: "45%",
-    width: 44,
-    height: 44,
-    borderRadius: Radius.full,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  swipeArrow: { fontSize: 24, fontWeight: "700" },
   heroWrapper: { position: "relative" },
   infoBadge: {
     position: "absolute",
