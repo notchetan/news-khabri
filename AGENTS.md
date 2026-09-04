@@ -50,11 +50,20 @@ new one.
 - OTA updates via `expo-updates` (`runtimeVersion` policy `appVersion`,
   channel URL in `app.json`). Inert until `eas update` is actually
   pushing; no runtime code of ours touches it.
-- Preferences (theme, language, font size, debug mode) each live in
-  their own React Context under `src/contexts/`, persisted to
-  `AsyncStorage`, one provider per concern rather than one big settings
-  context. `src/hooks/use-theme.ts` and `useTranslation()`
-  (`src/i18n/translations.ts`) are the two you'll reach for constantly.
+- Preferences (theme, language, font size, sources, notifications, debug
+  mode) each have their own React Context + `useXxxPreference()` hook
+  under `src/contexts/`, one provider per concern rather than one big
+  settings context. The load / persist / re-read-on-server-pull /
+  broadcast plumbing is shared: `createPersistedPreference({ storageKey,
+  defaultValue, codec })` returns a `{ Context, Provider }`, and each
+  concern's file adds only its own bits — `codec.parse` returning
+  `undefined` keeps the default (invalid/missing key), any defined value
+  applies; `theme` layers `resolvedScheme` + the `Appearance` sync,
+  `notifications` layers push registration, `sources` slices its
+  per-language record by the active language. Add a new preference by
+  calling the factory, not by copying a context. `src/hooks/use-theme.ts`
+  and `useTranslation()` (`src/i18n/translations.ts`) are the two you'll
+  reach for constantly.
 - i18n: 10 languages, each a plain `Record<string, string>` file under
   `src/i18n/locales/`, keyed by the same `TranslationKey` union (derived
   from `en.ts`). Adding a language = adding a locale file + registering

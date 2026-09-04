@@ -1,73 +1,29 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { useContext } from "react";
 
-import { notifyPreferenceChanged, onPreferenceChanged } from "@/utils/preference-sync";
+import { createPersistedPreference } from "@/contexts/create-persisted-preference";
 
 export const DEBUG_STORAGE_KEY = "debugPreference";
-const STORAGE_KEY = DEBUG_STORAGE_KEY;
 
-type DebugPreferenceContextValue = {
-  debugEnabled: boolean;
-  setDebugEnabled: (enabled: boolean) => void;
-};
+const base = createPersistedPreference<boolean>({
+  storageKey: DEBUG_STORAGE_KEY,
+  defaultValue: false,
+  // Any stored string resolves (so a reload can turn this *off* too, not
+  // just on) - "true" is true, everything else false.
+  codec: { parse: (raw) => raw === "true", serialize: (v) => String(v) },
+});
 
-const DebugPreferenceContext = createContext<
-  DebugPreferenceContextValue | undefined
->(undefined);
-
-export function DebugPreferenceProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const [debugEnabled, setDebugEnabledState] = useState(false);
-
-  // Also re-reads on every AuthProvider preference pull - see
-  // docs/google-sign-in.md. Unconditionally sets both true and false (not
-  // just "true" -> true, leaving the useState(false) default do the rest)
-  // - a reload needs to be able to turn this *off* too, not just on.
-  useEffect(() => {
-    const load = () => {
-      AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
-        if (stored != null) setDebugEnabledState(stored === "true");
-      });
-    };
-    load();
-    return onPreferenceChanged(load);
-  }, []);
-
-  const setDebugEnabled = (next: boolean) => {
-    setDebugEnabledState(next);
-    AsyncStorage.setItem(STORAGE_KEY, String(next));
-    notifyPreferenceChanged();
-  };
-
-  return (
-    // Debug mode is a developer aid (the ranking-score pills on feed
-    // cards), never a shipped user feature - force it off in a release
-    // build even if a previous dev build left "true" in AsyncStorage. The
-    // toggle that sets it is also only rendered when __DEV__ (see
-    // preferences/index.tsx).
-    <DebugPreferenceContext.Provider
-      value={{ debugEnabled: __DEV__ && debugEnabled, setDebugEnabled }}
-    >
-      {children}
-    </DebugPreferenceContext.Provider>
-  );
-}
+export const DebugPreferenceProvider = base.Provider;
 
 export function useDebugPreference() {
-  const ctx = useContext(DebugPreferenceContext);
+  const ctx = useContext(base.Context);
   if (!ctx) {
     throw new Error(
       "useDebugPreference must be used within a DebugPreferenceProvider"
     );
   }
-  return ctx;
+  // Debug mode is a developer aid (the ranking-score pills on feed cards),
+  // never a shipped user feature - force it off in a release build even if
+  // a previous dev build left "true" in AsyncStorage. The toggle that sets
+  // it is also only rendered when __DEV__ (see preferences/index.tsx).
+  return { debugEnabled: __DEV__ && ctx.value, setDebugEnabled: ctx.setValue };
 }
