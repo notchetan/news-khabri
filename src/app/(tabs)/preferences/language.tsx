@@ -1,14 +1,10 @@
 import { useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
-import { Pressable, StyleSheet } from "react-native";
 
+import CheckmarkRow from "@/components/checkmark-row";
 import LegalDocumentScreen from "@/components/legal-document-screen";
 import PageHeader from "@/components/page-header";
-import { ThemedText } from "@/components/themed-text";
 import { LANGUAGE_ENDONYMS, LANGUAGE_OPTIONS } from "@/constants/languages";
-import { Spacing } from "@/constants/theme";
 import { useLanguagePreference } from "@/contexts/language-preference";
-import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 
 // A pushed screen with a checkmarked list, not a modal sheet - the same
@@ -20,7 +16,6 @@ export default function LanguageScreen() {
   const router = useRouter();
   const { language, setLanguage } = useLanguagePreference();
   const { t } = useTranslation();
-  const theme = useTheme();
 
   return (
     <LegalDocumentScreen
@@ -29,44 +24,17 @@ export default function LanguageScreen() {
         <PageHeader title={t("language")} onGoBack={goBack} testIDPrefix="language" />
       )}
     >
-      {LANGUAGE_OPTIONS.map((option) => {
-        const selected = language === option.value;
-        return (
-          <Pressable
-            key={option.value}
-            onPress={() => {
-              setLanguage(option.value);
-              router.back();
-            }}
-            style={[styles.row, { borderColor: theme.backgroundSelected }]}
-            accessibilityRole="button"
-            accessibilityState={{ selected }}
-          >
-            <ThemedText type="default" style={[selected && { color: theme.tint }]}>
-              {LANGUAGE_ENDONYMS[option.value]}
-            </ThemedText>
-            {selected && (
-              <SymbolView
-                name="checkmark"
-                size={16}
-                weight="semibold"
-                tintColor={theme.tint}
-                fallback={<ThemedText style={{ color: theme.tint }}>✓</ThemedText>}
-              />
-            )}
-          </Pressable>
-        );
-      })}
+      {LANGUAGE_OPTIONS.map((option) => (
+        <CheckmarkRow
+          key={option.value}
+          label={LANGUAGE_ENDONYMS[option.value]}
+          selected={language === option.value}
+          onPress={() => {
+            setLanguage(option.value);
+            router.back();
+          }}
+        />
+      ))}
     </LegalDocumentScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.three,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-});
