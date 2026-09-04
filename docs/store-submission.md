@@ -84,8 +84,14 @@ this is already satisfied — no `expo-build-properties` override needed.
 - [ ] Screenshots: 6.9" and 6.5" iPhone (required), 13" iPad if the app is
       offered on iPad.
 - [ ] App description, keywords, support URL, marketing URL.
-- [ ] Sign in with Apple — still required (Guideline 4.8, since Google
-      sign-in is offered) and still unbuilt.
+- [x] **Sign in with Apple** (Guideline 4.8) — built: `POST /auth/apple`
+      (JWKS verification, no client secret), `expo-apple-authentication` +
+      the native button on both sign-in surfaces (iOS only), `users`
+      schema takes a second provider id. See `docs/apple-sign-in.md`.
+      **Left to do on your Apple Developer account**: enable the "Sign In
+      with Apple" capability on the `com.newskhabri.app` App ID, then an
+      EAS build carries the entitlement (the config plugin already adds
+      it) and the flow can be tested on a device.
 
 ### Play Console
 

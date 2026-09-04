@@ -5,6 +5,7 @@ import {
   deleteAccount,
   fetchMe,
   putPreferences,
+  signInWithApple,
   signInWithGoogle,
 } from "@/api/auth";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
@@ -13,9 +14,13 @@ import { ThemePreferenceProvider, useThemePreference } from "@/contexts/theme-pr
 jest.mock("@/api/auth", () => ({
   fetchMe: jest.fn(),
   signInWithGoogle: jest.fn(),
+  signInWithApple: jest.fn(),
   putPreferences: jest.fn(),
   deleteAccount: jest.fn(),
 }));
+
+const mockAppleSignInAsync = jest.requireMock("expo-apple-authentication")
+  .signInAsync as jest.Mock;
 
 jest.mock("@/api/notifications", () => ({
   registerPushSubscription: jest.fn().mockResolvedValue(undefined),
@@ -44,6 +49,7 @@ jest.mock("@react-native-google-signin/google-signin", () => ({
 
 const mockFetchMe = fetchMe as jest.Mock;
 const mockSignInWithGoogle = signInWithGoogle as jest.Mock;
+const mockSignInWithApple = signInWithApple as jest.Mock;
 const mockPutPreferences = putPreferences as jest.Mock;
 const mockDeleteAccount = deleteAccount as jest.Mock;
 
@@ -138,6 +144,50 @@ describe("AuthProvider preference sync", () => {
     });
 
     expect(mockRegisterPushSubscription).not.toHaveBeenCalled();
+  });
+
+  it("signInWithApple exchanges the Apple credential (incl. first-time name) for a session", async () => {
+    mockAppleSignInAsync.mockResolvedValue({
+      identityToken: "apple-identity-token",
+      fullName: { givenName: "Chetan", familyName: "Shetty" },
+    });
+    mockSignInWithApple.mockResolvedValue({
+      token: "apple-session-token",
+      user: { id: 2, email: "chetan@privaterelay.appleid.com", name: "Chetan Shetty", avatarUrl: null },
+      preferences: null,
+    });
+
+    const { result } = await renderHook(() => ({ auth: useAuth() }), { wrapper });
+
+    await act(async () => {
+      await result.current.auth.signInWithApple();
+    });
+    await waitFor(() => expect(result.current.auth.user).not.toBeNull());
+
+    expect(mockSignInWithApple).toHaveBeenCalledWith("apple-identity-token", {
+      givenName: "Chetan",
+      familyName: "Shetty",
+    });
+    expect(result.current.auth.token).toBe("apple-session-token");
+    expect(result.current.auth.user?.email).toBe("chetan@privaterelay.appleid.com");
+  });
+
+  it("signInWithApple treats a user cancel (ERR_REQUEST_CANCELED) as a no-op, not an error", async () => {
+    mockAppleSignInAsync.mockRejectedValue(
+      Object.assign(new Error("The user canceled the authorization attempt."), {
+        code: "ERR_REQUEST_CANCELED",
+      })
+    );
+
+    const { result } = await renderHook(() => ({ auth: useAuth() }), { wrapper });
+
+    await act(async () => {
+      await result.current.auth.signInWithApple();
+    });
+
+    expect(result.current.auth.user).toBeNull();
+    expect(result.current.auth.signInError).toBeNull();
+    expect(mockSignInWithApple).not.toHaveBeenCalled();
   });
 
   // The push side of the sync bus - see "The preference sync bus" in

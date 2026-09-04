@@ -1,24 +1,31 @@
-# Google Sign-In and account-linked preferences
+# Sign-in and account-linked preferences
 
-The backend's own `docs/google-sign-in.md` (in `news-khabri-backend`)
-covers the server side - session tokens, `/auth/google`, `/me`,
-`/me/preferences`. This covers the frontend half.
+The backend's own `docs/google-sign-in.md` + `docs/apple-sign-in.md` (in
+`news-khabri-backend`) cover the server side - session tokens,
+`/auth/google`, `/auth/apple`, `/me`, `/me/preferences`. This covers the
+frontend half. Google sign-in works on Android + iOS; Sign in with Apple
+is iOS-only (App Store Guideline 4.8 requires offering it once Google is
+offered) and both sign-in surfaces (`onboarding/sign-in.tsx`,
+`profile.tsx`) show the Apple button above the Google one on iOS.
 
-## Why two new native modules are required lazily, not imported
+## Why the sign-in native modules are required lazily, not imported
 
-Both `@react-native-google-signin/google-signin` and `expo-secure-store`
-are native modules added to this app but not necessarily linked into
-whatever build is currently installed on a device - the same situation
-`expo-notifications` was in (see that feature's own
+`@react-native-google-signin/google-signin`, `expo-secure-store` and
+`expo-apple-authentication` are native modules added to this app but not
+necessarily linked into whatever build is currently installed on a device
+- the same situation `expo-notifications` was in (see that feature's own
 `docs/push-notifications.md`'s "Why expo-notifications is required
 lazily"). Merely *importing* an unlinked native module can crash the
 whole app on boot, not just the feature that needed it - and
 `expo-secure-store` in particular is touched on **every single app
 launch** (`AuthProvider`'s own session-restore check), which is exactly
-the always-run code path that caused that earlier crash. Neither module
-is imported at `contexts/auth-context.tsx`'s module scope; both are
-`require()`'d inside the specific function that needs them, each wrapped
-in its own try/catch.
+the always-run code path that caused that earlier crash. None of them is
+imported at `contexts/auth-context.tsx`'s module scope; each is
+`require()`'d inside the specific function that needs it, wrapped in
+try/catch. `AppleSignInButton` (`components/apple-sign-in-button.tsx`)
+`require()`s `expo-apple-authentication` too, but only after an
+`if (Platform.OS !== "ios") return null` guard, so the require never runs
+on Android at all.
 
 ## The preference sync bus (`utils/preference-sync.ts`)
 

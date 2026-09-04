@@ -6,6 +6,7 @@ import { Platform, Pressable, StyleSheet } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AppleSignInButton } from "@/components/apple-sign-in-button";
 import { OnboardingDots } from "@/components/onboarding-dots";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -25,7 +26,7 @@ export default function OnboardingSignInScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, signInError, signIn } = useAuth();
+  const { user, signInError, signIn, signInWithApple } = useAuth();
   const { completeOnboarding } = useOnboarding();
   const swipeGesture = useOnboardingSwipe({ onPrevious: () => router.back() });
 
@@ -72,6 +73,8 @@ export default function OnboardingSignInScreen() {
         </ThemedView>
 
         <ThemedView style={styles.actions}>
+          {/* Apple first, per Apple's HIG for the sign-in list. */}
+          <AppleSignInButton onPress={signInWithApple} style={styles.appleButton} />
           <Pressable
             testID="onboarding-sign-in"
             onPress={signIn}
@@ -126,5 +129,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full,
   },
   signInButton: { flexDirection: "row", alignItems: "center", gap: Spacing.two },
+  appleButton: { width: 260 },
   skipButton: { paddingHorizontal: Spacing.five, paddingVertical: Spacing.two },
 });
