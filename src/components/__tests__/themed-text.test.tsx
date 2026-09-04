@@ -20,7 +20,6 @@ describe("ThemedText", () => {
     "subtitle",
     "link",
     "linkPrimary",
-    "code",
   ] as const)("renders without crashing for type=%s", async (type) => {
     await renderWithTheme(<ThemedText type={type}>Hello</ThemedText>);
     expect(screen.getByText("Hello")).toBeTruthy();
