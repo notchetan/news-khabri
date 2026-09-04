@@ -107,7 +107,7 @@ function renderScreen() {
       <ThemePreferenceProvider>
         <LanguagePreferenceProvider>
           <AuthProvider>
-            <StoryDetailScreen articleBasePath="/article" homePath="/" />
+            <StoryDetailScreen />
           </AuthProvider>
         </LanguagePreferenceProvider>
       </ThemePreferenceProvider>

@@ -30,16 +30,14 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type Props = {
-  // The article detail screen a member row opens into, and the route this
-  // story-feed lives under - same basePath/homePath convention used by
-  // ArticleDetailScreen, kept for forward compatibility if a second
-  // (e.g. search-tab) story surface is ever added.
-  articleBasePath: "/article";
-  homePath: "/";
-};
+// Stories only exist under the home tab, so unlike ArticleDetailScreen
+// there's nothing to parameterize - these were single-member unions, i.e.
+// constants wearing a prop's clothes. Re-add the props if a second story
+// surface ever appears.
+const ARTICLE_BASE_PATH = "/article" as const;
+const HOME_PATH = "/" as const;
 
-export default function StoryDetailScreen({ articleBasePath, homePath }: Props) {
+export default function StoryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const theme = useTheme();
@@ -81,7 +79,7 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.replace(homePath);
+      router.replace(HOME_PATH);
     }
   };
 
@@ -113,9 +111,9 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
   const representativeArticleId = data?.representativeArticle?.id;
   useEffect(() => {
     if (isSingleton && representativeArticleId != null) {
-      router.replace(articleHref(representativeArticleId, articleBasePath));
+      router.replace(articleHref(representativeArticleId, ARTICLE_BASE_PATH));
     }
-  }, [isSingleton, representativeArticleId, articleBasePath, router]);
+  }, [isSingleton, representativeArticleId, router]);
 
   // Feeds the backend's personalized-ranking signal via the story's own
   // representative article - see the backend's docs/personalization.md and
@@ -210,7 +208,7 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
               <TouchableOpacity
                 key={member.id}
                 style={[styles.memberRow, { borderColor: theme.backgroundSelected }]}
-                onPress={() => router.push(articleHref(member.id, articleBasePath))}
+                onPress={() => router.push(articleHref(member.id, ARTICLE_BASE_PATH))}
                 accessibilityRole="button"
                 accessibilityLabel={`${member.title}, ${member.source}`}
               >

@@ -343,7 +343,6 @@ function MeasureProbe({
 
 function Pill({
   category,
-  displayLabel,
   getLabel,
   isActive,
   onPress,
@@ -351,22 +350,19 @@ function Pill({
   // The real category value - always used for the selection/onPress
   // contract, regardless of what's visually shown.
   category: string;
-  // What's actually rendered, if it should differ from getLabel(category).
-  displayLabel?: string;
   getLabel: (category: string) => string;
   isActive: boolean;
   onPress: () => void;
 }) {
   const theme = useTheme();
-  const fullLabel = getLabel(category);
-  const label = displayLabel ?? fullLabel;
+  const label = getLabel(category);
 
   return (
     <TouchableOpacity
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected: isActive }}
-      accessibilityLabel={fullLabel}
+      accessibilityLabel={label}
       style={[
         styles.pill,
         { backgroundColor: isActive ? theme.tint : theme.backgroundElement },
