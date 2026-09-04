@@ -5,6 +5,7 @@ import { Platform, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Spacing } from "@/constants/theme";
+import { useTabBarInset } from "@/hooks/use-tab-bar-inset";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 import { categoryLabelKey } from "@/utils/category-label";
@@ -15,6 +16,10 @@ export default function SearchCategoryScreen() {
   const theme = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  // This screen lives inside the tabs, so its list scrolls behind the native
+  // tab bar - without this the last card sits under it. See AGENTS.md's
+  // useSafeAreaInsets()-doesn't-include-the-tab-bar lesson.
+  const bottomPadding = useTabBarInset();
 
   const topPadding = Platform.select({
     default: insets.top,
@@ -39,7 +44,13 @@ export default function SearchCategoryScreen() {
 
   return (
     <View
-      style={{ flex: 1, paddingTop: topPadding, backgroundColor: theme.background }}
+      testID="category-screen-container"
+      style={{
+        flex: 1,
+        paddingTop: topPadding,
+        paddingBottom: bottomPadding,
+        backgroundColor: theme.background,
+      }}
     >
       <View style={styles.headerRow}>
         <Pressable
