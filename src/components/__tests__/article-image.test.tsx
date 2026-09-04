@@ -84,6 +84,39 @@ describe("ArticleImage", () => {
     );
   });
 
+  // The article detail screen reuses this component's position in the tree
+  // when you tap through to a related article, so a failure that stuck to
+  // the component showed the warning placeholder over the next article's
+  // perfectly good photo.
+  it("clears a previous failure when the uri changes", async () => {
+    const { rerender } = await renderWithProviders(
+      <ArticleImage uri="https://example.com/broken.jpg" alt="First" />
+    );
+
+    await act(async () => {
+      screen
+        .getByRole("image")
+        .props.onError({ nativeEvent: { error: "load failed" } });
+    });
+    await screen.findByText("Image failed to load");
+
+    await act(async () => {
+      rerender(
+        <ThemePreferenceProvider>
+          <LanguagePreferenceProvider>
+            <ArticleImage uri="https://example.com/fine.jpg" alt="Second" />
+          </LanguagePreferenceProvider>
+        </ThemePreferenceProvider>
+      );
+    });
+
+    expect(screen.queryByText("Image failed to load")).toBeNull();
+    // expo-image normalizes `source` into an array of sources.
+    expect(screen.getByRole("image")).toHaveProp("source", [
+      { uri: "https://example.com/fine.jpg" },
+    ]);
+  });
+
   it("still renders the image correctly with a custom radius", async () => {
     await renderWithProviders(
       <ArticleImage uri="https://example.com/photo.jpg" alt="A news photo" radius={4} />
