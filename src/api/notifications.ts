@@ -1,4 +1,4 @@
-import { API_BASE_URL as BASE_URL } from "./config";
+import { apiFetch } from "./client";
 
 // Registers (or updates) this device's push token with the backend -
 // called every time the interval or language preference changes, not just
@@ -13,23 +13,22 @@ export async function registerPushSubscription(
   language: string,
   sessionToken?: string | null
 ): Promise<void> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (sessionToken) headers.Authorization = `Bearer ${sessionToken}`;
-  const res = await fetch(`${BASE_URL}/push-subscriptions`, {
+  await apiFetch("/push-subscriptions", {
     method: "POST",
-    headers,
-    body: JSON.stringify({ pushToken, intervalMinutes, language }),
+    token: sessionToken,
+    body: { pushToken, intervalMinutes, language },
+    parseJson: false,
+    errorMessage: "Failed to register push subscription",
   });
-  if (!res.ok) throw new Error("Failed to register push subscription");
 }
 
 // Forget this device's subscription entirely - no auth, the caller holds
 // the token. Used on sign-out alongside a fresh anonymous register.
 export async function deregisterPushSubscription(pushToken: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}/push-subscriptions`, {
+  await apiFetch("/push-subscriptions", {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ pushToken }),
+    body: { pushToken },
+    parseJson: false,
+    errorMessage: "Failed to deregister push subscription",
   });
-  if (!res.ok) throw new Error("Failed to deregister push subscription");
 }

@@ -1,4 +1,4 @@
-import { API_BASE_URL as BASE_URL } from "./config";
+import { apiFetch } from "./client";
 
 export type StoryRepresentativeArticle = {
   id: number;
@@ -62,15 +62,12 @@ export async function fetchStoryFeed(
   if (limit) params.set("limit", String(limit));
   if (sources && sources.length > 0) params.set("sources", sources.join(","));
 
-  const res = await fetch(`${BASE_URL}/stories/top?${params}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  return apiFetch(`/stories/top?${params}`, {
+    token,
+    errorMessage: "Failed to fetch story feed",
   });
-  if (!res.ok) throw new Error("Failed to fetch story feed");
-  return res.json();
 }
 
 export async function fetchStoryDetail(id: number): Promise<StoryDetail> {
-  const res = await fetch(`${BASE_URL}/stories/${id}`);
-  if (!res.ok) throw new Error("Failed to fetch story");
-  return res.json();
+  return apiFetch(`/stories/${id}`, { errorMessage: "Failed to fetch story" });
 }

@@ -1,4 +1,4 @@
-import { API_BASE_URL as BASE_URL } from "./config";
+import { apiFetch } from "./client";
 
 // Records that this signed-in user opened an article - the backend's own
 // signal for /stories/top's personalized ranking (see the backend's
@@ -6,10 +6,11 @@ import { API_BASE_URL as BASE_URL } from "./config";
 // themselves (matches auth-context.tsx's own putPreferences convention) -
 // a failed read-record isn't worth surfacing to the reader.
 export async function recordRead(token: string, articleId: number): Promise<void> {
-  const res = await fetch(`${BASE_URL}/me/reads`, {
+  await apiFetch("/me/reads", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ articleId }),
+    token,
+    body: { articleId },
+    parseJson: false,
+    errorMessage: "Failed to record read",
   });
-  if (!res.ok) throw new Error("Failed to record read");
 }
