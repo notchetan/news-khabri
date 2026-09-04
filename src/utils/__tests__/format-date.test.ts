@@ -91,6 +91,19 @@ describe("formatRelativeTime", () => {
     expect(formatRelativeTime("2026-08-26T12:05:00Z", t)).toBe("Just now");
   });
 
+  // Elapsed time counts whole units that have actually passed. Rounding up
+  // made articles read as older than they are, which is the wrong direction
+  // to be wrong in for a news feed.
+  it.each([
+    ["90 seconds is 1 minute, not 2", "2026-08-26T11:58:30Z", "1m ago"],
+    ["59 minutes stays in minutes", "2026-08-26T11:01:00Z", "59m ago"],
+    ["90 minutes is 1 hour, not 2", "2026-08-26T10:30:00Z", "1h ago"],
+    ["23.5 hours is 23 hours, not 1 day", "2026-08-25T12:30:00Z", "23h ago"],
+    ["36 hours is 1 day, not 2", "2026-08-25T00:00:00Z", "1d ago"],
+  ])("rounds down, not up (%s)", (_label, input, expected) => {
+    expect(formatRelativeTime(input, t)).toBe(expected);
+  });
+
   it("calls through the given t() rather than hardcoding English - proves this is actually localizable", () => {
     const trackedCalls: [string, Record<string, string> | undefined][] = [];
     const trackingT = (key: TranslationKey, vars?: Record<string, string>) => {
