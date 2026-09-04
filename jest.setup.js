@@ -16,3 +16,18 @@ jest.mock("@sentry/react-native", () => ({
   wrap: (component) => component,
   captureException: jest.fn(),
 }));
+
+// Native module - jest-expo runs with Platform.OS "ios", so the
+// AppleSignInButton actually renders. The button forwards its props
+// (testID, onPress) so tests can drive it; signInAsync is set per-test.
+jest.mock("expo-apple-authentication", () => {
+  const React = require("react");
+  return {
+    AppleAuthenticationButton: (props) => React.createElement("View", props),
+    AppleAuthenticationButtonType: { SIGN_IN: 0, CONTINUE: 1, SIGN_UP: 2 },
+    AppleAuthenticationButtonStyle: { WHITE: 0, WHITE_OUTLINE: 1, BLACK: 2 },
+    AppleAuthenticationScope: { FULL_NAME: 0, EMAIL: 1 },
+    signInAsync: jest.fn(),
+    isAvailableAsync: jest.fn().mockResolvedValue(true),
+  };
+});

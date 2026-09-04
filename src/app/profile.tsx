@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Alert, Image, Platform, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AppleSignInButton } from "@/components/apple-sign-in-button";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Radius, Spacing } from "@/constants/theme";
@@ -22,7 +23,8 @@ export default function ProfileScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, isLoading, signInError, signIn, signOut, deleteAccount } = useAuth();
+  const { user, isLoading, signInError, signIn, signInWithApple, signOut, deleteAccount } =
+    useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const topPadding = Platform.select({
@@ -144,6 +146,8 @@ export default function ProfileScreen() {
             <ThemedText themeColor="textSecondary" style={styles.message}>
               {t("signInDescription")}
             </ThemedText>
+            {/* Apple first, per Apple's HIG for the sign-in list. */}
+            <AppleSignInButton onPress={signInWithApple} style={styles.appleButton} />
             <Pressable
               onPress={signIn}
               style={[styles.button, styles.signInButton, { backgroundColor: theme.tint }]}
@@ -206,6 +210,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full,
   },
   signInButton: { flexDirection: "row", alignItems: "center", gap: Spacing.two },
+  appleButton: { marginTop: Spacing.four, width: 260 },
   error: { marginTop: Spacing.three, textAlign: "center" },
   // Text-only, no fill - a quieter treatment than the filled buttons
   // above, since it's a destructive action the reader shouldn't reach for

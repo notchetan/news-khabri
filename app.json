@@ -85,6 +85,7 @@
       "expo-web-browser",
       "expo-notifications",
       "@react-native-google-signin/google-signin",
+      "expo-apple-authentication",
       "expo-secure-store",
       "@sentry/react-native"
     ],

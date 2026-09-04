@@ -12,7 +12,9 @@ import {
   deleteAccount as deleteAccountRequest,
   fetchMe,
   putPreferences,
+  signInWithApple,
   signInWithGoogle,
+  type AuthResponse,
   type AuthUser,
   type PreferenceBundle,
   type ServerPreferences,
@@ -52,7 +54,10 @@ type AuthContextValue = {
   token: string | null;
   isLoading: boolean;
   signInError: string | null;
+  // Google sign-in (Android + iOS). Apple sign-in (iOS only) is a
+  // separate entry point - the UI shows both on iOS.
   signIn: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   signOut: () => Promise<void>;
   // Permanently deletes the server-side account, then tears down the local
   // session exactly like signOut. Rejects (without clearing the session)
@@ -282,6 +287,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, [token]);
 
+  // Shared tail of every sign-in: store the session token and reconcile
+  // this device's preferences against the account's (existing account) or
+  // seed the account with them (new account).
+  const establishSession = async (response: AuthResponse) => {
+    const { token: sessionToken, user: signedInUser, preferences } = response;
+    await storeToken(sessionToken);
+    setToken(sessionToken);
+    setUser(signedInUser);
+
+    if (preferences) {
+      // An existing account's saved preferences become this device's
+      // source of truth.
+      await applyServerPreferences(preferences);
+      const bundle = await readLocalPreferencesBundle();
+      lastSyncedBundleRef.current = bundle;
+      await writeSyncBaseline(bundle);
+    } else {
+      // A brand new account - seed it with whatever this device currently
+      // has, rather than leaving it empty.
+      const bundle = await readLocalPreferencesBundle();
+      await putPreferences(sessionToken, bundle).catch(() => {});
+      lastSyncedBundleRef.current = bundle;
+      await writeSyncBaseline(bundle);
+    }
+  };
+
   const signIn = async () => {
     setSignInError(null);
     try {
@@ -297,29 +328,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result.type !== "success" || !result.data.idToken) {
         return; // Cancelled, or no ID token - nothing to sign in with.
       }
-
-      const { token: sessionToken, user: signedInUser, preferences } =
-        await signInWithGoogle(result.data.idToken);
-      await storeToken(sessionToken);
-      setToken(sessionToken);
-      setUser(signedInUser);
-
-      if (preferences) {
-        // An existing account's saved preferences become this device's
-        // source of truth.
-        await applyServerPreferences(preferences);
-        const bundle = await readLocalPreferencesBundle();
-        lastSyncedBundleRef.current = bundle;
-        await writeSyncBaseline(bundle);
-      } else {
-        // A brand new account - seed it with whatever this device
-        // currently has, rather than leaving it empty.
-        const bundle = await readLocalPreferencesBundle();
-        await putPreferences(sessionToken, bundle).catch(() => {});
-        lastSyncedBundleRef.current = bundle;
-        await writeSyncBaseline(bundle);
-      }
+      await establishSession(await signInWithGoogle(result.data.idToken));
     } catch (err) {
+      setSignInError(err instanceof Error ? err.message : "Sign-in failed");
+    }
+  };
+
+  const signInWithAppleFlow = async () => {
+    setSignInError(null);
+    try {
+      const AppleAuthentication: typeof import("expo-apple-authentication") = require("expo-apple-authentication");
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+      if (!credential.identityToken) return; // Nothing to verify server-side.
+      await establishSession(
+        await signInWithApple(credential.identityToken, credential.fullName)
+      );
+    } catch (err) {
+      // A user cancelling the native sheet isn't an error worth surfacing.
+      if (
+        err &&
+        typeof err === "object" &&
+        "code" in err &&
+        err.code === "ERR_REQUEST_CANCELED"
+      ) {
+        return;
+      }
       setSignInError(err instanceof Error ? err.message : "Sign-in failed");
     }
   };
@@ -377,7 +415,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, isLoading, signInError, signIn, signOut, deleteAccount }}
+      value={{
+        user,
+        token,
+        isLoading,
+        signInError,
+        signIn,
+        signInWithApple: signInWithAppleFlow,
+        signOut,
+        deleteAccount,
+      }}
     >
       {children}
     </AuthContext.Provider>
