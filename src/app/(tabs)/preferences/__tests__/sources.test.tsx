@@ -80,6 +80,32 @@ describe("SourcesScreen (multi-select picker)", () => {
     expect(screen.queryByRole("button", { name: "Clear all" })).toBeNull();
   });
 
+  // Before this, a failed fetch rendered a blank list under the description
+  // with no explanation and no retry - the one query-backed screen that
+  // never got the shared ErrorState (AGENTS.md requires it everywhere).
+  it("shows a retryable error state instead of a blank list when the fetch fails", async () => {
+    mockFetchSources.mockRejectedValue(new Error("offline"));
+
+    await act(async () => {
+      renderScreen();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("sources-error")).toBeTruthy();
+    });
+    expect(screen.getByRole("button", { name: "Try again" })).toBeTruthy();
+
+    mockFetchSources.mockResolvedValue(["NDTV"]);
+    await act(async () => {
+      fireEvent.press(screen.getByRole("button", { name: "Try again" }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("NDTV")).toBeTruthy();
+    });
+    expect(screen.queryByTestId("sources-error")).toBeNull();
+  });
+
   it("lists every source for the active language, all selected by default", async () => {
     await act(async () => {
       renderScreen();

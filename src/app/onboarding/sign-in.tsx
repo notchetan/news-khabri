@@ -26,7 +26,7 @@ export default function OnboardingSignInScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, signInError, signIn, signInWithApple } = useAuth();
+  const { user, signInError, clearSignInError, signIn, signInWithApple } = useAuth();
   const { completeOnboarding } = useOnboarding();
   const swipeGesture = useOnboardingSwipe({ onPrevious: () => router.back() });
 
@@ -42,6 +42,10 @@ export default function OnboardingSignInScreen() {
     if (user) finish();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  // signInError lives in AuthProvider, which outlives this screen - without
+  // this, a failure here would still be showing on the Profile screen later.
+  useEffect(() => clearSignInError, [clearSignInError]);
 
   const topPadding = Platform.select({ default: insets.top, web: Spacing.six });
   const bottomPadding = insets.bottom + Spacing.five;
@@ -66,8 +70,11 @@ export default function OnboardingSignInScreen() {
             {t("onboardingSignInDescription")}
           </ThemedText>
           {signInError && (
-            <ThemedText themeColor="textSecondary" style={styles.error}>
-              {signInError}
+            <ThemedText
+              testID="onboarding-sign-in-error"
+              style={[styles.error, { color: theme.danger }]}
+            >
+              {t("unexpectedError")}
             </ThemedText>
           )}
         </ThemedView>

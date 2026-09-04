@@ -332,9 +332,15 @@ describe("ProfileScreen", () => {
       fireEvent.press(screen.getByRole("button", { name: "Sign in with Google" }));
     });
 
+    // The reader gets a translated generic, never the raw native SDK string
+    // (which can be something like DEVELOPER_ERROR). The real error goes to
+    // Sentry - see auth-context.tsx.
     await waitFor(() => {
-      expect(screen.getByText("Network error")).toBeTruthy();
+      expect(screen.getByTestId("profile-sign-in-error")).toHaveTextContent(
+        "The app hit an unexpected error."
+      );
     });
+    expect(screen.queryByText("Network error")).toBeNull();
   });
 
   it("restores a previously signed-in session on mount, validated against the server", async () => {
