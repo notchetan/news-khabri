@@ -6,23 +6,24 @@ component. See
 the general cross-script glyph-centering lesson this screen's font-size
 preview also relies on.
 
-## Font-size preview height, reserved via a hidden probe
+## Font-size preview height, reserved with a fixed `minHeight`
 
 Switching between font sizes (small/medium/large) shouldn't visibly shift
-the layout below the preview text. `previewHeight` is measured once from
-a hidden probe (`previewProbeWrapper`, `height: 0` + `overflow: "hidden"`,
-letting the `Text` inside lay out normally so `onLayout` measures its true
-wrapped height) rendered at the *largest* font scale regardless of what's
-currently selected, then applied as a fixed `minHeight` on the visible
-preview text.
+the layout below the preview text. The preview carries a constant
+`minHeight` (`PREVIEW_MIN_HEIGHT` = `FONT_PREVIEW_BASE_SIZE *
+LARGEST_FONT_SCALE * 1.4 * PREVIEW_MAX_LINES`) plus
+`numberOfLines={PREVIEW_MAX_LINES}` (3). Every locale's `fontPreviewText`
+is one short sentence (~40-55 characters), which wraps to two lines even
+at the largest scale, so reserving three worst-case lines permanently
+means the box is always the same height regardless of the selected size,
+and the line cap guarantees the text can't exceed the reservation and
+push it taller.
 
-A fixed `minHeight` guess that happened to fit some sizes but not others
-was tried first - small's own 1-line height was already well under that
-guess, but the guess was still recomputed on every switch, which is what
-actually produced the visible shift. Reserving the true worst case once,
-from a probe, fixes it for every pair of sizes (small<->medium,
-medium<->large, small<->large), not just the one it happened to be tuned
-against.
+This used to be measured from a hidden zero-height `onLayout` probe
+rendered at the largest scale. The probe worked but was a fair amount of
+machinery (a `previewProbeWrapper` style, a `previewHeight` state, a
+layout handler) for a value that's a compile-time constant given the
+known base size, scale, and that the strings are all one short line.
 
 ## Font-size sample glyph centering
 

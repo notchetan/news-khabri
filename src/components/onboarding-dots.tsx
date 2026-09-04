@@ -12,9 +12,8 @@ const ACTIVE_DOT_WIDTH = 20;
 type Props = { total: number; current: number; style?: ViewStyle };
 
 // Sits below each onboarding screen's own text content (title/description/
-// feature list), not pinned to the screen's bottom edge - see
-// OnboardingSideNav for the actual forward/back controls, which live
-// independently at the screen's vertical center instead.
+// feature list) and its OnboardingNextButton (screens 1-2), not pinned to
+// the screen's bottom edge - a position indicator only, not a control.
 export function OnboardingDots({ total, current, style }: Props) {
   const theme = useTheme();
 

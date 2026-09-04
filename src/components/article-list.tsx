@@ -4,7 +4,7 @@ import FeedCard from "@/components/feed-card";
 import ArticleListSkeleton from "@/components/article-list-skeleton";
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text } from "react-native";
 
 import { Spacing } from "@/constants/theme";
@@ -59,13 +59,16 @@ export default function ArticleList({ category, search, basePath }: Props) {
 
   // Belt-and-braces: de-dupe by id in case any page still overlaps (e.g. a
   // filter switch racing with an in-flight fetch), since FlatList requires
-  // unique keys.
-  const seenIds = new Set<number>();
-  const articles = (data?.pages.flat() ?? []).filter((article) => {
-    if (seenIds.has(article.id)) return false;
-    seenIds.add(article.id);
-    return true;
-  });
+  // unique keys. Memoized on the pages so an unrelated re-render doesn't
+  // rebuild the Set and a new array reference every time.
+  const articles = useMemo(() => {
+    const seenIds = new Set<number>();
+    return (data?.pages.flat() ?? []).filter((article) => {
+      if (seenIds.has(article.id)) return false;
+      seenIds.add(article.id);
+      return true;
+    });
+  }, [data?.pages]);
 
   if (isLoading) return <ArticleListSkeleton />;
 

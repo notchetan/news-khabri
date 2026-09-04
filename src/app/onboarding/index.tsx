@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { OnboardingDots } from "@/components/onboarding-dots";
 import { OnboardingLanguagePicker } from "@/components/onboarding-language-picker";
+import { OnboardingNextButton } from "@/components/onboarding-next-button";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Spacing } from "@/constants/theme";
@@ -18,9 +19,8 @@ export default function OnboardingWelcomeScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const swipeGesture = useOnboardingSwipe({
-    onNext: () => router.push("/onboarding/features"),
-  });
+  const goNext = () => router.push("/onboarding/features");
+  const swipeGesture = useOnboardingSwipe({ onNext: goNext });
 
   const topPadding = Platform.select({ default: insets.top, web: Spacing.six });
   const bottomPadding = insets.bottom + Spacing.five;
@@ -46,6 +46,8 @@ export default function OnboardingWelcomeScreen() {
           <OnboardingLanguagePicker style={styles.languagePicker} />
         </ThemedView>
 
+        <OnboardingNextButton onPress={goNext} style={styles.nextButton} />
+
         {/* Sibling of content, not a child of it - see
             onboarding-dots.tsx's own comment: this is what makes the dots
             land at the exact same bottom position on every onboarding
@@ -69,4 +71,5 @@ const styles = StyleSheet.create({
   appName: { marginTop: Spacing.four, textAlign: "center" },
   catchphrase: { marginTop: Spacing.two, textAlign: "center" },
   languagePicker: { marginTop: Spacing.four },
+  nextButton: { marginBottom: Spacing.five },
 });

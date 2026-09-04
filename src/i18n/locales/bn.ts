@@ -37,8 +37,8 @@ const bn: Record<keyof typeof en, string> = {
   removeBookmark: "সংরক্ষিত থেকে সরান",
   savedArticlesTitle: "সংরক্ষিত",
   savedTitleCountTemplate: "সংরক্ষিত ({count})",
-  articleSaved: "নিবন্ধ সংরক্ষিত হয়েছে।",
-  toastCheckNow: "এখন দেখুন",
+  articleSaved: "সংরক্ষিত হয়েছে",
+  toastCheckNow: "দেখুন",
   clearAll: "সব মুছুন",
   clearAllConfirmTitle: "সব সংরক্ষিত নিবন্ধ মুছবেন?",
   clearAllConfirmMessage:

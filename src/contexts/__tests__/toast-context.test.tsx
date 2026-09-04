@@ -15,7 +15,7 @@ function Harness() {
       <Button
         title="show"
         onPress={() =>
-          show({ message: "Article saved.", action: { label: "Check now", onPress: onAction } })
+          show({ message: "Saved", action: { label: "View", onPress: onAction } })
         }
       />
       <Button title="hide" onPress={hide} />
@@ -48,9 +48,9 @@ describe("ToastProvider", () => {
 
     fireEvent.press(screen.getByText("show"));
     await waitFor(() => {
-      expect(screen.getByText("Article saved.")).toBeTruthy();
+      expect(screen.getByText("Saved")).toBeTruthy();
     });
-    expect(screen.getByText("Check now")).toBeTruthy();
+    expect(screen.getByText("View")).toBeTruthy();
 
     fireEvent.press(screen.getByTestId("toast-action"));
     expect(onAction).toHaveBeenCalledTimes(1);
@@ -65,7 +65,7 @@ describe("ToastProvider", () => {
 
     fireEvent.press(screen.getByText("show"));
     await waitFor(() => {
-      expect(screen.getByText("Article saved.")).toBeTruthy();
+      expect(screen.getByText("Saved")).toBeTruthy();
     });
 
     fireEvent.press(screen.getByText("hide"));

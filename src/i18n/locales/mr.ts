@@ -33,8 +33,8 @@ const mr: Record<keyof typeof en, string> = {
   removeBookmark: "जतन केलेल्यांमधून काढा",
   savedArticlesTitle: "जतन केलेले",
   savedTitleCountTemplate: "जतन केलेले ({count})",
-  articleSaved: "लेख जतन केला.",
-  toastCheckNow: "आता पाहा",
+  articleSaved: "जतन केले",
+  toastCheckNow: "पाहा",
   clearAll: "सर्व साफ करा",
   clearAllConfirmTitle: "जतन केलेले सर्व लेख साफ करायचे?",
   clearAllConfirmMessage:
