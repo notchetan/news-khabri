@@ -1,9 +1,12 @@
 # Onboarding flow layout details
 
 Three screens under `src/app/onboarding/` (`index.tsx` -> `features.tsx`
--> `sign-in.tsx`), swiped between via `use-onboarding-swipe.ts`, with
-`OnboardingDots` tracking position. Rationale specific to that flow,
-extracted out of the components per this repo's comment convention.
+-> `sign-in.tsx`), navigated by a horizontal swipe (`use-onboarding-swipe.ts`)
+*and* a visible `OnboardingNextButton` on screens 1-2 (the gesture alone
+isn't discoverable; screen 3 has its own sign-in / skip buttons).
+`OnboardingDots` tracks position - an indicator, not a control. Rationale
+specific to that flow, extracted out of the components per this repo's
+comment convention.
 
 ## Why the language picker lives on screen 1, not later
 

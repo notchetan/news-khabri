@@ -6,6 +6,7 @@ import { GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { OnboardingDots } from "@/components/onboarding-dots";
+import { OnboardingNextButton } from "@/components/onboarding-next-button";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Radius, Spacing } from "@/constants/theme";
@@ -51,9 +52,10 @@ export default function OnboardingFeaturesScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const goNext = () => router.push("/onboarding/sign-in");
   const swipeGesture = useOnboardingSwipe({
     onPrevious: () => router.back(),
-    onNext: () => router.push("/onboarding/sign-in"),
+    onNext: goNext,
   });
 
   const topPadding = Platform.select({ default: insets.top, web: Spacing.six });
@@ -91,6 +93,8 @@ export default function OnboardingFeaturesScreen() {
           ))}
         </View>
 
+        <OnboardingNextButton onPress={goNext} style={styles.nextButton} />
+
         {/* Sibling of content, not a child of it - see index.tsx's own
             comment on why this is what keeps the dots at the same bottom
             position across every onboarding screen. */}
@@ -120,4 +124,5 @@ const styles = StyleSheet.create({
   featureText: { flex: 1 },
   featureTitle: { fontWeight: "700" },
   featureDesc: { marginTop: Spacing.half },
+  nextButton: { marginBottom: Spacing.five },
 });

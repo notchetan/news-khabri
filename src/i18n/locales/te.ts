@@ -33,8 +33,8 @@ const te: Record<keyof typeof en, string> = {
   removeBookmark: "సేవ్ చేసినవాటి నుండి తీసివేయండి",
   savedArticlesTitle: "సేవ్ చేసినవి",
   savedTitleCountTemplate: "సేవ్ చేసినవి ({count})",
-  articleSaved: "కథనం సేవ్ చేయబడింది.",
-  toastCheckNow: "ఇప్పుడు చూడండి",
+  articleSaved: "సేవ్ చేయబడింది",
+  toastCheckNow: "చూడండి",
   clearAll: "అన్నీ తొలగించు",
   clearAllConfirmTitle: "సేవ్ చేసిన అన్ని కథనాలను తొలగించాలా?",
   clearAllConfirmMessage:

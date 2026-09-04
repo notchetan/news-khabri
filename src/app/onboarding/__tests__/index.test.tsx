@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
 
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
@@ -8,8 +8,9 @@ jest.mock("@/hooks/use-color-scheme", () => ({
   useColorScheme: () => "light",
 }));
 
+const mockPush = jest.fn();
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ push: jest.fn(), back: jest.fn() }),
+  useRouter: () => ({ push: mockPush, back: jest.fn() }),
 }));
 
 function renderScreen() {
@@ -45,5 +46,15 @@ describe("OnboardingWelcomeScreen", () => {
 
     expect(screen.getByRole("button", { name: "Language" })).toBeTruthy();
     expect(screen.getByText("English")).toBeTruthy();
+  });
+
+  it("advances to the features screen when the Next button is pressed", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    fireEvent.press(screen.getByTestId("onboarding-next"));
+
+    expect(mockPush).toHaveBeenCalledWith("/onboarding/features");
   });
 });

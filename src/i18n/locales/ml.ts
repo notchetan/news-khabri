@@ -33,8 +33,8 @@ const ml: Record<keyof typeof en, string> = {
   removeBookmark: "സംരക്ഷിച്ചവയിൽ നിന്ന് നീക്കുക",
   savedArticlesTitle: "സംരക്ഷിച്ചവ",
   savedTitleCountTemplate: "സംരക്ഷിച്ചവ ({count})",
-  articleSaved: "ലേഖനം സംരക്ഷിച്ചു.",
-  toastCheckNow: "ഇപ്പോൾ കാണുക",
+  articleSaved: "സംരക്ഷിച്ചു",
+  toastCheckNow: "കാണുക",
   clearAll: "എല്ലാം മായ്ക്കുക",
   clearAllConfirmTitle: "സംരക്ഷിച്ച എല്ലാ ലേഖനങ്ങളും മായ്ക്കണോ?",
   clearAllConfirmMessage:

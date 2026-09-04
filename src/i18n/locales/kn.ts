@@ -33,8 +33,8 @@ const kn: Record<keyof typeof en, string> = {
   removeBookmark: "ಉಳಿಸಿದವುಗಳಿಂದ ತೆಗೆದುಹಾಕಿ",
   savedArticlesTitle: "ಉಳಿಸಲಾಗಿದೆ",
   savedTitleCountTemplate: "ಉಳಿಸಲಾಗಿದೆ ({count})",
-  articleSaved: "ಲೇಖನ ಉಳಿಸಲಾಗಿದೆ.",
-  toastCheckNow: "ಈಗ ನೋಡಿ",
+  articleSaved: "ಉಳಿಸಲಾಗಿದೆ",
+  toastCheckNow: "ನೋಡಿ",
   clearAll: "ಎಲ್ಲವನ್ನೂ ತೆರವುಗೊಳಿಸಿ",
   clearAllConfirmTitle: "ಉಳಿಸಿದ ಎಲ್ಲಾ ಲೇಖನಗಳನ್ನು ತೆರವುಗೊಳಿಸಬೇಕೇ?",
   clearAllConfirmMessage:

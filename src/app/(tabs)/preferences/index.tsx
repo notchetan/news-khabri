@@ -1,8 +1,7 @@
 import { useRouter } from "expo-router";
 import { SFSymbol, SymbolView } from "expo-symbols";
-import { Fragment, useState } from "react";
+import { Fragment } from "react";
 import {
-  LayoutChangeEvent,
   Platform,
   Pressable,
   ScrollView,
@@ -75,6 +74,16 @@ const LEGAL_LINKS: { href: "/preferences/about" | "/preferences/privacy" | "/pre
 
 const FONT_PREVIEW_BASE_SIZE = 15;
 const LARGEST_FONT_SCALE = Math.max(...FONT_SIZE_OPTIONS.map((option) => option.scale));
+// The preview reserves a fixed height so switching font sizes doesn't shift
+// the layout below it. Every locale's fontPreviewText is one short sentence
+// (~40-55 chars), which wraps to at most 2-3 lines even at the largest
+// scale, so 3 lines of worst-case line height is a safe permanent
+// reservation - paired with numberOfLines below so it can't ever exceed it.
+// See docs/preferences-screen.md.
+const PREVIEW_MAX_LINES = 3;
+const PREVIEW_MIN_HEIGHT = Math.ceil(
+  FONT_PREVIEW_BASE_SIZE * LARGEST_FONT_SCALE * 1.4 * PREVIEW_MAX_LINES
+);
 
 export default function PreferencesScreen() {
   const { preference, setPreference } = useThemePreference();
@@ -92,11 +101,6 @@ export default function PreferencesScreen() {
   const insets = useSafeAreaInsets();
   const tabBarInset = useTabBarInset();
   const router = useRouter();
-  // See "Font-size preview height" in docs/preferences-screen.md.
-  const [previewHeight, setPreviewHeight] = useState<number | null>(null);
-  const handlePreviewProbeLayout = (event: LayoutChangeEvent) => {
-    setPreviewHeight(event.nativeEvent.layout.height);
-  };
 
   // No extra top gap beyond the inset itself, matching Home/Search -
   // AppHeader below owns that spacing instead.
@@ -204,22 +208,12 @@ export default function PreferencesScreen() {
           </View>
         </View>
         <View>
-          {/* Hidden probe, always at the largest font scale - see
-              docs/preferences-screen.md. */}
-          <View style={styles.previewProbeWrapper} pointerEvents="none">
-            <ThemedText
-              onLayout={handlePreviewProbeLayout}
-              themeColor="textSecondary"
-              style={[styles.description, { fontSize: FONT_PREVIEW_BASE_SIZE * LARGEST_FONT_SCALE }]}
-            >
-              {t("fontPreviewText")}
-            </ThemedText>
-          </View>
           <ThemedText
+            numberOfLines={PREVIEW_MAX_LINES}
             themeColor="textSecondary"
             style={[
               styles.description,
-              previewHeight ? { minHeight: previewHeight } : null,
+              { minHeight: PREVIEW_MIN_HEIGHT },
               { fontSize: FONT_PREVIEW_BASE_SIZE * (selectedFontSize?.scale ?? 1) },
             ]}
           >
@@ -442,9 +436,6 @@ const styles = StyleSheet.create({
     default: {},
   }),
   description: { marginTop: Spacing.one },
-  // Zero-height, clipped - see "Font-size preview height" in
-  // docs/preferences-screen.md.
-  previewProbeWrapper: { height: 0, overflow: "hidden" },
   legalRow: {
     flexDirection: "row",
     alignItems: "center",

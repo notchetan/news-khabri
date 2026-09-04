@@ -123,8 +123,8 @@ export function BookmarksProvider({ children }: { children: ReactNode }) {
       persist(next);
 
       if (!currentlySaved) {
-        // Toast only on save, never on un-save. "Check now" jumps to the
-        // Saved screen.
+        // Toast only on save, never on un-save. The "View" action jumps to
+        // the Saved screen.
         showToast({
           message: t("articleSaved"),
           action: { label: t("toastCheckNow"), onPress: () => router.push("/saved") },
