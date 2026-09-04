@@ -46,6 +46,39 @@ describe("useOnboarding", () => {
     });
   });
 
+  // app/_layout.tsx renders null (holding the native splash up) while this
+  // is null, so a rejected read used to strand the app on the splash screen.
+  // AsyncStorage's own jest mock exposes real jest.fn()s backed by an
+  // in-memory store, so a *Once override queues one failure and then falls
+  // straight back to normal behaviour - no spyOn/mockRestore, which replaces
+  // that backing implementation and leaks into the next test.
+  it("resolves to false rather than hanging when the stored read fails", async () => {
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(
+      new Error("storage unavailable")
+    );
+
+    const { result } = await renderHook(() => useOnboarding(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.hasCompletedOnboarding).toBe(false);
+    });
+  });
+
+  it("still marks onboarding complete in-session when the write fails", async () => {
+    const { result } = await renderHook(() => useOnboarding(), { wrapper });
+    await waitFor(() => {
+      expect(result.current.hasCompletedOnboarding).toBe(false);
+    });
+
+    (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error("disk full"));
+
+    await act(async () => {
+      await result.current.completeOnboarding();
+    });
+
+    expect(result.current.hasCompletedOnboarding).toBe(true);
+  });
+
   it("marks onboarding complete and persists it", async () => {
     const { result } = await renderHook(() => useOnboarding(), { wrapper });
 
