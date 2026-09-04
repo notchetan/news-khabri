@@ -16,6 +16,7 @@ import { useSourcesPreference } from "@/contexts/sources-preference";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 import { formatRelativeTime } from "@/utils/format-date";
+import { articleHref, storyHref } from "@/utils/navigation";
 
 type Props = {
   category?: string;
@@ -156,17 +157,10 @@ export default function StoryList({ category }: Props) {
                 : undefined
             }
             onPress={() => {
-              // Typed routes can't verify a dynamic pathname built from a
-              // variable id, same pattern used throughout the app.
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const push = router.push as any;
               if (isSingleton && item.representativeArticle) {
-                push({
-                  pathname: "/article/[id]",
-                  params: { id: String(item.representativeArticle.id) },
-                });
+                router.push(articleHref(item.representativeArticle.id));
               } else {
-                push({ pathname: "/story/[id]", params: { id: String(item.id) } });
+                router.push(storyHref(item.id));
               }
             }}
           />

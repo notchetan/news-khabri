@@ -14,6 +14,7 @@ import { useLanguagePreference } from "@/contexts/language-preference";
 import { useSourcesPreference } from "@/contexts/sources-preference";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
+import { articleHref } from "@/utils/navigation";
 
 type Props = {
   category?: string;
@@ -131,15 +132,7 @@ export default function ArticleList({ category, search, basePath }: Props) {
               language: item.language,
             })
           }
-          onPress={() =>
-            // basePath is built from a prop, so typed routes can't verify
-            // it statically like a literal pathname.
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (router.push as any)({
-              pathname: `${basePath}/[id]`,
-              params: { id: String(item.id) },
-            })
-          }
+          onPress={() => router.push(articleHref(item.id, basePath))}
         />
       )}
     />
