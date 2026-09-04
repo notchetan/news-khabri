@@ -18,8 +18,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
+import { Radius, Spacing } from "@/constants/theme";
 import { useLanguagePreference } from "@/contexts/language-preference";
+import { useTabBarInset } from "@/hooks/use-tab-bar-inset";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 import { categoryLabelKey } from "@/utils/category-label";
@@ -50,6 +51,7 @@ export default function SearchScreen() {
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const tabBarInset = useTabBarInset();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const searchInputRef = useRef<TextInput>(null);
@@ -123,12 +125,7 @@ export default function SearchScreen() {
       style={{
         flex: 1,
         paddingTop: topPadding,
-        // See NATIVE_TAB_BAR_HEIGHT's own comment for why this can't come
-        // from useSafeAreaInsets() alone.
-        paddingBottom: Platform.select({
-          web: 0,
-          default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
-        }),
+        paddingBottom: tabBarInset,
         backgroundColor: theme.background,
       }}
     >

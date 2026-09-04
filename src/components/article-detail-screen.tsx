@@ -27,10 +27,11 @@ import FloatingDetailHeader, {
 } from "@/components/floating-detail-header";
 import Squircle from "@/components/squircle";
 import { ThemedText } from "@/components/themed-text";
-import { NATIVE_TAB_BAR_HEIGHT, Radius, Spacing } from "@/constants/theme";
+import { Radius, Spacing } from "@/constants/theme";
 import { useAuth } from "@/contexts/auth-context";
 import { useBookmarks } from "@/contexts/bookmarks-context";
 import { useFontSizePreference } from "@/contexts/font-size-preference";
+import { useTabBarInset } from "@/hooks/use-tab-bar-inset";
 import { useTheme } from "@/hooks/use-theme";
 import { formatPublishedDate } from "@/utils/format-date";
 import { stripHtml } from "@/utils/strip-html";
@@ -56,6 +57,7 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   const { token } = useAuth();
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const insets = useSafeAreaInsets();
+  const tabBarInset = useTabBarInset();
   const [showCaption, setShowCaption] = useState(false);
   const [activeId, setActiveId] = useState(Number(id));
   const [sequence, setSequence] = useState<number[]>([]);
@@ -144,15 +146,7 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
     default: getContentTopPadding(headerHeight, topPadding),
     web: Spacing.six,
   });
-  // Same base gap (Spacing.three) plus tab-bar reservation formula used in
-  // search/index.tsx and preferences/index.tsx - see NATIVE_TAB_BAR_HEIGHT's
-  // own comment for why insets.bottom alone isn't enough.
-  const contentBottomPadding =
-    Spacing.three +
-    Platform.select({
-      web: 0,
-      default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
-    });
+  const contentBottomPadding = Spacing.three + tabBarInset;
 
   const openOriginal = () => {
     if (data?.link) WebBrowser.openBrowserAsync(data.link);
@@ -465,17 +459,12 @@ function ArticleDetailSkeleton({
 }) {
   const opacity = useRef(new Animated.Value(0.4)).current;
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
+  const tabBarInset = useTabBarInset();
   const contentTopPadding = Platform.select({
     default: getContentTopPadding(headerHeight, topPadding),
     web: Spacing.six,
   });
-  const contentBottomPadding =
-    Spacing.three +
-    Platform.select({
-      web: 0,
-      default: insets.bottom + NATIVE_TAB_BAR_HEIGHT,
-    });
+  const contentBottomPadding = Spacing.three + tabBarInset;
 
   useEffect(() => {
     const pulse = Animated.loop(
