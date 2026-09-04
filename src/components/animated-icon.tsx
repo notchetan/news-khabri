@@ -6,6 +6,7 @@ import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from '@/i18n/translations';
 
 const DURATION = 600;
 
@@ -18,6 +19,7 @@ const DURATION = 600;
 // look.
 export function AnimatedSplashOverlay() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [animate, setAnimate] = useState(false);
   const [visible, setVisible] = useState(true);
 
@@ -46,7 +48,7 @@ export function AnimatedSplashOverlay() {
     <View style={styles.imageContainer}>
       <Image style={styles.image} source={require('@/assets/images/splash-icon.png')} />
       <Animated.Text style={[styles.wordmark, { color: theme.tint }]}>
-        News Khabri
+        {t('appName')}
       </Animated.Text>
     </View>
   );

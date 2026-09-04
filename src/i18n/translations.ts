@@ -14,7 +14,11 @@ import te from "./locales/te";
 // `en.ts`/`hi.ts`/`gu.ts`) - add a new locale file and register it here to
 // support another language, e.g. once a source with a native feed for it is
 // added (this is exactly how gu.ts got added, alongside Divya Bhaskar).
-const translations: Record<Language, Record<string, string>> = {
+// Keyed by TranslationKey, not `string` - `Record<string, string>` accepted
+// any shape at all, so a locale could silently go missing a key and `t()`
+// would return undefined at runtime despite its `: string` signature. With
+// this, tsc fails the build the moment a locale drifts from en.ts.
+const translations: Record<Language, Record<TranslationKey, string>> = {
   en,
   hi,
   gu,
@@ -36,7 +40,10 @@ export function useTranslation() {
     let text: string = translations[language][key];
     if (vars) {
       for (const [name, value] of Object.entries(vars)) {
-        text = text.replace(`{${name}}`, value);
+        // replaceAll, not replace - a string needle only substitutes the
+        // first occurrence, so a locale that needs the same placeholder
+        // twice would silently keep the raw `{name}` the second time.
+        text = text.replaceAll(`{${name}}`, value);
       }
     }
     return text;

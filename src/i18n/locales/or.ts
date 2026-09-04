@@ -19,7 +19,6 @@ const or: Record<keyof typeof en, string> = {
   pageNotFoundMessage: "ଏହି ସ୍କ୍ରିନ୍ ନାହିଁ, କିମ୍ବା ଲିଙ୍କ୍ ଭାଙ୍ଗିଯାଇଛି।",
   goHome: "ହୋମ୍‌କୁ ଯାଆନ୍ତୁ",
   articleLoadError: "ଏହି ପ୍ରବନ୍ଧ ଲୋଡ୍ ହୋଇପାରିଲା ନାହିଁ।",
-  articleContentError: "ଏହି ପ୍ରବନ୍ଧର ସମ୍ପୂର୍ଣ୍ଣ ପାଠ୍ୟ ଲୋଡ୍ ହୋଇପାରିଲା ନାହିଁ।",
   readOnTemplate: "{source} ରେ ପଢ଼ନ୍ତୁ",
   relatedArticles: "ସମ୍ବନ୍ଧିତ ପ୍ରବନ୍ଧ",
   imageFailedToLoad: "ଛବି ଲୋଡ୍ ହୋଇପାରିଲା ନାହିଁ",
@@ -47,7 +46,6 @@ const or: Record<keyof typeof en, string> = {
   noSavedArticles: "ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି ଆର୍ଟିକିଲ୍ ସେଭ୍ ହୋଇନାହିଁ",
   noSavedArticlesDescription:
     "ପରେ ପଢ଼ିବା ପାଇଁ ଯେକୌଣସି ଆର୍ଟିକିଲ୍‌ର ବୁକମାର୍କ ଆଇକନ୍ ଟାପ୍ କରନ୍ତୁ",
-  preferencesTitle: "ସେଟିଂସ୍",
   appearance: "ରୂପ",
   appearanceAutomaticDesc: "ଆପଣଙ୍କ ଡିଭାଇସର ସିଷ୍ଟମ୍ ସେଟିଂ ସହିତ ମେଳ କରନ୍ତୁ",
   appearanceDayDesc: "ସର୍ବଦା ହାଲୁକା ରୂପ ବ୍ୟବହାର କରନ୍ତୁ",
@@ -126,7 +124,6 @@ const or: Record<keyof typeof en, string> = {
   termsOfService: "ସେବା ସର୍ତ୍ତାବଳୀ",
   onboardingCatchphrase: "ଆପଣଙ୍କ ଦିନର ସବୁଠାରୁ ବଡ଼ ଖବର, କୌଣସି ହଇଚଇ ବିନା.",
   onboardingNext: "ପରବର୍ତ୍ତୀ",
-  onboardingPrevious: "ପୂର୍ବବର୍ତ୍ତୀ",
   onboardingFeaturesTitle: "ଯାହା ଦରକାର ସବୁ, ବାକି କିଛି ନାହିଁ",
   onboardingFeatureNoAdsTitle: "କେବେ ବି ବିଜ୍ଞାପନ ନାହିଁ",
   onboardingFeatureNoAdsDesc: "ଆପଣଙ୍କ ଧ୍ୟାନ ବିଚଳିତ କରୁଥିବା କିଛି ନଥିବା ଏକ ସଫା ପଠନ ଅନୁଭୂତି",

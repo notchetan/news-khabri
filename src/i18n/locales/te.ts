@@ -15,7 +15,6 @@ const te: Record<keyof typeof en, string> = {
   pageNotFoundMessage: "ఈ స్క్రీన్ లేదు, లేదా లింక్ విరిగింది.",
   goHome: "హోమ్‌కు వెళ్లండి",
   articleLoadError: "ఈ కథనాన్ని లోడ్ చేయలేకపోయాము.",
-  articleContentError: "ఈ కథనం యొక్క పూర్తి వచనాన్ని లోడ్ చేయలేకపోయాము.",
   readOnTemplate: "{source}లో చదవండి",
   relatedArticles: "సంబంధిత కథనాలు",
   imageFailedToLoad: "చిత్రం లోడ్ కాలేదు",
@@ -43,7 +42,6 @@ const te: Record<keyof typeof en, string> = {
   noSavedArticles: "ఇంకా ఏ కథనాన్నీ సేవ్ చేయలేదు",
   noSavedArticlesDescription:
     "ఏదైనా కథనాన్ని తర్వాత చదవడానికి బుక్‌మార్క్ చిహ్నాన్ని నొక్కండి",
-  preferencesTitle: "సెట్టింగ్‌లు",
   appearance: "రూపం",
   appearanceAutomaticDesc: "మీ పరికరం సిస్టమ్ సెట్టింగ్‌తో సరిపోల్చండి",
   appearanceDayDesc: "ఎల్లప్పుడూ లైట్ రూపాన్ని ఉపయోగించండి",
@@ -122,7 +120,6 @@ const te: Record<keyof typeof en, string> = {
   termsOfService: "సేవా నిబంధనలు",
   onboardingCatchphrase: "మీ రోజులోని అతిపెద్ద వార్తలు, ఎలాంటి గోలా లేకుండా.",
   onboardingNext: "తదుపరి",
-  onboardingPrevious: "మునుపటి",
   onboardingFeaturesTitle: "కావాల్సినవన్నీ, వద్దనుకున్నవి ఏవీ లేవు",
   onboardingFeatureNoAdsTitle: "ఎప్పుడూ ప్రకటనలు లేవు",
   onboardingFeatureNoAdsDesc: "మీ దృష్టిని మరల్చే ఏదీ లేని పరిశుభ్రమైన చదివే అనుభవం",

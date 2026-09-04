@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
-import { useTranslation } from "../translations";
+import { useTranslation, type TranslationKey } from "../translations";
 import bn from "../locales/bn";
 import en from "../locales/en";
 import gu from "../locales/gu";
@@ -61,6 +61,35 @@ describe("useTranslation", () => {
     expect(result.current.t("readOnTemplate", { source: "NDTV" })).toBe(
       "NDTV पर पढ़ें"
     );
+  });
+
+  // No shipped string uses the same placeholder twice, so there is nothing
+  // real to assert the replaceAll fix against - the guarantee worth locking
+  // is the one that would break silently: a placeholder must never survive
+  // into rendered copy once its var has been supplied.
+  it("leaves no unsubstituted placeholder behind in any locale", async () => {
+    const locales = ["en", "hi", "gu", "bn", "kn", "mr", "ml", "ta", "te", "or"];
+    const samples: [TranslationKey, Record<string, string>][] = [
+      ["readOnTemplate", { source: "NDTV" }],
+      ["minutesAgoTemplate", { minutes: "5" }],
+      ["storySourcesTemplate", { count: "3" }],
+      ["noResultsForTemplate", { query: "election" }],
+    ];
+
+    for (const locale of locales) {
+      await AsyncStorage.setItem("languagePreference", locale);
+      const { result } = await renderHook(() => useTranslation(), { wrapper });
+      await waitFor(() => {
+        expect(result.current.language).toBe(locale);
+      });
+      for (const [key, vars] of samples) {
+        expect({ locale, key, text: result.current.t(key, vars) }).toEqual({
+          locale,
+          key,
+          text: expect.not.stringMatching(/\{[a-zA-Z]+\}/),
+        });
+      }
+    }
   });
 
   it("leaves the string unchanged when no vars are given for a key with a placeholder", async () => {

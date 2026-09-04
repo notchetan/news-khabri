@@ -15,7 +15,6 @@ const ml: Record<keyof typeof en, string> = {
   pageNotFoundMessage: "ഈ സ്ക്രീൻ നിലവിലില്ല, അല്ലെങ്കിൽ ലിങ്ക് തകർന്നിരിക്കുന്നു.",
   goHome: "ഹോമിലേക്ക് പോകുക",
   articleLoadError: "ഈ ലേഖനം ലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല.",
-  articleContentError: "ഈ ലേഖനത്തിന്റെ പൂർണ്ണ ടെക്സ്റ്റ് ലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല.",
   readOnTemplate: "{source}-ൽ വായിക്കുക",
   relatedArticles: "ബന്ധപ്പെട്ട ലേഖനങ്ങൾ",
   imageFailedToLoad: "ചിത്രം ലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല",
@@ -43,7 +42,6 @@ const ml: Record<keyof typeof en, string> = {
   noSavedArticles: "ഇതുവരെ ലേഖനങ്ങളൊന്നും സംരക്ഷിച്ചിട്ടില്ല",
   noSavedArticlesDescription:
     "പിന്നീട് വായിക്കാൻ ഏതെങ്കിലും ലേഖനത്തിലെ ബുക്ക്‌മാർക്ക് ഐക്കണിൽ ടാപ്പ് ചെയ്യുക",
-  preferencesTitle: "ക്രമീകരണങ്ങൾ",
   appearance: "രൂപം",
   appearanceAutomaticDesc: "നിങ്ങളുടെ ഉപകരണത്തിന്റെ സിസ്റ്റം ക്രമീകരണവുമായി പൊരുത്തപ്പെടുത്തുക",
   appearanceDayDesc: "എപ്പോഴും ലൈറ്റ് രൂപം ഉപയോഗിക്കുക",
@@ -122,7 +120,6 @@ const ml: Record<keyof typeof en, string> = {
   termsOfService: "സേവന നിബന്ധനകൾ",
   onboardingCatchphrase: "നിങ്ങളുടെ ദിവസത്തിലെ ഏറ്റവും വലിയ വാർത്തകൾ, ബഹളമില്ലാതെ.",
   onboardingNext: "അടുത്തത്",
-  onboardingPrevious: "മുമ്പത്തേത്",
   onboardingFeaturesTitle: "വേണ്ടതെല്ലാം, വേണ്ടാത്തതൊന്നുമില്ല",
   onboardingFeatureNoAdsTitle: "ഒരിക്കലും പരസ്യങ്ങളില്ല",
   onboardingFeatureNoAdsDesc: "നിങ്ങളുടെ ശ്രദ്ധ തിരിക്കുന്ന ഒന്നുമില്ലാത്ത വൃത്തിയുള്ള വായനാനുഭവം",

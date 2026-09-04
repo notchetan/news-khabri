@@ -15,7 +15,6 @@ const kn: Record<keyof typeof en, string> = {
   pageNotFoundMessage: "ಈ ಪರದೆ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ, ಅಥವಾ ಲಿಂಕ್ ಮುರಿದಿದೆ.",
   goHome: "ಹೋಮ್‌ಗೆ ಹೋಗಿ",
   articleLoadError: "ಈ ಲೇಖನವನ್ನು ಲೋಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ.",
-  articleContentError: "ಈ ಲೇಖನದ ಸಂಪೂರ್ಣ ಪಠ್ಯವನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
   readOnTemplate: "{source} ನಲ್ಲಿ ಓದಿ",
   relatedArticles: "ಸಂಬಂಧಿತ ಲೇಖನಗಳು",
   imageFailedToLoad: "ಚಿತ್ರ ಲೋಡ್ ಆಗಲಿಲ್ಲ",
@@ -43,7 +42,6 @@ const kn: Record<keyof typeof en, string> = {
   noSavedArticles: "ಇನ್ನೂ ಯಾವುದೇ ಲೇಖನವನ್ನು ಉಳಿಸಿಲ್ಲ",
   noSavedArticlesDescription:
     "ನಂತರ ಓದಲು ಯಾವುದೇ ಲೇಖನದಲ್ಲಿ ಬುಕ್‌ಮಾರ್ಕ್ ಐಕಾನ್ ಟ್ಯಾಪ್ ಮಾಡಿ",
-  preferencesTitle: "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
   appearance: "ನೋಟ",
   appearanceAutomaticDesc: "ನಿಮ್ಮ ಸಾಧನದ ಸಿಸ್ಟಂ ಸೆಟ್ಟಿಂಗ್‌ಗೆ ಹೊಂದಿಸಿ",
   appearanceDayDesc: "ಯಾವಾಗಲೂ ತಿಳಿ ನೋಟವನ್ನು ಬಳಸಿ",
@@ -122,7 +120,6 @@ const kn: Record<keyof typeof en, string> = {
   termsOfService: "ಸೇವಾ ನಿಯಮಗಳು",
   onboardingCatchphrase: "ನಿಮ್ಮ ದಿನದ ದೊಡ್ಡ ಸುದ್ದಿಗಳು, ಯಾವುದೇ ಗದ್ದಲವಿಲ್ಲದೆ.",
   onboardingNext: "ಮುಂದೆ",
-  onboardingPrevious: "ಹಿಂದಿನ",
   onboardingFeaturesTitle: "ಬೇಕಾದದ್ದೆಲ್ಲಾ, ಬೇಡವಾದದ್ದು ಏನೂ ಇಲ್ಲ",
   onboardingFeatureNoAdsTitle: "ಎಂದಿಗೂ ಜಾಹೀರಾತುಗಳಿಲ್ಲ",
   onboardingFeatureNoAdsDesc: "ನಿಮ್ಮ ಗಮನವನ್ನು ಸೆಳೆಯುವ ಯಾವುದೂ ಇಲ್ಲದ ಶುದ್ಧ ಓದುವ ಅನುಭವ",
