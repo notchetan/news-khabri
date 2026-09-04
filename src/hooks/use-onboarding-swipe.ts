@@ -1,11 +1,11 @@
 import { Gesture } from "react-native-gesture-handler";
 import { scheduleOnRN } from "react-native-worklets";
 
-// Same Pan-gesture threshold/shape as article-detail-screen.tsx's own
-// related-article swipe (see that file's SWIPE_THRESHOLD) - no edge-exclusion
-// hitSlop needed here the way that screen's is, since onboarding/_layout.tsx
-// already disables the OS's own edge-swipe-back gesture for this whole
-// stack, so there's nothing competing for the same touch.
+// No edge-exclusion hitSlop here: onboarding/_layout.tsx already disables
+// the OS's own edge-swipe-back gesture for this whole stack, so nothing
+// competes for the same touch. (This used to say it matched the
+// article-detail related-article swipe's threshold - that gesture was
+// removed in #33, so this is now the only Pan gesture in the app.)
 const SWIPE_THRESHOLD = 60;
 
 type Options = {

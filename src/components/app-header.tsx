@@ -24,9 +24,9 @@ type Props = {
 // Profile is no longer a tab) on the right, in the same row - replaces the
 // per-tab text labels those three tabs used to show in the tab bar itself.
 //
-// Not rendered on web: the web tab bar (app-tabs.web.tsx) already lives at
-// the top of the screen and carries this same information inside its own
-// bar instead of stacking a second one underneath it.
+// The Platform.OS === "web" early return below is inert dead code - web was
+// dropped as a target in #17, along with the app-tabs.web.tsx this used to
+// point at.
 export default function AppHeader({ title }: Props) {
   const theme = useTheme();
   const { t } = useTranslation();

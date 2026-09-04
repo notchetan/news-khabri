@@ -46,18 +46,27 @@ and it **must be `https`** — iOS App Transport Security blocks plaintext
 ```
 src/
   app/                  expo-router routes (file-based)
-    profile.tsx          Profile screen (top-level, not a tab)
+    _layout.tsx           Root: providers, ErrorBoundary, notification deep links
+    +not-found.tsx        Unmatched routes
+    profile.tsx           Profile / sign-in (top-level, not a tab)
+    saved.tsx             Saved articles (top-level, not a tab)
+    onboarding/           First-launch flow (welcome, features, sign-in)
     (tabs)/
-      (home)/            Top stories feed, article + story detail
-      search/            Search, category browsing, article detail
-      preferences/        Preferences, language picker, About/Privacy/Terms
-  components/            Shared UI (cards, lists, themed primitives)
-  contexts/               Theme/language/font-size/debug preference providers
-  hooks/                  useTheme, useColorScheme
-  api/                    Backend API client
-  i18n/                   Translations (10 languages, see src/i18n/locales/)
-  utils/                  Formatting, category mapping, etc.
-  constants/              Design tokens (colors, spacing, radius, type scale)
+      (home)/             Top stories feed, article + story detail
+      search/             Search, category browsing, article detail
+      preferences/        Preferences, language/sources/notification pickers,
+                          About/Privacy/Terms
+  components/           Shared UI (cards, lists, headers, themed primitives)
+  contexts/             Auth, bookmarks, toast, onboarding, and the five
+                        persisted preferences (theme/language/font-size/
+                        sources/notifications/debug)
+  hooks/                useTheme, useColorScheme, useTabBarInset,
+                        useOnboardingSwipe
+  api/                  Backend API client (all modules go through client.ts)
+  i18n/                 Translations (10 languages, see src/i18n/locales/)
+  observability/        Sentry wiring (inert until a DSN is set)
+  utils/                Formatting, category mapping, navigation helpers
+  constants/            Design tokens (colors, spacing, radius, type scale)
 ```
 
 ## Scripts
@@ -69,7 +78,7 @@ src/
 | `npm test` | Run the Jest test suite |
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with coverage |
-| `npm run lint` | Lint via `expo lint` |
+| `npm run lint` | **Not configured yet.** There is no committed ESLint config and no `eslint` devDependency, so `expo lint` will offer to install and configure one (mutating `package.json`) rather than just running. CI does not run it. |
 
 ## Learn more about the tooling
 

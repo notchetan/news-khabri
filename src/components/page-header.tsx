@@ -11,7 +11,7 @@ import { useTranslation } from "@/i18n/translations";
 // left, brand logo pill on the right) but static rather than floating/
 // scroll-collapsing, and with the page's own title next to the chevron
 // instead of a "Back" label - for simple pushed settings screens
-// (language.tsx, sources.tsx) that have no scrolling hero content for a
+// (language.tsx, sources.tsx, notifications.tsx) with no scrolling hero for a
 // floating header to sit over. See docs/article-header-layout.md's
 // "GlassView's non-iOS fallback" for why liquidGlassAvailable is computed
 // once at module scope.

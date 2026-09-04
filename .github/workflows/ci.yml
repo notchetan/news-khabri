@@ -28,7 +28,7 @@ jobs:
           cache: npm
 
       # postinstall runs patch-package automatically (see AGENTS.md's note
-      # on patches/react-native-render-html+6.3.4.patch).
+      # on patches/react-native-screens+4.16.0.patch).
       - run: npm ci
 
       - name: Typecheck

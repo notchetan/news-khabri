@@ -2,12 +2,13 @@ import { StyleSheet } from "react-native";
 
 import LegalDocumentScreen from "@/components/legal-document-screen";
 import { ThemedText } from "@/components/themed-text";
+import { LEGAL_LAST_UPDATED } from "@/constants/legal";
 import { Spacing } from "@/constants/theme";
 import { useTranslation } from "@/i18n/translations";
 
 // Describes what the app actually does today, as accurately as we can put
 // it - not generic boilerplate. Still not legal advice; get a real review
-// before a public launch, and keep the "Last updated" date and the
+// before a public launch, and keep LEGAL_LAST_UPDATED and the
 // account/sync/notification sections in step with the code. English-only,
 // same reasoning as about.tsx: the row label that links here is localized
 // (see preferences/index.tsx), the document itself isn't, because an
@@ -18,7 +19,7 @@ export default function PrivacyScreen() {
   return (
     <LegalDocumentScreen title={t("privacyPolicy")}>
       <ThemedText themeColor="textSecondary" style={styles.updated}>
-        Last updated: September 3, 2026
+        Last updated: {LEGAL_LAST_UPDATED}
       </ThemedText>
 
       <ThemedText style={styles.paragraph}>
