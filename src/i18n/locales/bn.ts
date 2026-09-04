@@ -19,7 +19,6 @@ const bn: Record<keyof typeof en, string> = {
   pageNotFoundMessage: "এই স্ক্রিনটি নেই, অথবা লিঙ্কটি ভাঙা।",
   goHome: "হোম-এ যান",
   articleLoadError: "এই নিবন্ধ লোড করা যায়নি।",
-  articleContentError: "এই নিবন্ধের সম্পূর্ণ লেখা লোড করা যায়নি।",
   readOnTemplate: "{source}-এ পড়ুন",
   relatedArticles: "সম্পর্কিত নিবন্ধ",
   imageFailedToLoad: "ছবি লোড হয়নি",
@@ -47,7 +46,6 @@ const bn: Record<keyof typeof en, string> = {
   noSavedArticles: "এখনও কোনো নিবন্ধ সংরক্ষণ করা হয়নি",
   noSavedArticlesDescription:
     "পরে পড়ার জন্য যেকোনো নিবন্ধে বুকমার্ক আইকনে ট্যাপ করুন",
-  preferencesTitle: "সেটিংস",
   appearance: "চেহারা",
   appearanceAutomaticDesc: "আপনার ডিভাইসের সিস্টেম সেটিংয়ের সাথে মিলান",
   appearanceDayDesc: "সর্বদা হালকা চেহারা ব্যবহার করুন",
@@ -126,7 +124,6 @@ const bn: Record<keyof typeof en, string> = {
   termsOfService: "পরিষেবার শর্তাবলী",
   onboardingCatchphrase: "আপনার দিনের সবচেয়ে বড় খবর, কোনো শোরগোল ছাড়াই।",
   onboardingNext: "পরবর্তী",
-  onboardingPrevious: "পূর্ববর্তী",
   onboardingFeaturesTitle: "যা দরকার সবই, বাকি কিছু নয়",
   onboardingFeatureNoAdsTitle: "কখনো কোনো বিজ্ঞাপন নেই",
   onboardingFeatureNoAdsDesc: "আপনার মনোযোগ বিঘ্নিত করার মতো কিছু ছাড়াই একটি পরিচ্ছন্ন পড়ার অভিজ্ঞতা",

@@ -15,7 +15,6 @@ const ta: Record<keyof typeof en, string> = {
   pageNotFoundMessage: "இந்தத் திரை இல்லை, அல்லது இணைப்பு உடைந்துள்ளது.",
   goHome: "முகப்புக்குச் செல்",
   articleLoadError: "இந்தக் கட்டுரையை ஏற்ற முடியவில்லை.",
-  articleContentError: "இந்தக் கட்டுரையின் முழு உரையையும் ஏற்ற முடியவில்லை.",
   readOnTemplate: "{source}-இல் படிக்கவும்",
   relatedArticles: "தொடர்புடைய கட்டுரைகள்",
   imageFailedToLoad: "படம் ஏற்றப்படவில்லை",
@@ -43,7 +42,6 @@ const ta: Record<keyof typeof en, string> = {
   noSavedArticles: "இதுவரை எந்தக் கட்டுரையும் சேமிக்கப்படவில்லை",
   noSavedArticlesDescription:
     "எந்தக் கட்டுரையையும் பின்னர் படிக்க புக்மார்க் ஐகானைத் தட்டவும்",
-  preferencesTitle: "அமைப்புகள்",
   appearance: "தோற்றம்",
   appearanceAutomaticDesc: "உங்கள் சாதனத்தின் சிஸ்டம் அமைப்புடன் பொருத்தவும்",
   appearanceDayDesc: "எப்போதும் வெளிர் தோற்றத்தைப் பயன்படுத்தவும்",
@@ -122,7 +120,6 @@ const ta: Record<keyof typeof en, string> = {
   termsOfService: "சேவை விதிமுறைகள்",
   onboardingCatchphrase: "உங்கள் நாளின் மிகப்பெரிய செய்திகள், சலசலப்பு இல்லாமல்.",
   onboardingNext: "அடுத்து",
-  onboardingPrevious: "முந்தைய",
   onboardingFeaturesTitle: "வேண்டியதெல்லாம், வேண்டாதது ஒன்றுமில்லை",
   onboardingFeatureNoAdsTitle: "ஒருபோதும் விளம்பரங்கள் இல்லை",
   onboardingFeatureNoAdsDesc: "உங்கள் கவனத்தை திசைதிருப்பும் எதுவும் இல்லாத தூய்மையான வாசிப்பு அனுபவம்",

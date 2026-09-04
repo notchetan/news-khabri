@@ -15,7 +15,6 @@ const mr: Record<keyof typeof en, string> = {
   pageNotFoundMessage: "ही स्क्रीन अस्तित्वात नाही, किंवा लिंक तुटलेली आहे.",
   goHome: "होमवर जा",
   articleLoadError: "हा लेख लोड होऊ शकला नाही.",
-  articleContentError: "या लेखाचा संपूर्ण मजकूर लोड होऊ शकला नाही.",
   readOnTemplate: "{source} वर वाचा",
   relatedArticles: "संबंधित लेख",
   imageFailedToLoad: "प्रतिमा लोड होऊ शकली नाही",
@@ -43,7 +42,6 @@ const mr: Record<keyof typeof en, string> = {
   noSavedArticles: "अद्याप कोणताही लेख जतन केलेला नाही",
   noSavedArticlesDescription:
     "कोणताही लेख नंतर वाचण्यासाठी बुकमार्क चिन्हावर टॅप करा",
-  preferencesTitle: "सेटिंग्ज",
   appearance: "स्वरूप",
   appearanceAutomaticDesc: "तुमच्या डिव्हाइसच्या सिस्टम सेटिंगशी जुळवा",
   appearanceDayDesc: "नेहमी हलके स्वरूप वापरा",
@@ -122,7 +120,6 @@ const mr: Record<keyof typeof en, string> = {
   termsOfService: "सेवा अटी",
   onboardingCatchphrase: "तुमच्या दिवसाच्या सर्वात मोठ्या बातम्या, कोणत्याही गोंधळाशिवाय.",
   onboardingNext: "पुढे",
-  onboardingPrevious: "मागील",
   onboardingFeaturesTitle: "जे हवं ते सर्व, बाकी काही नाही",
   onboardingFeatureNoAdsTitle: "कधीही जाहिराती नाहीत",
   onboardingFeatureNoAdsDesc: "तुमचं लक्ष विचलित करणारं काहीही नसलेला स्वच्छ वाचन अनुभव",

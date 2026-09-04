@@ -15,7 +15,6 @@ const en = {
   pageNotFoundMessage: "This screen doesn't exist, or the link is broken.",
   goHome: "Go to Home",
   articleLoadError: "Couldn't load this article.",
-  articleContentError: "We couldn't load the full text for this article.",
   readOnTemplate: "Read on {source}",
   relatedArticles: "RELATED ARTICLES",
   imageFailedToLoad: "Image failed to load",
@@ -46,7 +45,6 @@ const en = {
   clearAllConfirmMessage:
     "This removes every article from your saved list. This can't be undone.",
   cancel: "Cancel",
-  preferencesTitle: "Preferences",
   appearance: "Appearance",
   appearanceAutomaticDesc: "Match your device's system setting",
   appearanceDayDesc: "Always use light appearance",
@@ -139,7 +137,6 @@ const en = {
   // See onboarding-context.tsx for the "have we shown this already" flag.
   onboardingCatchphrase: "Your day's biggest stories, without the noise.",
   onboardingNext: "Next",
-  onboardingPrevious: "Previous",
   onboardingFeaturesTitle: "Everything you need, nothing you don't",
   onboardingFeatureNoAdsTitle: "No ads, ever",
   onboardingFeatureNoAdsDesc:

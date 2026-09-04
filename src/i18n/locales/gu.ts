@@ -16,7 +16,6 @@ const gu: Record<keyof typeof en, string> = {
   pageNotFoundMessage: "આ સ્ક્રીન અસ્તિત્વમાં નથી, અથવા લિંક તૂટેલી છે.",
   goHome: "હોમ પર જાઓ",
   articleLoadError: "આ લેખ લોડ થઈ શક્યો નહીં.",
-  articleContentError: "આ લેખનું સંપૂર્ણ લખાણ લોડ થઈ શક્યું નહીં.",
   readOnTemplate: "{source} પર વાંચો",
   relatedArticles: "સંબંધિત લેખો",
   imageFailedToLoad: "છબી લોડ થઈ શકી નહીં",
@@ -44,7 +43,6 @@ const gu: Record<keyof typeof en, string> = {
   noSavedArticles: "હજી સુધી કોઈ લેખ સાચવ્યો નથી",
   noSavedArticlesDescription:
     "કોઈપણ લેખને પછીથી વાંચવા માટે બુકમાર્ક આઇકન પર ટૅપ કરો",
-  preferencesTitle: "સેટિંગ્સ",
   appearance: "દેખાવ",
   appearanceAutomaticDesc: "તમારા ડિવાઇસની સિસ્ટમ સેટિંગ સાથે મેળ ખાય",
   appearanceDayDesc: "હંમેશા હળવો દેખાવ વાપરો",
@@ -129,7 +127,6 @@ const gu: Record<keyof typeof en, string> = {
   termsOfService: "સેવાની શરતો",
   onboardingCatchphrase: "તમારા દિવસના સૌથી મોટા સમાચાર, કોઈપણ ઘોંઘાટ વગર.",
   onboardingNext: "આગળ",
-  onboardingPrevious: "પાછલું",
   onboardingFeaturesTitle: "જે જોઈએ એ બધું, બાકી કંઈ નહીં",
   onboardingFeatureNoAdsTitle: "ક્યારેય કોઈ જાહેરાત નહીં",
   onboardingFeatureNoAdsDesc: "તમારું ધ્યાન ભટકાવે એવું કંઈ ન હોય તેવો સ્વચ્છ વાંચન અનુભવ",
