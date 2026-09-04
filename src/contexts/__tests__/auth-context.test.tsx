@@ -190,4 +190,67 @@ describe("AuthProvider preference sync", () => {
     await new Promise((resolve) => setTimeout(resolve, 20));
     expect(mockPutPreferences).not.toHaveBeenCalled();
   });
+
+  // --- reconcile on relaunch (persisted sync baseline) -----------------
+
+  const FULL_BUNDLE = {
+    theme: "automatic",
+    fontSize: "medium",
+    language: "en",
+    debugEnabled: false,
+    sources: {},
+    notificationInterval: 0,
+  };
+
+  async function restore(serverPrefs: Record<string, unknown>) {
+    mockGetItemAsync.mockResolvedValue("session-token"); // stored session token
+    mockFetchMe.mockResolvedValue({
+      user: { id: 1, email: "chetan@example.com", name: "Chetan Shetty", avatarUrl: null },
+      preferences: serverPrefs,
+    });
+    const rendered = await renderHook(
+      () => ({ auth: useAuth(), theme: useThemePreference() }),
+      { wrapper }
+    );
+    await waitFor(() => expect(rendered.result.current.auth.user).not.toBeNull());
+    return rendered;
+  }
+
+  it("keeps an unsynced local edit across a relaunch instead of letting the server value overwrite it", async () => {
+    await AsyncStorage.setItem("themePreference", "night");
+    await AsyncStorage.setItem(
+      "preferencesSyncBaseline",
+      JSON.stringify({ ...FULL_BUNDLE, theme: "automatic" })
+    );
+
+    const { result } = await restore({ ...FULL_BUNDLE, theme: "automatic" });
+
+    expect(result.current.theme.preference).toBe("night");
+    await waitFor(() =>
+      expect(mockPutPreferences).toHaveBeenCalledWith("session-token", { theme: "night" })
+    );
+  });
+
+  it("adopts the server value on relaunch when the local value matches the baseline", async () => {
+    await AsyncStorage.setItem("themePreference", "automatic");
+    await AsyncStorage.setItem(
+      "preferencesSyncBaseline",
+      JSON.stringify({ ...FULL_BUNDLE, theme: "automatic" })
+    );
+
+    const { result } = await restore({ ...FULL_BUNDLE, theme: "night" });
+
+    expect(result.current.theme.preference).toBe("night");
+    expect(mockPutPreferences).not.toHaveBeenCalled();
+  });
+
+  it("falls back to server-wins on relaunch when there is no persisted baseline yet", async () => {
+    await AsyncStorage.setItem("themePreference", "night");
+
+    const { result } = await restore({ ...FULL_BUNDLE, theme: "automatic" });
+
+    expect(result.current.theme.preference).toBe("automatic");
+    expect(mockPutPreferences).not.toHaveBeenCalled();
+    expect(await AsyncStorage.getItem("preferencesSyncBaseline")).toContain('"automatic"');
+  });
 });

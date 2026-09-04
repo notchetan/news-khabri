@@ -37,6 +37,12 @@ import { DEFAULT_THEME_PREFERENCE, THEME_STORAGE_KEY } from "@/contexts/theme-pr
 import { getStoredToken, storeToken } from "@/contexts/session-token";
 import { notifyPreferenceChanged, onPreferenceChanged } from "@/utils/preference-sync";
 
+// The preference bundle this device last confirmed in sync with the
+// server, persisted (not just held in a ref) so a relaunch can tell an
+// unsynced local edit apart from a stale local value - see "Surviving an
+// offline edit across a relaunch" in docs/google-sign-in.md.
+export const PREFERENCES_BASELINE_KEY = "preferencesSyncBaseline";
+
 type AuthContextValue = {
   user: AuthUser | null;
   // The session token itself - exposed so callers can authenticate their
@@ -63,30 +69,89 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 // storeToken (expo-secure-store, same convention) live in
 // contexts/session-token.ts.
 
-// Writes a server-pulled preference bundle into the exact same
-// AsyncStorage keys each individual preference context already owns, then
-// tells them to reload - see utils/preference-sync.ts for why a plain
-// write alone wouldn't reach an already-mounted context.
-async function applyServerPreferences(preferences: ServerPreferences): Promise<void> {
-  if (!preferences) return;
+// A server preference row with its nullable theme/fontSize/language filled
+// in from the same defaults the individual contexts use - so the rest of
+// this file can work with one fully-populated shape.
+function serverPreferencesToBundle(preferences: ServerPreferences): PreferenceBundle {
+  return {
+    theme: preferences?.theme ?? DEFAULT_THEME_PREFERENCE,
+    fontSize: preferences?.fontSize ?? DEFAULT_FONT_SIZE_PREFERENCE,
+    language: preferences?.language ?? DEFAULT_LANGUAGE,
+    debugEnabled: preferences?.debugEnabled ?? false,
+    sources: preferences?.sources ?? DEFAULT_SOURCES_SELECTIONS,
+    notificationInterval:
+      preferences?.notificationInterval ?? DEFAULT_NOTIFICATION_INTERVAL,
+  };
+}
+
+// Writes a preference bundle into the exact same AsyncStorage keys each
+// individual preference context already owns, then tells them to reload -
+// see utils/preference-sync.ts for why a plain write alone wouldn't reach
+// an already-mounted context.
+async function writePreferencesToStorage(bundle: PreferenceBundle): Promise<void> {
   await Promise.all([
-    AsyncStorage.setItem(THEME_STORAGE_KEY, preferences.theme ?? DEFAULT_THEME_PREFERENCE),
-    AsyncStorage.setItem(
-      FONT_SIZE_STORAGE_KEY,
-      preferences.fontSize ?? DEFAULT_FONT_SIZE_PREFERENCE
-    ),
-    AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, preferences.language ?? DEFAULT_LANGUAGE),
-    AsyncStorage.setItem(DEBUG_STORAGE_KEY, String(preferences.debugEnabled)),
-    AsyncStorage.setItem(
-      SOURCES_STORAGE_KEY,
-      JSON.stringify(preferences.sources ?? DEFAULT_SOURCES_SELECTIONS)
-    ),
+    AsyncStorage.setItem(THEME_STORAGE_KEY, bundle.theme),
+    AsyncStorage.setItem(FONT_SIZE_STORAGE_KEY, bundle.fontSize),
+    AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, bundle.language),
+    AsyncStorage.setItem(DEBUG_STORAGE_KEY, String(bundle.debugEnabled)),
+    AsyncStorage.setItem(SOURCES_STORAGE_KEY, JSON.stringify(bundle.sources)),
     AsyncStorage.setItem(
       NOTIFICATION_STORAGE_KEY,
-      String(preferences.notificationInterval ?? DEFAULT_NOTIFICATION_INTERVAL)
+      String(bundle.notificationInterval)
     ),
   ]);
   notifyPreferenceChanged();
+}
+
+async function applyServerPreferences(preferences: ServerPreferences): Promise<void> {
+  if (!preferences) return;
+  await writePreferencesToStorage(serverPreferencesToBundle(preferences));
+}
+
+async function readSyncBaseline(): Promise<PreferenceBundle | null> {
+  const raw = await AsyncStorage.getItem(PREFERENCES_BASELINE_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    // Only trust a full bundle; a partial/old shape is treated as "no
+    // baseline yet" so the server value wins, same as a first sync.
+    return parsed && typeof parsed === "object" && "theme" in parsed
+      ? (parsed as PreferenceBundle)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+async function writeSyncBaseline(bundle: PreferenceBundle | null): Promise<void> {
+  if (bundle) {
+    await AsyncStorage.setItem(PREFERENCES_BASELINE_KEY, JSON.stringify(bundle));
+  } else {
+    await AsyncStorage.removeItem(PREFERENCES_BASELINE_KEY);
+  }
+}
+
+// On a relaunch we already have a synced baseline. A field whose current
+// local value no longer matches that baseline is an edit this device made
+// but never managed to PUT (offline, then killed before the retry) - keep
+// it and re-push it, rather than letting the server's value silently
+// overwrite it. Every other field takes the server's value.
+function reconcileOnRestore(
+  server: PreferenceBundle,
+  local: PreferenceBundle,
+  baseline: PreferenceBundle
+): { merged: PreferenceBundle; unsynced: Partial<PreferenceBundle> } {
+  const merged: PreferenceBundle = { ...server };
+  const unsynced: Partial<PreferenceBundle> = {};
+  (Object.keys(server) as (keyof PreferenceBundle)[]).forEach((key) => {
+    const localVal = key === "sources" ? JSON.stringify(local[key]) : local[key];
+    const baseVal = key === "sources" ? JSON.stringify(baseline[key]) : baseline[key];
+    if (localVal !== baseVal) {
+      (merged as Record<string, unknown>)[key] = local[key];
+      (unsynced as Record<string, unknown>)[key] = local[key];
+    }
+  });
+  return { merged, unsynced };
 }
 
 async function readLocalPreferencesBundle(): Promise<PreferenceBundle> {
@@ -149,8 +214,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { user: me, preferences } = await fetchMe(stored);
         setToken(stored);
         setUser(me);
-        await applyServerPreferences(preferences);
-        lastSyncedBundleRef.current = await readLocalPreferencesBundle();
+
+        const baseline = await readSyncBaseline();
+        if (!baseline) {
+          // First sync on this device (or a build from before the baseline
+          // existed) - the server is the source of truth, as it always was.
+          await applyServerPreferences(preferences);
+          const bundle = await readLocalPreferencesBundle();
+          lastSyncedBundleRef.current = bundle;
+          await writeSyncBaseline(bundle);
+        } else {
+          const server = serverPreferencesToBundle(preferences);
+          const local = await readLocalPreferencesBundle();
+          const { merged, unsynced } = reconcileOnRestore(server, local, baseline);
+          // The baseline is what the server currently has; the diff between
+          // it and `merged` is exactly the field(s) still to push.
+          lastSyncedBundleRef.current = server;
+          await writeSyncBaseline(server);
+          await writePreferencesToStorage(merged);
+          if (Object.keys(unsynced).length > 0) {
+            putPreferences(stored, unsynced)
+              .then(() => {
+                lastSyncedBundleRef.current = merged;
+                return writeSyncBaseline(merged);
+              })
+              .catch(() => {
+                // Still offline - the edit stays in local storage and the
+                // baseline still reflects the server, so the next change or
+                // launch retries it.
+              });
+          }
+        }
       } catch {
         await storeToken(null);
       } finally {
@@ -176,11 +270,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         putPreferences(token, payload)
           .then(() => {
             lastSyncedBundleRef.current = bundle;
+            return writeSyncBaseline(bundle);
           })
           .catch(() => {
             // A transient network failure just means this one change
-            // doesn't sync immediately - the next change (or the next
-            // sign-in's own pull) still converges.
+            // doesn't sync immediately - the baseline still reflects the
+            // last confirmed sync, so the next change (or the next launch's
+            // reconcile) re-pushes this field instead of losing it.
           });
       });
     });
@@ -212,13 +308,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // An existing account's saved preferences become this device's
         // source of truth.
         await applyServerPreferences(preferences);
-        lastSyncedBundleRef.current = await readLocalPreferencesBundle();
+        const bundle = await readLocalPreferencesBundle();
+        lastSyncedBundleRef.current = bundle;
+        await writeSyncBaseline(bundle);
       } else {
         // A brand new account - seed it with whatever this device
         // currently has, rather than leaving it empty.
         const bundle = await readLocalPreferencesBundle();
         await putPreferences(sessionToken, bundle).catch(() => {});
         lastSyncedBundleRef.current = bundle;
+        await writeSyncBaseline(bundle);
       }
     } catch (err) {
       setSignInError(err instanceof Error ? err.message : "Sign-in failed");
@@ -236,6 +335,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // still clear our own session below regardless.
     }
     await storeToken(null);
+    await writeSyncBaseline(null);
     setToken(null);
     setUser(null);
 
