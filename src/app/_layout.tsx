@@ -123,6 +123,15 @@ const queryClient = new QueryClient({
       // minutes of freshness avoids that round-trip. Pull-to-refresh still
       // bypasses this and always hits the network.
       staleTime: 2 * 60 * 1000,
+      // react-query's default is 3 retries with exponential backoff, which
+      // sits on top of apiFetch's own 15s AbortController timeout - so an
+      // unreachable backend spun for ~60s before any error state appeared.
+      // One retry covers a genuine blip; past that the reader is better
+      // served by ErrorState's own "Try again" than by a longer spinner.
+      // This audience is on slow networks, which is the same reason the 15s
+      // timeout exists in the first place.
+      retry: 1,
+      retryDelay: 1000,
     },
   },
 });
