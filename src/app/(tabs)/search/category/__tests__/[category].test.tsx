@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 
 import { fetchArticles, type Article } from "@/api/articles";
+import { NATIVE_TAB_BAR_HEIGHT } from "@/constants/theme";
 import { DebugPreferenceProvider } from "@/contexts/debug-preference";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { SourcesPreferenceProvider } from "@/contexts/sources-preference";
@@ -160,6 +161,18 @@ describe("SearchCategoryScreen", () => {
 
     expect(mockBack).toHaveBeenCalledTimes(1);
     expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  // Every other scrolling screen inside (tabs) reserves this; without it the
+  // last article card sits behind the native tab bar. See AGENTS.md.
+  it("reserves space for the native tab bar so the last card clears it", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    expect(screen.getByTestId("category-screen-container")).toHaveStyle({
+      paddingBottom: NATIVE_TAB_BAR_HEIGHT,
+    });
   });
 
   it("falls back to replacing with the Search tab's root when there is no back history", async () => {
