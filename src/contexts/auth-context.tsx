@@ -174,9 +174,26 @@ async function readLocalPreferencesBundle(): Promise<PreferenceBundle> {
     fontSize: fontSize ?? DEFAULT_FONT_SIZE_PREFERENCE,
     language: language ?? DEFAULT_LANGUAGE,
     debugEnabled: debug === "true",
-    sources: sourcesRaw ? JSON.parse(sourcesRaw) : DEFAULT_SOURCES_SELECTIONS,
+    sources: parseStoredSources(sourcesRaw),
     notificationInterval: Number(notificationInterval) || DEFAULT_NOTIFICATION_INTERVAL,
   };
+}
+
+// Matches sources-preference.tsx's own codec: a corrupt stored value falls
+// back to the "no filter" default rather than throwing. An unguarded parse
+// here rejected readLocalPreferencesBundle, which on the launch path landed
+// in the session-restore catch (destroying the stored token) and in the
+// change listener became an unhandled rejection.
+function parseStoredSources(raw: string | null): PreferenceBundle["sources"] {
+  if (!raw) return DEFAULT_SOURCES_SELECTIONS;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed
+      : DEFAULT_SOURCES_SELECTIONS;
+  } catch {
+    return DEFAULT_SOURCES_SELECTIONS;
+  }
 }
 
 // Fields whose value differs between the last-synced bundle and the
@@ -268,22 +285,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return undefined;
     }
     return onPreferenceChanged(() => {
-      readLocalPreferencesBundle().then((bundle) => {
-        const prev = lastSyncedBundleRef.current;
-        const payload = prev ? diffPreferenceBundle(prev, bundle) : bundle;
-        if (Object.keys(payload).length === 0) return;
-        putPreferences(token, payload)
-          .then(() => {
+      readLocalPreferencesBundle()
+        .then((bundle) => {
+          const prev = lastSyncedBundleRef.current;
+          const payload = prev ? diffPreferenceBundle(prev, bundle) : bundle;
+          if (Object.keys(payload).length === 0) return;
+          return putPreferences(token, payload).then(() => {
             lastSyncedBundleRef.current = bundle;
             return writeSyncBaseline(bundle);
-          })
-          .catch(() => {
-            // A transient network failure just means this one change
-            // doesn't sync immediately - the baseline still reflects the
-            // last confirmed sync, so the next change (or the next launch's
-            // reconcile) re-pushes this field instead of losing it.
           });
-      });
+        })
+        .catch(() => {
+          // A transient network (or storage) failure just means this one
+          // change doesn't sync immediately - the baseline still reflects
+          // the last confirmed sync, so the next change (or the next
+          // launch's reconcile) re-pushes this field instead of losing it.
+          // Catching on the outer chain rather than only the PUT keeps a
+          // failed local read from surfacing as an unhandled rejection.
+        });
     });
   }, [token]);
 
@@ -306,10 +325,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       // A brand new account - seed it with whatever this device currently
       // has, rather than leaving it empty.
+      //
+      // The baseline is only written once the server has actually confirmed
+      // the seed. Writing it unconditionally claimed the server held values
+      // it had never received, and since every later sync is a baseline
+      // diff, those fields were then never re-pushed - a first sign-in on a
+      // flaky connection silently lost the whole bundle. Leaving the
+      // baseline unset makes the next change (or the next launch) push
+      // everything again.
       const bundle = await readLocalPreferencesBundle();
-      await putPreferences(sessionToken, bundle).catch(() => {});
-      lastSyncedBundleRef.current = bundle;
-      await writeSyncBaseline(bundle);
+      try {
+        await putPreferences(sessionToken, bundle);
+        lastSyncedBundleRef.current = bundle;
+        await writeSyncBaseline(bundle);
+      } catch {
+        lastSyncedBundleRef.current = null;
+        await writeSyncBaseline(null);
+      }
     }
   };
 
