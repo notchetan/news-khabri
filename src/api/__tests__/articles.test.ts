@@ -110,7 +110,8 @@ describe("fetchArticleDetail", () => {
 
     expect(result).toEqual(detail);
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/articles/1")
+      expect.stringContaining("/articles/1"),
+      expect.objectContaining({ signal: expect.anything() })
     );
   });
 
@@ -131,7 +132,8 @@ describe("fetchCategories", () => {
 
     expect(result).toEqual(["national", "business"]);
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/categories?language=en")
+      expect.stringContaining("/categories?language=en"),
+      expect.objectContaining({ signal: expect.anything() })
     );
   });
 
@@ -152,7 +154,8 @@ describe("fetchLanguages", () => {
 
     expect(result).toEqual(["en", "hi"]);
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/languages")
+      expect.stringContaining("/languages"),
+      expect.objectContaining({ signal: expect.anything() })
     );
   });
 

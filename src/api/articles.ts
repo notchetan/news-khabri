@@ -1,4 +1,4 @@
-import { API_BASE_URL as BASE_URL } from "./config";
+import { apiFetch } from "./client";
 
 export type Article = {
   id: number;
@@ -50,15 +50,13 @@ export async function fetchArticles(
   if (search) params.set("search", search);
   if (sources && sources.length > 0) params.set("sources", sources.join(","));
 
-  const res = await fetch(`${BASE_URL}/articles?${params}`);
-  if (!res.ok) throw new Error("Failed to fetch articles");
-  return res.json();
+  return apiFetch(`/articles?${params}`, {
+    errorMessage: "Failed to fetch articles",
+  });
 }
 
 export async function fetchArticleDetail(id: number): Promise<ArticleDetail> {
-  const res = await fetch(`${BASE_URL}/articles/${id}`);
-  if (!res.ok) throw new Error("Failed to fetch article");
-  return res.json();
+  return apiFetch(`/articles/${id}`, { errorMessage: "Failed to fetch article" });
 }
 
 export async function fetchCategories(
@@ -68,19 +66,17 @@ export async function fetchCategories(
   const params = new URLSearchParams({ language });
   if (sources && sources.length > 0) params.set("sources", sources.join(","));
 
-  const res = await fetch(`${BASE_URL}/categories?${params}`);
-  if (!res.ok) throw new Error("Failed to fetch categories");
-  return res.json();
+  return apiFetch(`/categories?${params}`, {
+    errorMessage: "Failed to fetch categories",
+  });
 }
 
 export async function fetchLanguages(): Promise<string[]> {
-  const res = await fetch(`${BASE_URL}/languages`);
-  if (!res.ok) throw new Error("Failed to fetch languages");
-  return res.json();
+  return apiFetch("/languages", { errorMessage: "Failed to fetch languages" });
 }
 
 export async function fetchSources(language: string): Promise<string[]> {
-  const res = await fetch(`${BASE_URL}/sources?language=${language}`);
-  if (!res.ok) throw new Error("Failed to fetch sources");
-  return res.json();
+  return apiFetch(`/sources?language=${language}`, {
+    errorMessage: "Failed to fetch sources",
+  });
 }

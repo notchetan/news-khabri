@@ -35,9 +35,15 @@ new one.
   React 19, RN 0.81.
 - Data fetching: `@tanstack/react-query` over a thin `fetch`-based client
   in `src/api/` (`articles.ts`, `stories.ts`). No client-side caching
-  logic of our own — react-query owns that. The API base URL comes from
-  `src/api/config.ts` (`EXPO_PUBLIC_API_URL`, default `http://localhost:3000`)
-  — don't hardcode a host in an `api/` module again. Every query-backed screen
+  logic of our own — react-query owns that. Every `api/` module goes
+  through `apiFetch(path, { method?, body?, token?, errorMessage,
+  parseJson? })` in `src/api/client.ts` — it prefixes
+  `config.ts`'s base URL, JSON-encodes the body, adds the bearer header,
+  throws `errorMessage` on `!res.ok`, and applies a 15s `AbortController`
+  timeout so a dead socket surfaces as an error instead of an infinite
+  spinner. Don't hand-roll a raw `fetch` + `if (!res.ok) throw` in an
+  `api/` module again, and don't hardcode a host (the base URL is
+  `EXPO_PUBLIC_API_URL`, default `http://localhost:3000`). Every query-backed screen
   renders `components/error-state.tsx` (message + optional "Try again"
   wired to react-query's `refetch`) for its failure state — don't
   hand-roll a bare `<Text>` error again.

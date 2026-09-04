@@ -1,4 +1,4 @@
-import { API_BASE_URL as BASE_URL } from "./config";
+import { apiFetch } from "./client";
 
 export type AuthUser = {
   id: number;
@@ -40,23 +40,17 @@ export type AuthResponse = {
 // for this app's own session token - see the backend's
 // docs/google-sign-in.md for why there's a second token at all.
 export async function signInWithGoogle(idToken: string): Promise<AuthResponse> {
-  const res = await fetch(`${BASE_URL}/auth/google`, {
+  return apiFetch("/auth/google", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ idToken }),
+    body: { idToken },
+    errorMessage: "Failed to sign in with Google",
   });
-  if (!res.ok) throw new Error("Failed to sign in with Google");
-  return res.json();
 }
 
 export async function fetchMe(
   token: string
 ): Promise<{ user: AuthUser; preferences: ServerPreferences }> {
-  const res = await fetch(`${BASE_URL}/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error("Failed to fetch account");
-  return res.json();
+  return apiFetch("/me", { token, errorMessage: "Failed to fetch account" });
 }
 
 // A partial patch: send only the fields this device actually changed. The
@@ -68,21 +62,23 @@ export async function putPreferences(
   token: string,
   preferences: Partial<PreferenceBundle>
 ): Promise<void> {
-  const res = await fetch(`${BASE_URL}/me/preferences`, {
+  await apiFetch("/me/preferences", {
     method: "PUT",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify(preferences),
+    token,
+    body: preferences,
+    parseJson: false,
+    errorMessage: "Failed to save preferences",
   });
-  if (!res.ok) throw new Error("Failed to save preferences");
 }
 
 // Permanently deletes the account and everything the server has synced to
 // it (preferences, bookmarks, reading history). The backend clears every
 // referencing table in one transaction - see its docs/google-sign-in.md.
 export async function deleteAccount(token: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}/me`, {
+  await apiFetch("/me", {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
+    token,
+    parseJson: false,
+    errorMessage: "Failed to delete account",
   });
-  if (!res.ok) throw new Error("Failed to delete account");
 }

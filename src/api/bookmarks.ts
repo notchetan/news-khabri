@@ -1,4 +1,4 @@
-import { API_BASE_URL as BASE_URL } from "./config";
+import { apiFetch } from "./client";
 
 // One saved article as the backend returns it from GET /me/bookmarks -
 // the same card-shaped fields the feed already uses (so BookmarkedArticle
@@ -21,23 +21,23 @@ export type BookmarkedArticle = {
 // The signed-in, cross-device bookmark list. Guests never call this - see
 // contexts/bookmarks-context.tsx for where the on-device list takes over.
 export async function fetchBookmarks(token: string): Promise<BookmarkedArticle[]> {
-  const res = await fetch(`${BASE_URL}/me/bookmarks`, {
-    headers: { Authorization: `Bearer ${token}` },
+  return apiFetch("/me/bookmarks", {
+    token,
+    errorMessage: "Failed to fetch bookmarks",
   });
-  if (!res.ok) throw new Error("Failed to fetch bookmarks");
-  return res.json();
 }
 
 // Idempotent server-side (see the backend's docs/bookmarks.md) - callers
 // fire this optimistically and swallow the error themselves, matching
 // api/reads.ts's own convention.
 export async function addBookmark(token: string, articleId: number): Promise<void> {
-  const res = await fetch(`${BASE_URL}/me/bookmarks`, {
+  await apiFetch("/me/bookmarks", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ articleId }),
+    token,
+    body: { articleId },
+    parseJson: false,
+    errorMessage: "Failed to add bookmark",
   });
-  if (!res.ok) throw new Error("Failed to add bookmark");
 }
 
 // Replays a whole guest list at sign-in in one request (see the backend's
@@ -48,27 +48,30 @@ export async function addBookmarksBulk(
   articleIds: number[]
 ): Promise<void> {
   if (articleIds.length === 0) return;
-  const res = await fetch(`${BASE_URL}/me/bookmarks/bulk`, {
+  await apiFetch("/me/bookmarks/bulk", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ articleIds }),
+    token,
+    body: { articleIds },
+    parseJson: false,
+    errorMessage: "Failed to sync bookmarks",
   });
-  if (!res.ok) throw new Error("Failed to sync bookmarks");
 }
 
 export async function removeBookmark(token: string, articleId: number): Promise<void> {
-  const res = await fetch(`${BASE_URL}/me/bookmarks/${articleId}`, {
+  await apiFetch(`/me/bookmarks/${articleId}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
+    token,
+    parseJson: false,
+    errorMessage: "Failed to remove bookmark",
   });
-  if (!res.ok) throw new Error("Failed to remove bookmark");
 }
 
 // Clears the whole list in one call - the "Clear all" action.
 export async function clearBookmarks(token: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}/me/bookmarks`, {
+  await apiFetch("/me/bookmarks", {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
+    token,
+    parseJson: false,
+    errorMessage: "Failed to clear bookmarks",
   });
-  if (!res.ok) throw new Error("Failed to clear bookmarks");
 }
