@@ -1,100 +1,68 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { useContext, useEffect, type ReactNode } from "react";
 import { Appearance, Platform } from "react-native";
 
+import { createPersistedPreference } from "@/contexts/create-persisted-preference";
 import { useColorScheme as useSystemColorScheme } from "@/hooks/use-color-scheme";
-import { notifyPreferenceChanged, onPreferenceChanged } from "@/utils/preference-sync";
 
 export type ThemePreference = "day" | "night" | "automatic";
 
 export const THEME_STORAGE_KEY = "themePreference";
 export const DEFAULT_THEME_PREFERENCE: ThemePreference = "automatic";
-const STORAGE_KEY = THEME_STORAGE_KEY;
 
-type ThemePreferenceContextValue = {
-  preference: ThemePreference;
-  setPreference: (preference: ThemePreference) => void;
-  resolvedScheme: "light" | "dark";
-};
+const base = createPersistedPreference<ThemePreference>({
+  storageKey: THEME_STORAGE_KEY,
+  defaultValue: DEFAULT_THEME_PREFERENCE,
+  codec: {
+    parse: (raw) =>
+      raw === "day" || raw === "night" || raw === "automatic" ? raw : undefined,
+    serialize: (v) => v,
+  },
+});
 
-const ThemePreferenceContext = createContext<
-  ThemePreferenceContextValue | undefined
->(undefined);
+function resolve(
+  preference: ThemePreference,
+  systemScheme: "light" | "dark" | null | undefined
+): "light" | "dark" {
+  if (preference === "automatic") return systemScheme === "dark" ? "dark" : "light";
+  return preference === "night" ? "dark" : "light";
+}
 
-export function ThemePreferenceProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const systemScheme = useSystemColorScheme();
-  const [preference, setPreferenceState] =
-    useState<ThemePreference>(DEFAULT_THEME_PREFERENCE);
-
-  // Also re-reads on every AuthProvider preference pull (see
-  // docs/google-sign-in.md), not just on mount - a signed-in reader's
-  // theme can change from a server value applied after this provider
-  // already initialized.
-  useEffect(() => {
-    const load = () => {
-      AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
-        if (stored === "day" || stored === "night" || stored === "automatic") {
-          setPreferenceState(stored);
-        }
-      });
-    };
-    load();
-    return onPreferenceChanged(load);
-  }, []);
-
-  const setPreference = (next: ThemePreference) => {
-    setPreferenceState(next);
-    AsyncStorage.setItem(STORAGE_KEY, next);
-    notifyPreferenceChanged();
-  };
-
-  // Our theme preference is app-level JS state - it doesn't by itself
-  // affect native-rendered chrome (e.g. a NativeTabs bar), which follows the
-  // OS's actual UITraitCollection/system appearance. Appearance.setColorScheme
-  // overrides that trait for this app specifically, so native elements pick
-  // up the same choice the user made in-app instead of only the device's
-  // real system setting.
+// Our theme preference is app-level JS state - it doesn't by itself affect
+// native-rendered chrome (e.g. a NativeTabs bar), which follows the OS's
+// actual system appearance. Appearance.setColorScheme overrides that trait
+// for this app specifically, so native elements pick up the same choice
+// the reader made in-app.
+function AppearanceSync({ children }: { children: ReactNode }) {
+  const ctx = useContext(base.Context);
+  const preference = ctx?.value ?? DEFAULT_THEME_PREFERENCE;
   useEffect(() => {
     if (Platform.OS === "web") return;
     Appearance.setColorScheme(
       preference === "automatic" ? null : preference === "night" ? "dark" : "light"
     );
   }, [preference]);
+  return <>{children}</>;
+}
 
-  const resolvedScheme: "light" | "dark" =
-    preference === "automatic"
-      ? systemScheme === "dark"
-        ? "dark"
-        : "light"
-      : preference === "night"
-        ? "dark"
-        : "light";
-
+export function ThemePreferenceProvider({ children }: { children: ReactNode }) {
   return (
-    <ThemePreferenceContext.Provider
-      value={{ preference, setPreference, resolvedScheme }}
-    >
-      {children}
-    </ThemePreferenceContext.Provider>
+    <base.Provider>
+      <AppearanceSync>{children}</AppearanceSync>
+    </base.Provider>
   );
 }
 
 export function useThemePreference() {
-  const ctx = useContext(ThemePreferenceContext);
+  const ctx = useContext(base.Context);
   if (!ctx) {
     throw new Error(
       "useThemePreference must be used within a ThemePreferenceProvider"
     );
   }
-  return ctx;
+  const systemScheme = useSystemColorScheme();
+  return {
+    preference: ctx.value,
+    setPreference: ctx.setValue,
+    resolvedScheme: resolve(ctx.value, systemScheme),
+  };
 }

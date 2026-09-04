@@ -1,19 +1,11 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { useContext } from "react";
 
-import { notifyPreferenceChanged, onPreferenceChanged } from "@/utils/preference-sync";
+import { createPersistedPreference } from "@/contexts/create-persisted-preference";
 
 export type FontSizePreference = "small" | "medium" | "large";
 
 export const FONT_SIZE_STORAGE_KEY = "fontSizePreference";
 export const DEFAULT_FONT_SIZE_PREFERENCE: FontSizePreference = "medium";
-const STORAGE_KEY = FONT_SIZE_STORAGE_KEY;
 
 const SCALE: Record<FontSizePreference, number> = {
   small: 0.875,
@@ -21,59 +13,28 @@ const SCALE: Record<FontSizePreference, number> = {
   large: 1.2,
 };
 
-type FontSizePreferenceContextValue = {
-  preference: FontSizePreference;
-  setPreference: (preference: FontSizePreference) => void;
-  scale: number;
-};
+const base = createPersistedPreference<FontSizePreference>({
+  storageKey: FONT_SIZE_STORAGE_KEY,
+  defaultValue: DEFAULT_FONT_SIZE_PREFERENCE,
+  codec: {
+    parse: (raw) =>
+      raw === "small" || raw === "medium" || raw === "large" ? raw : undefined,
+    serialize: (v) => v,
+  },
+});
 
-const FontSizePreferenceContext = createContext<
-  FontSizePreferenceContextValue | undefined
->(undefined);
-
-export function FontSizePreferenceProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const [preference, setPreferenceState] =
-    useState<FontSizePreference>(DEFAULT_FONT_SIZE_PREFERENCE);
-
-  // Also re-reads on every AuthProvider preference pull - see
-  // docs/google-sign-in.md.
-  useEffect(() => {
-    const load = () => {
-      AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
-        if (stored === "small" || stored === "medium" || stored === "large") {
-          setPreferenceState(stored);
-        }
-      });
-    };
-    load();
-    return onPreferenceChanged(load);
-  }, []);
-
-  const setPreference = (next: FontSizePreference) => {
-    setPreferenceState(next);
-    AsyncStorage.setItem(STORAGE_KEY, next);
-    notifyPreferenceChanged();
-  };
-
-  return (
-    <FontSizePreferenceContext.Provider
-      value={{ preference, setPreference, scale: SCALE[preference] }}
-    >
-      {children}
-    </FontSizePreferenceContext.Provider>
-  );
-}
+export const FontSizePreferenceProvider = base.Provider;
 
 export function useFontSizePreference() {
-  const ctx = useContext(FontSizePreferenceContext);
+  const ctx = useContext(base.Context);
   if (!ctx) {
     throw new Error(
       "useFontSizePreference must be used within a FontSizePreferenceProvider"
     );
   }
-  return ctx;
+  return {
+    preference: ctx.value,
+    setPreference: ctx.setValue,
+    scale: SCALE[ctx.value],
+  };
 }
