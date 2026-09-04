@@ -15,6 +15,7 @@ import { Spacing } from "@/constants/theme";
 import { useBookmarks } from "@/contexts/bookmarks-context";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
+import { articleHref } from "@/utils/navigation";
 
 // Top-level route (not a tab), reached from the bookmark icon in
 // AppHeader and the button on the Profile screen. Wears the same floating
@@ -154,13 +155,7 @@ export default function SavedScreen() {
             bookmarked={isBookmarked(item.id)}
             bookmarkAccessibilityLabel={t("removeBookmark")}
             onToggleBookmark={() => toggleBookmark(item)}
-            onPress={() =>
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (router.push as any)({
-                pathname: "/article/[id]",
-                params: { id: String(item.id) },
-              })
-            }
+            onPress={() => router.push(articleHref(item.id))}
           />
         )}
       />

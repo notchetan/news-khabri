@@ -37,6 +37,7 @@ import {
   useThemePreference,
 } from "@/contexts/theme-preference";
 import { ToastProvider } from "@/contexts/toast-context";
+import { storyHref } from "@/utils/navigation";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -153,11 +154,7 @@ function AppContent() {
       const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
         const storyId = response.notification.request.content.data?.storyId;
         if (storyId == null) return;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (router.push as any)({
-          pathname: "/story/[id]",
-          params: { id: String(storyId) },
-        });
+        router.push(storyHref(String(storyId)));
       });
       return () => subscription.remove();
     } catch {

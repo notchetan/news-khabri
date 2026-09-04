@@ -14,6 +14,7 @@ import { useTabBarInset } from "@/hooks/use-tab-bar-inset";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 import { formatRelativeTime } from "@/utils/format-date";
+import { articleHref } from "@/utils/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
@@ -80,9 +81,7 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
     if (router.canGoBack()) {
       router.back();
     } else {
-      // homePath is a prop, so typed routes can't verify it statically.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (router.replace as any)(homePath);
+      router.replace(homePath);
     }
   };
 
@@ -114,13 +113,7 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
   const representativeArticleId = data?.representativeArticle?.id;
   useEffect(() => {
     if (isSingleton && representativeArticleId != null) {
-      // articleBasePath is a prop, so typed routes can't verify it
-      // statically like a literal pathname.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (router.replace as any)({
-        pathname: `${articleBasePath}/[id]`,
-        params: { id: String(representativeArticleId) },
-      });
+      router.replace(articleHref(representativeArticleId, articleBasePath));
     }
   }, [isSingleton, representativeArticleId, articleBasePath, router]);
 
@@ -217,15 +210,7 @@ export default function StoryDetailScreen({ articleBasePath, homePath }: Props) 
               <TouchableOpacity
                 key={member.id}
                 style={[styles.memberRow, { borderColor: theme.backgroundSelected }]}
-                onPress={() =>
-                  // articleBasePath is a prop, so typed routes can't verify
-                  // this dynamic pathname statically like a literal.
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  (router.push as any)({
-                    pathname: `${articleBasePath}/[id]`,
-                    params: { id: String(member.id) },
-                  })
-                }
+                onPress={() => router.push(articleHref(member.id, articleBasePath))}
                 accessibilityRole="button"
                 accessibilityLabel={`${member.title}, ${member.source}`}
               >

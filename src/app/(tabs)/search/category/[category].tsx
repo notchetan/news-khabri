@@ -33,11 +33,7 @@ export default function SearchCategoryScreen() {
     if (router.canGoBack()) {
       router.back();
     } else {
-      // Typed routes' generated union for this literal is flaky across
-      // regenerations (depends on what else Metro has scanned) - same
-      // pragmatic cast used for the other cross-stack navigation calls.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (router.replace as any)("/search");
+      router.replace("/search");
     }
   };
 

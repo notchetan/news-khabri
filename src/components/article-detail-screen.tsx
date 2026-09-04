@@ -34,6 +34,7 @@ import { useFontSizePreference } from "@/contexts/font-size-preference";
 import { useTabBarInset } from "@/hooks/use-tab-bar-inset";
 import { useTheme } from "@/hooks/use-theme";
 import { formatPublishedDate } from "@/utils/format-date";
+import { articleHref } from "@/utils/navigation";
 import { stripHtml } from "@/utils/strip-html";
 import { useTranslation } from "@/i18n/translations";
 import { useQuery } from "@tanstack/react-query";
@@ -195,10 +196,7 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
     if (router.canGoBack()) {
       router.back();
     } else {
-      // homePath is a prop, so typed routes can't verify it statically like
-      // a literal pathname.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (router.replace as any)(homePath);
+      router.replace(homePath);
     }
   };
 
@@ -382,15 +380,7 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
                   <TouchableOpacity
                     key={item.id}
                     style={[styles.relatedRow, { borderColor: theme.backgroundSelected }]}
-                    onPress={() =>
-                      // basePath is a prop, so typed routes can't verify it
-                      // statically like a literal pathname.
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      (router.push as any)({
-                        pathname: `${basePath}/[id]`,
-                        params: { id: String(item.id) },
-                      })
-                    }
+                    onPress={() => router.push(articleHref(item.id, basePath))}
                     accessibilityRole="button"
                     accessibilityLabel={`${item.title}, ${item.source}`}
                   >
