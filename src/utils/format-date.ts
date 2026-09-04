@@ -40,16 +40,20 @@ export function formatRelativeTime(
 
   // Clamp negative (a future date, e.g. clock skew from a source) to 0
   // rather than showing a nonsensical "in the past" value.
-  const diffSeconds = Math.max(0, Math.round((Date.now() - date.getTime()) / 1000));
+  const diffSeconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
 
+  // floor, not round, at every step - "elapsed time" counts whole units that
+  // have actually passed. Rounding up made articles read as older than they
+  // are (90 minutes showed as "2h ago", 23.5 hours as "1d ago"), which is the
+  // wrong direction to be wrong in for a news feed.
   if (diffSeconds < 60) return t("justNow");
 
-  const diffMinutes = Math.round(diffSeconds / 60);
+  const diffMinutes = Math.floor(diffSeconds / 60);
   if (diffMinutes < 60) return t("minutesAgoTemplate", { minutes: String(diffMinutes) });
 
-  const diffHours = Math.round(diffMinutes / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
   if (diffHours < 24) return t("hoursAgoTemplate", { hours: String(diffHours) });
 
-  const diffDays = Math.round(diffHours / 24);
+  const diffDays = Math.floor(diffHours / 24);
   return t("daysAgoTemplate", { days: String(diffDays) });
 }
