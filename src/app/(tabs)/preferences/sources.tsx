@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { SymbolView } from "expo-symbols";
-import { Pressable, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
 import { fetchSources } from "@/api/articles";
+import CheckmarkRow from "@/components/checkmark-row";
 import ErrorState from "@/components/error-state";
 import LegalDocumentScreen from "@/components/legal-document-screen";
 import PageHeader from "@/components/page-header";
@@ -11,7 +11,6 @@ import { Spacing } from "@/constants/theme";
 import { getSourceDisplayName } from "@/constants/source-names";
 import { useLanguagePreference } from "@/contexts/language-preference";
 import { useSourcesPreference } from "@/contexts/sources-preference";
-import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 
 // A pushed screen with a checkmarked list, like language.tsx - but
@@ -23,7 +22,6 @@ export default function SourcesScreen() {
   const { language } = useLanguagePreference();
   const { selectedSources, setSelectedSources } = useSourcesPreference();
   const { t } = useTranslation();
-  const theme = useTheme();
 
   const { data, error, refetch } = useQuery({
     queryKey: ["sources", language],
@@ -70,42 +68,18 @@ export default function SourcesScreen() {
         />
       )}
 
-      {sources.map((source) => {
-        const selected = isAllSelected || selectedSources.includes(source);
-        return (
-          <Pressable
-            key={source}
-            onPress={() => toggleSource(source)}
-            style={[styles.row, { borderColor: theme.backgroundSelected }]}
-            accessibilityRole="button"
-            accessibilityState={{ selected }}
-          >
-            <ThemedText type="default" style={[selected && { color: theme.tint }]}>
-              {getSourceDisplayName(source, language)}
-            </ThemedText>
-            {selected && (
-              <SymbolView
-                name="checkmark"
-                size={16}
-                weight="semibold"
-                tintColor={theme.tint}
-                fallback={<ThemedText style={{ color: theme.tint }}>✓</ThemedText>}
-              />
-            )}
-          </Pressable>
-        );
-      })}
+      {sources.map((source) => (
+        <CheckmarkRow
+          key={source}
+          label={getSourceDisplayName(source, language)}
+          selected={isAllSelected || selectedSources.includes(source)}
+          onPress={() => toggleSource(source)}
+        />
+      ))}
     </LegalDocumentScreen>
   );
 }
 
 const styles = StyleSheet.create({
   description: { marginBottom: Spacing.three },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.three,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
 });
