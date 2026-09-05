@@ -126,6 +126,8 @@ const gu: Record<keyof typeof en, string> = {
   privacy: "ગોપનીયતા",
   legal: "શરતો",
   onboardingCatchphrase: "તમારા દિવસના સૌથી મોટા સમાચાર, કોઈપણ ઘોંઘાટ વગર.",
+  onboardingLegalAccept:
+    "મેં ગોપનીયતા નીતિ અને સેવાની શરતો વાંચી છે અને તે સ્વીકારું છું",
   onboardingNext: "આગળ",
   onboardingFeaturesTitle: "જે જોઈએ એ બધું, બાકી કંઈ નહીં",
   onboardingFeatureNoAdsTitle: "ક્યારેય કોઈ જાહેરાત નહીં",

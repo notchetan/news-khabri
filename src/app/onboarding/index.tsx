@@ -1,10 +1,12 @@
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import { Image, Platform, ScrollView, StyleSheet } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { OnboardingDots } from "@/components/onboarding-dots";
 import { OnboardingLanguagePicker } from "@/components/onboarding-language-picker";
+import { OnboardingLegalConsent } from "@/components/onboarding-legal-consent";
 import { OnboardingNextButton } from "@/components/onboarding-next-button";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -19,8 +21,17 @@ export default function OnboardingWelcomeScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  // Screen-local, deliberately not persisted: a reader who quits mid-flow
+  // starts onboarding again from here next launch (see onboarding-context),
+  // so re-confirming is the correct behaviour, not a papercut.
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
   const goNext = () => router.push("/onboarding/features");
-  const swipeGesture = useOnboardingSwipe({ onNext: goNext });
+  // The swipe is gated too, not just the button - passing `undefined`
+  // leaves useOnboardingSwipe's own `&& onNext` guard to no-op the gesture,
+  // so there's no second way past the checkbox.
+  const swipeGesture = useOnboardingSwipe({
+    onNext: acceptedLegal ? goNext : undefined,
+  });
 
   const topPadding = Platform.select({ default: insets.top, web: Spacing.six });
   const bottomPadding = insets.bottom + Spacing.five;
@@ -54,10 +65,22 @@ export default function OnboardingWelcomeScreen() {
           <ThemedText themeColor="textSecondary" style={styles.catchphrase}>
             {t("onboardingCatchphrase")}
           </ThemedText>
+          {/* Sits directly under the identity block, above the language
+              picker, so the reader meets the two documents before the flow's
+              first real interaction rather than at the end of it. */}
+          <OnboardingLegalConsent
+            accepted={acceptedLegal}
+            onToggle={() => setAcceptedLegal((prev) => !prev)}
+            style={styles.legalConsent}
+          />
           <OnboardingLanguagePicker style={styles.languagePicker} />
         </ThemedView>
 
-        <OnboardingNextButton onPress={goNext} style={styles.nextButton} />
+        <OnboardingNextButton
+          onPress={goNext}
+          disabled={!acceptedLegal}
+          style={styles.nextButton}
+        />
 
         {/* Sibling of content, not a child of it - see
             onboarding-dots.tsx's own comment: this is what makes the dots
@@ -85,6 +108,7 @@ const styles = StyleSheet.create({
   logo: { width: 140, height: 140 },
   appName: { marginTop: Spacing.four, textAlign: "center" },
   catchphrase: { marginTop: Spacing.two, textAlign: "center" },
+  legalConsent: { marginTop: Spacing.four, alignSelf: "stretch" },
   languagePicker: { marginTop: Spacing.four },
   nextButton: { marginBottom: Spacing.five },
 });

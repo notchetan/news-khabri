@@ -119,6 +119,8 @@ const kn: Record<keyof typeof en, string> = {
   privacy: "ಗೌಪ್ಯತೆ",
   legal: "ನಿಯಮಗಳು",
   onboardingCatchphrase: "ನಿಮ್ಮ ದಿನದ ದೊಡ್ಡ ಸುದ್ದಿಗಳು, ಯಾವುದೇ ಗದ್ದಲವಿಲ್ಲದೆ.",
+  onboardingLegalAccept:
+    "ನಾನು ಗೌಪ್ಯತಾ ನೀತಿ ಮತ್ತು ಸೇವಾ ನಿಯಮಗಳನ್ನು ಓದಿದ್ದೇನೆ ಹಾಗೂ ಒಪ್ಪುತ್ತೇನೆ",
   onboardingNext: "ಮುಂದೆ",
   onboardingFeaturesTitle: "ಬೇಕಾದದ್ದೆಲ್ಲಾ, ಬೇಡವಾದದ್ದು ಏನೂ ಇಲ್ಲ",
   onboardingFeatureNoAdsTitle: "ಎಂದಿಗೂ ಜಾಹೀರಾತುಗಳಿಲ್ಲ",

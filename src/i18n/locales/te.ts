@@ -119,6 +119,8 @@ const te: Record<keyof typeof en, string> = {
   privacy: "గోప్యత",
   legal: "నిబంధనలు",
   onboardingCatchphrase: "మీ రోజులోని అతిపెద్ద వార్తలు, ఎలాంటి గోలా లేకుండా.",
+  onboardingLegalAccept:
+    "గోప్యతా విధానం మరియు సేవా నిబంధనలను నేను చదివి అంగీకరిస్తున్నాను",
   onboardingNext: "తదుపరి",
   onboardingFeaturesTitle: "కావాల్సినవన్నీ, వద్దనుకున్నవి ఏవీ లేవు",
   onboardingFeatureNoAdsTitle: "ఎప్పుడూ ప్రకటనలు లేవు",

@@ -123,6 +123,8 @@ const bn: Record<keyof typeof en, string> = {
   privacy: "গোপনীয়তা",
   legal: "শর্তাবলী",
   onboardingCatchphrase: "আপনার দিনের সবচেয়ে বড় খবর, কোনো শোরগোল ছাড়াই।",
+  onboardingLegalAccept:
+    "আমি গোপনীয়তা নীতি ও পরিষেবার শর্তাবলি পড়েছি এবং সেগুলি মেনে নিচ্ছি",
   onboardingNext: "পরবর্তী",
   onboardingFeaturesTitle: "যা দরকার সবই, বাকি কিছু নয়",
   onboardingFeatureNoAdsTitle: "কখনো কোনো বিজ্ঞাপন নেই",

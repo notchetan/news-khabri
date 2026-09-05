@@ -14,9 +14,15 @@ import { useTranslation } from "@/i18n/translations";
 export function OnboardingNextButton({
   onPress,
   style,
+  disabled = false,
 }: {
   onPress: () => void;
   style?: ViewStyle;
+  // Screen 1 holds this closed until the reader has accepted the privacy
+  // policy and terms - see onboarding-legal-consent.tsx. Dimmed rather than
+  // hidden so the way forward stays visible and the checkbox reads as the
+  // thing standing in front of it.
+  disabled?: boolean;
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -25,9 +31,16 @@ export function OnboardingNextButton({
     <Pressable
       testID="onboarding-next"
       onPress={onPress}
-      style={[styles.button, { backgroundColor: theme.tint }, style]}
+      disabled={disabled}
+      style={[
+        styles.button,
+        { backgroundColor: theme.tint },
+        disabled && styles.disabled,
+        style,
+      ]}
       accessibilityRole="button"
       accessibilityLabel={t("onboardingNext")}
+      accessibilityState={{ disabled }}
     >
       <ThemedText type="default" style={{ color: theme.tintText }}>
         {t("onboardingNext")}
@@ -52,4 +65,5 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.three,
     borderRadius: Radius.full,
   },
+  disabled: { opacity: 0.5 },
 });

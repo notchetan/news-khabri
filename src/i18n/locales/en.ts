@@ -136,6 +136,8 @@ const en = {
   // branded welcome, a feature summary, then an optional sign-in pitch.
   // See onboarding-context.tsx for the "have we shown this already" flag.
   onboardingCatchphrase: "Your day's biggest stories, without the noise.",
+  onboardingLegalAccept:
+    "I have read and accept the Privacy Policy and Terms of Service",
   onboardingNext: "Next",
   onboardingFeaturesTitle: "Everything you need, nothing you don't",
   onboardingFeatureNoAdsTitle: "No ads, ever",

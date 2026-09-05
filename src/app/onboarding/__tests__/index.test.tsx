@@ -48,14 +48,70 @@ describe("OnboardingWelcomeScreen", () => {
     expect(screen.getByText("English")).toBeTruthy();
   });
 
-  it("advances to the features screen when the Next button is pressed", async () => {
+  it("links to the privacy policy and the terms", async () => {
     await act(async () => {
       renderScreen();
     });
 
-    fireEvent.press(screen.getByTestId("onboarding-next"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("onboarding-legal-privacy"));
+    });
+    expect(mockPush).toHaveBeenCalledWith("/onboarding/privacy");
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("onboarding-legal-legal"));
+    });
+    expect(mockPush).toHaveBeenCalledWith("/onboarding/terms");
+  });
+
+  // The whole point of the checkbox: nobody reaches the app without having
+  // been shown the two documents first.
+  it("does not advance until the legal checkbox is accepted", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("onboarding-next"));
+    });
+
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("advances to the features screen once accepted and Next is pressed", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("onboarding-legal-accept"));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("onboarding-next"));
+    });
 
     expect(mockPush).toHaveBeenCalledWith("/onboarding/features");
+  });
+
+  it("reports the checkbox state to assistive technology", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    // Re-queried after the press rather than reusing the handle: a captured
+    // element holds the props from the render it came from, so asserting on
+    // the old one would always report the pre-toggle state.
+    expect(
+      screen.getByTestId("onboarding-legal-accept").props.accessibilityState
+    ).toMatchObject({ checked: false });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("onboarding-legal-accept"));
+    });
+
+    expect(
+      screen.getByTestId("onboarding-legal-accept").props.accessibilityState
+    ).toMatchObject({ checked: true });
   });
 
   // Every reader has to complete this flow; on a small screen at a large
