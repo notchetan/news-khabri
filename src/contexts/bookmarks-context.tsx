@@ -73,12 +73,28 @@ export function BookmarksProvider({ children }: { children: ReactNode }) {
     AsyncStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(next)).catch(() => {});
   }, []);
 
+  // On sign-out, drop the cached list. It belonged to the account that just
+  // left, and sign-in replays whatever is cached to the server - so keeping
+  // it meant signing out of account A and into B on the same device merged
+  // A's saved articles into B's server-side list. Signing back into A
+  // re-syncs from the server, so nothing is actually lost.
+  //
+  // Only a real sign-out (a token going from set to null), never the initial
+  // null while the stored session is still being restored.
+  const previousTokenRef = useRef<string | null>(null);
+  useEffect(() => {
+    const signedOut = previousTokenRef.current !== null && token === null;
+    previousTokenRef.current = token;
+    if (signedOut) {
+      setBookmarks([]);
+      AsyncStorage.removeItem(BOOKMARKS_STORAGE_KEY).catch(() => {});
+    }
+  }, [token]);
+
   // On sign-in (or a restored session), replay the whole on-device list to
   // the server one id at a time - both endpoints are idempotent, so this
   // needs no client-side dedupe - then adopt the server's list as this
-  // device's. On sign-out, keep whatever's cached (the reader keeps seeing
-  // what they saved, now as a guest) and allow a future sign-in to
-  // reconcile again.
+  // device's.
   useEffect(() => {
     if (!token) {
       syncedTokenRef.current = null;

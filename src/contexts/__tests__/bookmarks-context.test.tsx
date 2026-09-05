@@ -241,7 +241,12 @@ describe("useBookmarks", () => {
     expect(mockClear).toHaveBeenCalledWith("session-token");
   });
 
-  it("keeps the cached list on sign-out", async () => {
+  // Deliberate change of contract: this used to keep the cached list so a
+  // guest kept seeing what they saved. But sign-in replays whatever is
+  // cached to the server, so keeping account A's list meant it merged into
+  // account B on the next sign-in. Signing back into A re-syncs from the
+  // server, so nothing is genuinely lost.
+  it("clears the cached list on sign-out, in memory and in storage", async () => {
     mockToken = "session-token";
     mockFetch.mockResolvedValue([article(5)]);
     const { result, rerender } = await renderHook(() => useBookmarks(), { wrapper });
@@ -254,6 +259,57 @@ describe("useBookmarks", () => {
       rerender({});
     });
 
-    expect(result.current.bookmarks.map((b) => b.id)).toEqual([5]);
+    expect(result.current.bookmarks).toEqual([]);
+    await waitFor(async () => {
+      expect(await AsyncStorage.getItem(BOOKMARKS_STORAGE_KEY)).toBeNull();
+    });
+  });
+
+  it("does not replay one account's saved articles into the next account", async () => {
+    // Signed in as A, whose list is {5}.
+    mockToken = "token-a";
+    mockFetch.mockResolvedValue([article(5)]);
+    const { result, rerender } = await renderHook(() => useBookmarks(), { wrapper });
+    await waitFor(() => {
+      expect(result.current.bookmarks.map((b) => b.id)).toEqual([5]);
+    });
+
+    await act(async () => {
+      mockToken = null;
+      rerender({});
+    });
+
+    // Now sign in as B, whose server list is {9}.
+    mockBulk.mockClear();
+    mockFetch.mockResolvedValue([article(9)]);
+    await act(async () => {
+      mockToken = "token-b";
+      rerender({});
+    });
+
+    await waitFor(() => {
+      expect(result.current.bookmarks.map((b) => b.id)).toEqual([9]);
+    });
+    // Nothing of A's went up with B's token. (Empty lists short-circuit in
+    // addBookmarksBulk, so either no call or an empty one is correct.)
+    for (const call of mockBulk.mock.calls) {
+      expect(call[1]).toEqual([]);
+    }
+  });
+
+  // The initial null token while a stored session is still being restored is
+  // not a sign-out and must not wipe a guest's list.
+  it("does not clear the list on first mount while signed out", async () => {
+    await AsyncStorage.setItem(
+      BOOKMARKS_STORAGE_KEY,
+      JSON.stringify([article(1), article(2)])
+    );
+
+    const { result } = await renderHook(() => useBookmarks(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.bookmarks.map((b) => b.id)).toEqual([1, 2]);
+    });
+    expect(await AsyncStorage.getItem(BOOKMARKS_STORAGE_KEY)).not.toBeNull();
   });
 });
