@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-import LegalDocumentScreen from "@/components/legal-document-screen";
+import PushedScreen from "@/components/pushed-screen";
 import { ThemedText } from "@/components/themed-text";
 import { LEGAL_LAST_UPDATED } from "@/constants/legal";
 import { Spacing } from "@/constants/theme";
@@ -17,7 +17,7 @@ export default function PrivacyScreen() {
   const { t } = useTranslation();
 
   return (
-    <LegalDocumentScreen title={t("privacyPolicy")}>
+    <PushedScreen title={t("privacyPolicy")}>
       <ThemedText themeColor="textSecondary" style={styles.updated}>
         Last updated: {LEGAL_LAST_UPDATED}
       </ThemedText>
@@ -113,7 +113,7 @@ export default function PrivacyScreen() {
       <ThemedText style={styles.paragraph}>
         Questions about this policy? Reach us at support@newskhabri.app.
       </ThemedText>
-    </LegalDocumentScreen>
+    </PushedScreen>
   );
 }
 

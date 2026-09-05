@@ -63,7 +63,7 @@ const FONT_SIZE_OPTIONS: {
 
 // The About/Privacy/Terms links at the bottom of this screen - each just a
 // static-content route under this same preferences/ stack (see
-// legal-document-screen.tsx for their shared shell). Shown as a single
+// pushed-screen.tsx for their shared shell). Shown as a single
 // centered line (see legalLinksRow) rather than three stacked rows, since
 // three short reference links don't need a full row each.
 const LEGAL_LINKS: { href: "/preferences/about" | "/preferences/privacy" | "/preferences/terms"; labelKey: TranslationKey }[] = [
