@@ -21,12 +21,16 @@ type Props = {
   renderHeader?: (goBack: () => void) => ReactNode;
 };
 
-// Shared shell for the About/Privacy Policy/Terms of Service screens (see
-// preferences/about.tsx, preferences/privacy.tsx, preferences/terms.tsx) -
-// the same back-button pattern already established by
-// story-detail-screen.tsx and article-detail-screen.tsx, just without any
-// data fetching since this content is static.
-export default function LegalDocumentScreen({ title, children, renderHeader }: Props) {
+// Shared shell for every screen pushed from Preferences: the three static
+// documents (about/privacy/terms) and the three pickers (language/sources/
+// notifications). Same back-button pattern already established by
+// story-detail-screen.tsx and article-detail-screen.tsx, without the data
+// fetching.
+//
+// Named for what it is, not what it first held - it was
+// legal-document-screen.tsx until the pickers started using it too, at
+// which point the name described half its callers.
+export default function PushedScreen({ title, children, renderHeader }: Props) {
   const router = useRouter();
   const theme = useTheme();
   const { t } = useTranslation();
@@ -71,7 +75,10 @@ export default function LegalDocumentScreen({ title, children, renderHeader }: P
         </View>
       )}
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      {/* Explicit flex:1 - see AGENTS.md's ScrollView-needs-explicit-flex
+          lesson, which saved.tsx and preferences/index.tsx both cite and
+          this file was the one place still missing. */}
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {!renderHeader && (
           <ThemedText type="subtitle" style={styles.title} accessibilityRole="header">
             {title}
@@ -84,6 +91,7 @@ export default function LegalDocumentScreen({ title, children, renderHeader }: P
 }
 
 const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
   headerRow: { paddingHorizontal: Spacing.four, paddingBottom: Spacing.two },
   backPressable: { alignSelf: "flex-start", paddingVertical: Spacing.one },
   backPressableRow: { flexDirection: "row", alignItems: "center" },

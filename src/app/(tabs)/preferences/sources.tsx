@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 import { fetchSources } from "@/api/articles";
 import CheckmarkRow from "@/components/checkmark-row";
 import ErrorState from "@/components/error-state";
-import LegalDocumentScreen from "@/components/legal-document-screen";
+import PushedScreen from "@/components/pushed-screen";
 import PageHeader from "@/components/page-header";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
@@ -47,7 +47,7 @@ export default function SourcesScreen() {
   }
 
   return (
-    <LegalDocumentScreen
+    <PushedScreen
       title={t("sources")}
       renderHeader={(goBack) => (
         <PageHeader title={t("sources")} onGoBack={goBack} testIDPrefix="sources" />
@@ -76,7 +76,7 @@ export default function SourcesScreen() {
           onPress={() => toggleSource(source)}
         />
       ))}
-    </LegalDocumentScreen>
+    </PushedScreen>
   );
 }
 

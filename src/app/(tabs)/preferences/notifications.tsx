@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { StyleSheet } from "react-native";
 
 import CheckmarkRow from "@/components/checkmark-row";
-import LegalDocumentScreen from "@/components/legal-document-screen";
+import PushedScreen from "@/components/pushed-screen";
 import PageHeader from "@/components/page-header";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
@@ -28,7 +28,7 @@ export default function NotificationsScreen() {
       : t("notificationsEveryMinutesTemplate", { minutes: String(value) });
 
   return (
-    <LegalDocumentScreen
+    <PushedScreen
       title={t("notifications")}
       renderHeader={(goBack) => (
         <PageHeader
@@ -52,7 +52,7 @@ export default function NotificationsScreen() {
           }}
         />
       ))}
-    </LegalDocumentScreen>
+    </PushedScreen>
   );
 }
 

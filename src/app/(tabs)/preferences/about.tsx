@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-import LegalDocumentScreen from "@/components/legal-document-screen";
+import PushedScreen from "@/components/pushed-screen";
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTranslation } from "@/i18n/translations";
@@ -14,7 +14,7 @@ export default function AboutScreen() {
   const { t } = useTranslation();
 
   return (
-    <LegalDocumentScreen title={t("about")}>
+    <PushedScreen title={t("about")}>
       <ThemedText style={styles.paragraph}>
         News Khabri brings together news from multiple Indian publishers -
         in English and nine Indian languages (Hindi, Bengali, Gujarati,
@@ -63,7 +63,7 @@ export default function AboutScreen() {
         Questions, feedback, or something looks wrong? Reach us at
         support@newskhabri.app.
       </ThemedText>
-    </LegalDocumentScreen>
+    </PushedScreen>
   );
 }
 

@@ -15,7 +15,7 @@ import { useTranslation } from "@/i18n/translations";
 
 // Reachable from the profile button in AppHeader on every tab that shows
 // one. Its own back button below follows the same pattern as
-// legal-document-screen.tsx, since it's no longer inside any tab's own
+// pushed-screen.tsx, since it's no longer inside any tab's own
 // Stack that would otherwise supply one (see app-tabs.tsx's own comment on
 // why Profile is no longer a tab itself).
 export default function ProfileScreen() {

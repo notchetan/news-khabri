@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 
 import CheckmarkRow from "@/components/checkmark-row";
-import LegalDocumentScreen from "@/components/legal-document-screen";
+import PushedScreen from "@/components/pushed-screen";
 import PageHeader from "@/components/page-header";
 import { LANGUAGE_ENDONYMS, LANGUAGE_OPTIONS } from "@/constants/languages";
 import { useLanguagePreference } from "@/contexts/language-preference";
@@ -18,7 +18,7 @@ export default function LanguageScreen() {
   const { t } = useTranslation();
 
   return (
-    <LegalDocumentScreen
+    <PushedScreen
       title={t("language")}
       renderHeader={(goBack) => (
         <PageHeader title={t("language")} onGoBack={goBack} testIDPrefix="language" />
@@ -35,6 +35,6 @@ export default function LanguageScreen() {
           }}
         />
       ))}
-    </LegalDocumentScreen>
+    </PushedScreen>
   );
 }

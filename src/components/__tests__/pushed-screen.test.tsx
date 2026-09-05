@@ -3,7 +3,7 @@ import { Text } from "react-native";
 
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
-import LegalDocumentScreen from "../legal-document-screen";
+import PushedScreen from "../pushed-screen";
 
 jest.mock("@/hooks/use-color-scheme", () => ({
   useColorScheme: () => "light",
@@ -24,15 +24,15 @@ function renderScreen() {
   return render(
     <ThemePreferenceProvider>
       <LanguagePreferenceProvider>
-        <LegalDocumentScreen title="About">
+        <PushedScreen title="About">
           <Text>Body content</Text>
-        </LegalDocumentScreen>
+        </PushedScreen>
       </LanguagePreferenceProvider>
     </ThemePreferenceProvider>
   );
 }
 
-describe("LegalDocumentScreen", () => {
+describe("PushedScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack = true;
@@ -75,7 +75,7 @@ describe("LegalDocumentScreen", () => {
       render(
         <ThemePreferenceProvider>
           <LanguagePreferenceProvider>
-            <LegalDocumentScreen
+            <PushedScreen
               title="About"
               renderHeader={(goBack) => (
                 <Text accessibilityRole="button" onPress={goBack}>
@@ -84,7 +84,7 @@ describe("LegalDocumentScreen", () => {
               )}
             >
               <Text>Body content</Text>
-            </LegalDocumentScreen>
+            </PushedScreen>
           </LanguagePreferenceProvider>
         </ThemePreferenceProvider>
       );
