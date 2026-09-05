@@ -64,11 +64,11 @@ export default function PageHeader({ title, onGoBack, testIDPrefix }: Props) {
               size={16}
               weight="semibold"
               tintColor={theme.text}
-              fallback={<ThemedText style={styles.backGlyph}>‹</ThemedText>}
+              fallback={<ThemedText unscaled style={styles.backGlyph}>‹</ThemedText>}
             />
           </Pressable>
         </GlassView>
-        <ThemedText style={styles.title} numberOfLines={1} accessibilityRole="header">
+        <ThemedText unscaled style={styles.title} numberOfLines={1} accessibilityRole="header">
           {title}
         </ThemedText>
       </View>

@@ -50,7 +50,7 @@ const or: Record<keyof typeof en, string> = {
   appearanceAutomaticDesc: "ଆପଣଙ୍କ ଡିଭାଇସର ସିଷ୍ଟମ୍ ସେଟିଂ ସହିତ ମେଳ କରନ୍ତୁ",
   appearanceDayDesc: "ସର୍ବଦା ହାଲୁକା ରୂପ ବ୍ୟବହାର କରନ୍ତୁ",
   appearanceNightDesc: "ସର୍ବଦା ଗାଢ଼ ରୂପ ବ୍ୟବହାର କରନ୍ତୁ",
-  articleFontSize: "ପ୍ରବନ୍ଧର ଫଣ୍ଟ ଆକାର",
+  fontSize: "ଫଣ୍ଟ ଆକାର",
   fontPreviewText: "ଏହା ଫଣ୍ଟ ଆକାର ଦେଖାଉଥିବା ଏକ ନମୁନା ବାକ୍ୟ।",
   language: "ଭାଷା",
   languageDescription: "ପ୍ରବନ୍ଧ ଏବଂ ଆପ୍ ଟେକ୍ସଟ୍ ପାଇଁ ଆପଣଙ୍କର ପସନ୍ଦିତ ଭାଷା ବାଛନ୍ତୁ",

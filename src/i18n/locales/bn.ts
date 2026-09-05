@@ -50,7 +50,7 @@ const bn: Record<keyof typeof en, string> = {
   appearanceAutomaticDesc: "আপনার ডিভাইসের সিস্টেম সেটিংয়ের সাথে মিলান",
   appearanceDayDesc: "সর্বদা হালকা চেহারা ব্যবহার করুন",
   appearanceNightDesc: "সর্বদা গাঢ় চেহারা ব্যবহার করুন",
-  articleFontSize: "নিবন্ধের ফন্ট আকার",
+  fontSize: "ফন্ট আকার",
   fontPreviewText: "এটি একটি নমুনা বাক্য যা ফন্ট আকার দেখায়।",
   language: "ভাষা",
   languageDescription: "নিবন্ধ এবং অ্যাপ টেক্সটের জন্য আপনার পছন্দের ভাষা বেছে নিন",

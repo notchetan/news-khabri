@@ -25,6 +25,17 @@ const base = createPersistedPreference<FontSizePreference>({
 
 export const FontSizePreferenceProvider = base.Provider;
 
+// Non-throwing, unlike useFontSizePreference below. ThemedText is a leaf
+// primitive rendered from a lot of places that legitimately have no
+// provider above them (component tests, any future path that renders text
+// outside the app tree), and a text component that crashes on a missing
+// provider is a footgun out of proportion to what it's reading. Falls back
+// to the default scale, which is 1.
+export function useFontScale(): number {
+  const ctx = useContext(base.Context);
+  return SCALE[ctx?.value ?? DEFAULT_FONT_SIZE_PREFERENCE];
+}
+
 export function useFontSizePreference() {
   const ctx = useContext(base.Context);
   if (!ctx) {

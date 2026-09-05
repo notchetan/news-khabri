@@ -46,7 +46,7 @@ const kn: Record<keyof typeof en, string> = {
   appearanceAutomaticDesc: "ನಿಮ್ಮ ಸಾಧನದ ಸಿಸ್ಟಂ ಸೆಟ್ಟಿಂಗ್‌ಗೆ ಹೊಂದಿಸಿ",
   appearanceDayDesc: "ಯಾವಾಗಲೂ ತಿಳಿ ನೋಟವನ್ನು ಬಳಸಿ",
   appearanceNightDesc: "ಯಾವಾಗಲೂ ಗಾಢ ನೋಟವನ್ನು ಬಳಸಿ",
-  articleFontSize: "ಲೇಖನದ ಫಾಂಟ್ ಗಾತ್ರ",
+  fontSize: "ಫಾಂಟ್ ಗಾತ್ರ",
   fontPreviewText: "ಇದು ಫಾಂಟ್ ಗಾತ್ರವನ್ನು ತೋರಿಸುವ ಮಾದರಿ ವಾಕ್ಯ.",
   language: "ಭಾಷೆ",
   languageDescription: "ಲೇಖನಗಳು ಮತ್ತು ಅಪ್ಲಿಕೇಶನ್ ಪಠ್ಯಕ್ಕಾಗಿ ನಿಮ್ಮ ಆದ್ಯತೆಯ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",

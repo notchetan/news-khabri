@@ -28,7 +28,6 @@ import { ThemedText } from "@/components/themed-text";
 import { Radius, Spacing } from "@/constants/theme";
 import { useAuth } from "@/contexts/auth-context";
 import { useBookmarks } from "@/contexts/bookmarks-context";
-import { useFontSizePreference } from "@/contexts/font-size-preference";
 import { useTabBarInset } from "@/hooks/use-tab-bar-inset";
 import { useTheme } from "@/hooks/use-theme";
 import { formatPublishedDate } from "@/utils/format-date";
@@ -47,7 +46,6 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
   const router = useRouter();
   const theme = useTheme();
   const { t } = useTranslation();
-  const { scale: fontScale } = useFontSizePreference();
   const { token } = useAuth();
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const insets = useSafeAreaInsets();
@@ -292,14 +290,10 @@ export default function ArticleDetailScreen({ basePath, homePath }: Props) {
             </View>
           </View>
 
+          {/* ThemedText applies the reader's font scale itself now; this
+              used to multiply it here too, which would double-apply. */}
           {summary ? (
-            <ThemedText
-              testID="article-summary"
-              style={[
-                styles.summary,
-                { fontSize: 16 * fontScale, lineHeight: 24 * fontScale },
-              ]}
-            >
+            <ThemedText testID="article-summary" style={styles.summary}>
               {summary}
             </ThemedText>
           ) : null}

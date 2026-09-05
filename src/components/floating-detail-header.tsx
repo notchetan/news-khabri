@@ -135,6 +135,7 @@ export default function FloatingDetailHeader({
             >
               <ThemedText
                 testID={`${testIDPrefix}-center-title`}
+                unscaled
                 numberOfLines={1}
                 style={styles.centerTitle}
                 accessibilityRole="header"
@@ -159,7 +160,7 @@ export default function FloatingDetailHeader({
               size={16}
               weight="semibold"
               tintColor={theme.text}
-              fallback={<ThemedText style={styles.backGlyph}>‹</ThemedText>}
+              fallback={<ThemedText unscaled style={styles.backGlyph}>‹</ThemedText>}
             />
             <Animated.View
               style={{
@@ -168,7 +169,7 @@ export default function FloatingDetailHeader({
                 overflow: "hidden",
               }}
             >
-              <ThemedText numberOfLines={1} style={[styles.backGlyph, styles.backLabel]}>
+              <ThemedText unscaled numberOfLines={1} style={[styles.backGlyph, styles.backLabel]}>
                 {` ${t("back")}`}
               </ThemedText>
             </Animated.View>
@@ -191,7 +192,7 @@ export default function FloatingDetailHeader({
                 overflow: "hidden",
               }}
             >
-              <ThemedText numberOfLines={1} style={[styles.backGlyph, styles.brandLabel]}>
+              <ThemedText unscaled numberOfLines={1} style={[styles.backGlyph, styles.brandLabel]}>
                 {` ${t("appName")}`}
               </ThemedText>
             </Animated.View>

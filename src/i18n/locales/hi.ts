@@ -48,7 +48,7 @@ const hi: Record<keyof typeof en, string> = {
   appearanceAutomaticDesc: "आपके डिवाइस की सिस्टम सेटिंग से मेल खाएं",
   appearanceDayDesc: "हमेशा हल्का रूप उपयोग करें",
   appearanceNightDesc: "हमेशा गहरा रूप उपयोग करें",
-  articleFontSize: "लेख का फ़ॉन्ट आकार",
+  fontSize: "फ़ॉन्ट आकार",
   fontPreviewText: "यह एक नमूना वाक्य है जो फ़ॉन्ट आकार दिखाता है।",
   language: "भाषा",
   languageDescription: "लेख और ऐप टेक्स्ट के लिए अपनी पसंदीदा भाषा चुनें",

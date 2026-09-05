@@ -46,7 +46,7 @@ const te: Record<keyof typeof en, string> = {
   appearanceAutomaticDesc: "మీ పరికరం సిస్టమ్ సెట్టింగ్‌తో సరిపోల్చండి",
   appearanceDayDesc: "ఎల్లప్పుడూ లైట్ రూపాన్ని ఉపయోగించండి",
   appearanceNightDesc: "ఎల్లప్పుడూ డార్క్ రూపాన్ని ఉపయోగించండి",
-  articleFontSize: "కథనం ఫాంట్ పరిమాణం",
+  fontSize: "ఫాంట్ పరిమాణం",
   fontPreviewText: "ఇది ఫాంట్ పరిమాణాన్ని చూపించే నమూనా వాక్యం.",
   language: "భాష",
   languageDescription: "కథనాలు మరియు యాప్ టెక్స్ట్ కోసం మీకు ఇష్టమైన భాషను ఎంచుకోండి",

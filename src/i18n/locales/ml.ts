@@ -46,7 +46,7 @@ const ml: Record<keyof typeof en, string> = {
   appearanceAutomaticDesc: "നിങ്ങളുടെ ഉപകരണത്തിന്റെ സിസ്റ്റം ക്രമീകരണവുമായി പൊരുത്തപ്പെടുത്തുക",
   appearanceDayDesc: "എപ്പോഴും ലൈറ്റ് രൂപം ഉപയോഗിക്കുക",
   appearanceNightDesc: "എപ്പോഴും ഡാർക്ക് രൂപം ഉപയോഗിക്കുക",
-  articleFontSize: "ലേഖനത്തിന്റെ ഫോണ്ട് വലുപ്പം",
+  fontSize: "ഫോണ്ട് വലുപ്പം",
   fontPreviewText: "ഫോണ്ട് വലുപ്പം കാണിക്കുന്ന ഒരു മാതൃകാ വാക്യമാണിത്.",
   language: "ഭാഷ",
   languageDescription: "ലേഖനങ്ങൾക്കും ആപ്പ് ടെക്സ്റ്റിനുമായി നിങ്ങൾക്ക് ഇഷ്ടമുള്ള ഭാഷ തിരഞ്ഞെടുക്കുക",

@@ -167,7 +167,7 @@ export default function PreferencesScreen() {
         />
 
         <View style={styles.toggleRow}>
-          <ThemedText type="default">{t("articleFontSize")}</ThemedText>
+          <ThemedText type="default">{t("fontSize")}</ThemedText>
           <View style={styles.iconRow}>
             {FONT_SIZE_OPTIONS.map((option) => {
               const selected = fontPreference === option.value;
@@ -188,6 +188,9 @@ export default function PreferencesScreen() {
                   accessibilityLabel={t(option.labelKey)}
                 >
                   <ThemedText
+                    // Sets its own size per option - applying the active
+                    // scale again would square the preference.
+                    unscaled
                     style={[
                       styles.iconGlyph,
                       styles.fontSizeSampleGlyph,
@@ -209,6 +212,9 @@ export default function PreferencesScreen() {
         </View>
         <View>
           <ThemedText
+            // Sized from the selected option below; ThemedText must not
+            // apply the active scale on top of it.
+            unscaled
             numberOfLines={PREVIEW_MAX_LINES}
             themeColor="textSecondary"
             style={[

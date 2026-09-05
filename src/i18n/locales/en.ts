@@ -49,7 +49,7 @@ const en = {
   appearanceAutomaticDesc: "Match your device's system setting",
   appearanceDayDesc: "Always use light appearance",
   appearanceNightDesc: "Always use dark appearance",
-  articleFontSize: "Article font size",
+  fontSize: "Font size",
   fontPreviewText: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
   language: "Language",
   languageDescription: "Choose your preferred language for articles and app text",

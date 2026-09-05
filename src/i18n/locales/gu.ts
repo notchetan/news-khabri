@@ -47,7 +47,7 @@ const gu: Record<keyof typeof en, string> = {
   appearanceAutomaticDesc: "તમારા ડિવાઇસની સિસ્ટમ સેટિંગ સાથે મેળ ખાય",
   appearanceDayDesc: "હંમેશા હળવો દેખાવ વાપરો",
   appearanceNightDesc: "હંમેશા ઘાટો દેખાવ વાપરો",
-  articleFontSize: "લેખનું ફોન્ટ કદ",
+  fontSize: "ફોન્ટ કદ",
   fontPreviewText: "આ ફોન્ટ કદ દર્શાવતું એક નમૂના વાક્ય છે.",
   language: "ભાષા",
   languageDescription: "લેખો અને એપ્લિકેશન ટેક્સ્ટ માટે તમારી પસંદગીની ભાષા પસંદ કરો",
