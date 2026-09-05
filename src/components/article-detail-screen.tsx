@@ -438,7 +438,10 @@ const styles = StyleSheet.create({
   // See "Matching story-detail-screen's meta layout" in
   // docs/article-header-layout.md.
   metaActions: { flexDirection: "row", alignItems: "center", gap: Spacing.two },
+  // minHeight, not a fixed height - matches the bookmark button beside it
+  // and clears the 44pt minimum touch target.
   shareButton: {
+    minHeight: 44,
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.one,
@@ -448,9 +451,14 @@ const styles = StyleSheet.create({
   },
   shareButtonText: { fontSize: 14, fontWeight: "600" },
   // Icon-only, square-ish - the bookmark toggle sitting left of Share.
+  // A 16pt icon with Spacing.two padding came out around 32pt square, under
+  // the 44pt minimum. minWidth/minHeight rather than a fixed size so it stays
+  // the same visual height as the Share button beside it.
   iconButton: {
     alignItems: "center",
     justifyContent: "center",
+    minWidth: 44,
+    minHeight: 44,
     paddingHorizontal: Spacing.two,
     paddingVertical: Spacing.two,
     borderRadius: Radius.full,

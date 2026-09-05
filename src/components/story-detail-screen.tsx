@@ -326,7 +326,10 @@ const styles = StyleSheet.create({
     marginTop: Spacing.one,
   },
   metaTextBlock: { gap: 2 },
+  // minHeight, not a fixed height - matches the bookmark button beside it
+  // and clears the 44pt minimum touch target.
   shareButton: {
+    minHeight: 44,
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.one,

@@ -403,6 +403,11 @@ export default function PreferencesScreen() {
               {index > 0 && <ThemedText themeColor="textSecondary">{"·"}</ThemedText>}
               <Pressable
                 onPress={() => router.push(link.href)}
+                // These are 14pt text on one line - roughly a 20pt tall
+                // target without this. The row is centered with gaps, so
+                // hitSlop is the right tool: it grows the touch area without
+                // pushing the three links apart visually.
+                hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
                 accessibilityRole="button"
                 accessibilityLabel={t(link.labelKey)}
               >
@@ -435,8 +440,10 @@ const styles = StyleSheet.create({
   },
   iconRow: { flexDirection: "row", gap: Spacing.two },
   iconButton: {
-    width: 40,
-    height: 40,
+    // 44 is the platform minimum touch target on both iOS and Android; these
+    // were 40 with no hitSlop, so they fell just under it.
+    width: 44,
+    height: 44,
     // Fully round at this size - plain circular, not squircle (see
     // Radius.full's own comment).
     borderRadius: Radius.full,
