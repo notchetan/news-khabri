@@ -46,7 +46,7 @@ const ta: Record<keyof typeof en, string> = {
   appearanceAutomaticDesc: "உங்கள் சாதனத்தின் சிஸ்டம் அமைப்புடன் பொருத்தவும்",
   appearanceDayDesc: "எப்போதும் வெளிர் தோற்றத்தைப் பயன்படுத்தவும்",
   appearanceNightDesc: "எப்போதும் இருண்ட தோற்றத்தைப் பயன்படுத்தவும்",
-  articleFontSize: "கட்டுரையின் எழுத்துரு அளவு",
+  fontSize: "எழுத்துரு அளவு",
   fontPreviewText: "இது எழுத்துரு அளவைக் காட்டும் ஒரு மாதிரி வாக்கியம்.",
   language: "மொழி",
   languageDescription: "கட்டுரைகள் மற்றும் ஆப் உரைக்கான உங்களுக்கு விருப்பமான மொழியைத் தேர்ந்தெடுக்கவும்",

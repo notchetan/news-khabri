@@ -4,6 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import ArticleImage from "@/components/article-image";
 import Squircle from "@/components/squircle";
+import { ThemedText } from "@/components/themed-text";
 import { Radius } from "@/constants/theme";
 import { concentricRadius } from "@/utils/corner-radius";
 import { useTheme } from "@/hooks/use-theme";
@@ -96,8 +97,10 @@ export default function FeedCard({
           </TouchableOpacity>
         )}
       </View>
-      <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
-      <Text style={[styles.meta, { color: theme.textSecondary }]}>{metaText}</Text>
+      <ThemedText style={styles.title}>{title}</ThemedText>
+      <ThemedText themeColor="textSecondary" style={styles.meta}>
+        {metaText}
+      </ThemedText>
     </Squircle>
   );
 }
