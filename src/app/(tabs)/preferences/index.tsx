@@ -261,6 +261,14 @@ export default function PreferencesScreen() {
           style={[styles.divider, styles.sectionSpacing, { backgroundColor: theme.backgroundSelected }]}
         />
 
+        {/* Sources and Notifications below are gated on sign-in as a
+            deliberate incentive to create an account, NOT because either
+            needs one. Nothing technical requires it: the source filter is
+            pure local AsyncStorage that ArticleList already applies for
+            everyone, and /push-subscriptions is explicitly anonymous-capable
+            (see api/notifications.ts). Recorded here because a reader
+            reasonably assumes a disabled row means "this can't work yet"
+            rather than "this is a product decision". */}
         <Pressable
           onPress={() => isSignedIn && router.push("/preferences/sources")}
           disabled={!isSignedIn}
