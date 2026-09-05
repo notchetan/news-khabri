@@ -123,6 +123,8 @@ const or: Record<keyof typeof en, string> = {
   privacy: "ଗୋପନୀୟତା",
   legal: "ସର୍ତ୍ତାବଳୀ",
   onboardingCatchphrase: "ଆପଣଙ୍କ ଦିନର ସବୁଠାରୁ ବଡ଼ ଖବର, କୌଣସି ହଇଚଇ ବିନା.",
+  onboardingLegalAccept:
+    "ମୁଁ ଗୋପନୀୟତା ନୀତି ଏବଂ ସେବା ସର୍ତ୍ତାବଳୀ ପଢ଼ିଛି ଏବଂ ସେଗୁଡ଼ିକ ଗ୍ରହଣ କରୁଛି",
   onboardingNext: "ପରବର୍ତ୍ତୀ",
   onboardingFeaturesTitle: "ଯାହା ଦରକାର ସବୁ, ବାକି କିଛି ନାହିଁ",
   onboardingFeatureNoAdsTitle: "କେବେ ବି ବିଜ୍ଞାପନ ନାହିଁ",

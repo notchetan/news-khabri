@@ -119,6 +119,8 @@ const ml: Record<keyof typeof en, string> = {
   privacy: "സ്വകാര്യത",
   legal: "നിബന്ധനകൾ",
   onboardingCatchphrase: "നിങ്ങളുടെ ദിവസത്തിലെ ഏറ്റവും വലിയ വാർത്തകൾ, ബഹളമില്ലാതെ.",
+  onboardingLegalAccept:
+    "സ്വകാര്യതാ നയവും സേവന നിബന്ധനകളും ഞാൻ വായിച്ചു, അവ അംഗീകരിക്കുന്നു",
   onboardingNext: "അടുത്തത്",
   onboardingFeaturesTitle: "വേണ്ടതെല്ലാം, വേണ്ടാത്തതൊന്നുമില്ല",
   onboardingFeatureNoAdsTitle: "ഒരിക്കലും പരസ്യങ്ങളില്ല",

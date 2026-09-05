@@ -119,6 +119,8 @@ const ta: Record<keyof typeof en, string> = {
   privacy: "தனியுரிமை",
   legal: "விதிமுறைகள்",
   onboardingCatchphrase: "உங்கள் நாளின் மிகப்பெரிய செய்திகள், சலசலப்பு இல்லாமல்.",
+  onboardingLegalAccept:
+    "தனியுரிமைக் கொள்கையையும் சேவை விதிமுறைகளையும் படித்து ஏற்றுக்கொள்கிறேன்",
   onboardingNext: "அடுத்து",
   onboardingFeaturesTitle: "வேண்டியதெல்லாம், வேண்டாதது ஒன்றுமில்லை",
   onboardingFeatureNoAdsTitle: "ஒருபோதும் விளம்பரங்கள் இல்லை",

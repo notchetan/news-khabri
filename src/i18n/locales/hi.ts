@@ -129,6 +129,8 @@ const hi: Record<keyof typeof en, string> = {
   privacy: "गोपनीयता",
   legal: "शर्तें",
   onboardingCatchphrase: "आपके दिन की सबसे बड़ी ख़बरें, बिना किसी शोर के।",
+  onboardingLegalAccept:
+    "मैंने गोपनीयता नीति और सेवा की शर्तें पढ़ ली हैं और उन्हें स्वीकार करता/करती हूँ",
   onboardingNext: "आगे",
   onboardingFeaturesTitle: "जो चाहिए वो सब, बाकी कुछ नहीं",
   onboardingFeatureNoAdsTitle: "कभी कोई विज्ञापन नहीं",
