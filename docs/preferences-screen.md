@@ -6,24 +6,30 @@ component. See
 the general cross-script glyph-centering lesson this screen's font-size
 preview also relies on.
 
-## Font-size preview height, reserved with a fixed `minHeight`
+## Font-size preview height: sized to content, not reserved
 
-Switching between font sizes (small/medium/large) shouldn't visibly shift
-the layout below the preview text. The preview carries a constant
-`minHeight` (`PREVIEW_MIN_HEIGHT` = `FONT_PREVIEW_BASE_SIZE *
-LARGEST_FONT_SCALE * 1.4 * PREVIEW_MAX_LINES`) plus
-`numberOfLines={PREVIEW_MAX_LINES}` (3). Every locale's `fontPreviewText`
-is one short sentence (~40-55 characters), which wraps to two lines even
-at the largest scale, so reserving three worst-case lines permanently
-means the box is always the same height regardless of the selected size,
-and the line cap guarantees the text can't exceed the reservation and
-push it taller.
+The preview text sizes to its own content. `numberOfLines` (3) stays as a
+safety cap so a pathological string can't run away with the layout, but
+there is no `minHeight`.
 
-This used to be measured from a hidden zero-height `onLayout` probe
-rendered at the largest scale. The probe worked but was a fair amount of
-machinery (a `previewProbeWrapper` style, a `previewHeight` state, a
-layout handler) for a value that's a compile-time constant given the
-known base size, scale, and that the strings are all one short line.
+It used to reserve three worst-case lines so that switching size wouldn't
+shift the layout below. Two things were wrong with that. The reservation
+was sized on the premise that "every locale's `fontPreviewText` is one
+short sentence (~40-55 characters)" - true only of English (56); the
+Indic strings run 101-139 characters. And because those scripts still
+render in one or two lines, reserving three left roughly 52pt of dead
+space under this one section in most locales - conspicuous on a screen
+where every other section sits flush against its divider. It was reported
+from a device as "a large white space below the font size toggle".
+
+Sizing to content trades that permanent gap for a one-line nudge of the
+content below, and only while the reader is actively working this control
+- where it doubles as feedback that their choice took effect.
+
+Before the reservation, this was measured from a hidden zero-height
+`onLayout` probe. That is not worth bringing back: the probe was real
+machinery (a wrapper style, a state value, a layout handler) and the
+thing it computed is no longer needed at all.
 
 ## Font-size sample glyph centering
 
