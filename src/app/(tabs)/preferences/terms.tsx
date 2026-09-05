@@ -15,7 +15,7 @@ export default function TermsScreen() {
   const { t } = useTranslation();
 
   return (
-    <PushedScreen title={t("termsOfService")}>
+    <PushedScreen title={t("legal")}>
       <ThemedText themeColor="textSecondary" style={styles.updated}>
         Last updated: {LEGAL_LAST_UPDATED}
       </ThemedText>

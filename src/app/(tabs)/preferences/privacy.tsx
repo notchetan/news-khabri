@@ -17,7 +17,7 @@ export default function PrivacyScreen() {
   const { t } = useTranslation();
 
   return (
-    <PushedScreen title={t("privacyPolicy")}>
+    <PushedScreen title={t("privacy")}>
       <ThemedText themeColor="textSecondary" style={styles.updated}>
         Last updated: {LEGAL_LAST_UPDATED}
       </ThemedText>

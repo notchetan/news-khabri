@@ -68,8 +68,8 @@ const FONT_SIZE_OPTIONS: {
 // three short reference links don't need a full row each.
 const LEGAL_LINKS: { href: "/preferences/about" | "/preferences/privacy" | "/preferences/terms"; labelKey: TranslationKey }[] = [
   { href: "/preferences/about", labelKey: "about" },
-  { href: "/preferences/privacy", labelKey: "privacyPolicy" },
-  { href: "/preferences/terms", labelKey: "termsOfService" },
+  { href: "/preferences/privacy", labelKey: "privacy" },
+  { href: "/preferences/terms", labelKey: "legal" },
 ];
 
 const FONT_PREVIEW_BASE_SIZE = 15;
@@ -397,10 +397,20 @@ export default function PreferencesScreen() {
           // above - see docs/preferences-screen.md.
           style={[styles.divider, styles.sectionSpacing, { backgroundColor: theme.textSecondary }]}
         />
+        {/* unscaled: three dot-separated links on one centered line have no
+            room to grow. At Large in a long-label locale this overflowed both
+            edges - Malayalam clipped "ഞങ്ങളെക്കുറിച്ച്" to "ദങ്ങളെക്കുറിച്ച്" on the
+            left and lost the end of "സേവന നിബന്ധനകൾ" on the right. This is
+            reference chrome pinned above the tab bar, not reading content, so
+            it keeps its own size like the header pills do. */}
         <View style={styles.legalLinksRow}>
           {LEGAL_LINKS.map((link, index) => (
             <Fragment key={link.href}>
-              {index > 0 && <ThemedText themeColor="textSecondary">{"·"}</ThemedText>}
+              {index > 0 && (
+                <ThemedText unscaled themeColor="textSecondary">
+                  {"·"}
+                </ThemedText>
+              )}
               <Pressable
                 onPress={() => router.push(link.href)}
                 // These are 14pt text on one line - roughly a 20pt tall
@@ -411,7 +421,7 @@ export default function PreferencesScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={t(link.labelKey)}
               >
-                <ThemedText type="small" themeColor="tint">
+                <ThemedText unscaled type="small" themeColor="tint">
                   {t(link.labelKey)}
                 </ThemedText>
               </Pressable>
@@ -466,11 +476,17 @@ const styles = StyleSheet.create({
   disabledRow: { opacity: 0.5 },
   legalChevronFallback: { fontSize: 18, fontWeight: "600" },
   languagePickerValue: { flexDirection: "row", alignItems: "center", gap: Spacing.one },
-  // One centered line, dot-separated - see docs/preferences-screen.md.
+  // Centered and dot-separated - see docs/preferences-screen.md. One line
+  // wherever the three labels fit, which is most locales; flexWrap so the
+  // ones where they don't (Tamil and Malayalam run ~2x English here) break
+  // to a second line instead of clipping off both screen edges. rowGap
+  // keeps the two lines from touching when that happens.
   legalLinksRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "center",
     alignItems: "center",
     gap: Spacing.two,
+    rowGap: Spacing.one,
   },
 });
