@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 
-import { Radius } from "@/constants/theme";
+import { CARD_PADDING } from "@/components/feed-card";
+import { Radius, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { useTranslation } from "@/i18n/translations";
 
@@ -35,7 +36,7 @@ export default function ArticleListSkeleton() {
 
   return (
     <View
-      style={{ backgroundColor: theme.background }}
+      style={[styles.list, { backgroundColor: theme.background }]}
       accessible
       accessibilityRole="progressbar"
       accessibilityLabel={t("loadingArticles")}
@@ -44,7 +45,7 @@ export default function ArticleListSkeleton() {
       {Array.from({ length: SKELETON_CARDS }).map((_, i) => (
         <View
           key={i}
-          style={[styles.card, { borderColor: theme.backgroundSelected }]}
+          style={[styles.card, { backgroundColor: theme.backgroundElement }]}
           importantForAccessibility="no-hide-descendants"
         >
           <Animated.View style={[styles.image, blockStyle]} />
@@ -58,7 +59,14 @@ export default function ArticleListSkeleton() {
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 12, borderBottomWidth: 1 },
+  // Mirrors ArticleList's own contentContainerStyle so the placeholders sit
+  // exactly where the real cards will land.
+  list: { padding: Spacing.three, gap: Spacing.three },
+  // A filled, rounded card - not the flat bordered row this used to be,
+  // which reflowed visibly the moment real cards replaced it. Plain
+  // borderRadius rather than Squircle: this is a transient loading state and
+  // an SVG per placeholder is not worth the fidelity.
+  card: { padding: CARD_PADDING, borderRadius: Radius.large },
   image: {
     width: "100%",
     height: 180,
