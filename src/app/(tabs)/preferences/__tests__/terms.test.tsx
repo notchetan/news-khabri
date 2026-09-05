@@ -24,7 +24,7 @@ describe("TermsScreen", () => {
       );
     });
 
-    expect(screen.getByText("Terms of Service")).toBeTruthy();
+    expect(screen.getByText("Legal")).toBeTruthy();
     expect(screen.getByText(/WHAT NEWS KHABRI IS/)).toBeTruthy();
     expect(screen.getByText(/support@newskhabri\.app/)).toBeTruthy();
   });

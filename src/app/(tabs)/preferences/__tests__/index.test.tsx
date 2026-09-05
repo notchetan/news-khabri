@@ -379,8 +379,8 @@ describe("PreferencesScreen", () => {
     });
 
     expect(screen.getByRole("button", { name: "About" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Privacy Policy" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Terms of Service" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Privacy" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Legal" })).toBeTruthy();
     // Two separators between three links - none before the first or after
     // the last.
     expect(screen.getAllByText("·")).toHaveLength(2);
@@ -399,8 +399,8 @@ describe("PreferencesScreen", () => {
 
     const footer = screen.getByTestId("preferences-legal-footer");
     expect(within(footer).getByRole("button", { name: "About" })).toBeTruthy();
-    expect(within(footer).getByRole("button", { name: "Privacy Policy" })).toBeTruthy();
-    expect(within(footer).getByRole("button", { name: "Terms of Service" })).toBeTruthy();
+    expect(within(footer).getByRole("button", { name: "Privacy" })).toBeTruthy();
+    expect(within(footer).getByRole("button", { name: "Legal" })).toBeTruthy();
   });
 
   it("colors the footer divider the same as the home page's own divider/back-arrow, not the section dividers' subtler color", async () => {
@@ -415,8 +415,8 @@ describe("PreferencesScreen", () => {
 
   it.each([
     ["About", "/preferences/about"],
-    ["Privacy Policy", "/preferences/privacy"],
-    ["Terms of Service", "/preferences/terms"],
+    ["Privacy", "/preferences/privacy"],
+    ["Legal", "/preferences/terms"],
   ])("navigates to %s when its row is tapped", async (label, href) => {
     await act(async () => {
       renderScreen();

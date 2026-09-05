@@ -24,7 +24,7 @@ describe("PrivacyScreen", () => {
       );
     });
 
-    expect(screen.getByText("Privacy Policy")).toBeTruthy();
+    expect(screen.getByText("Privacy")).toBeTruthy();
     expect(screen.getByText(/IF YOU SIGN IN WITH GOOGLE/)).toBeTruthy();
     expect(screen.getByText(/DELETING YOUR ACCOUNT AND DATA/)).toBeTruthy();
     expect(screen.getAllByText(/support@newskhabri\.app/).length).toBeGreaterThan(0);

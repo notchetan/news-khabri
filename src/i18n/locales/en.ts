@@ -130,8 +130,8 @@ const en = {
   notificationsEveryMinutesTemplate: "Every {minutes} minutes",
   signInRequiredForNotifications: "Sign in for more notification timing options",
   about: "About",
-  privacyPolicy: "Privacy Policy",
-  termsOfService: "Terms of Service",
+  privacy: "Privacy",
+  legal: "Legal",
   // First-launch onboarding (src/app/onboarding/) - three screens: a
   // branded welcome, a feature summary, then an optional sign-in pitch.
   // See onboarding-context.tsx for the "have we shown this already" flag.
