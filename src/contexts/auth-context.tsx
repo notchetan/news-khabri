@@ -20,6 +20,7 @@ import {
   type PreferenceBundle,
   type ServerPreferences,
 } from "@/api/auth";
+import { isAuthRejection } from "@/api/client";
 import { registerPushSubscription } from "@/api/notifications";
 import { captureException } from "@/observability/sentry";
 import { DEBUG_STORAGE_KEY } from "@/contexts/debug-preference";
@@ -277,8 +278,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               });
           }
         }
-      } catch {
-        await storeToken(null);
+      } catch (err) {
+        // Only a genuine auth rejection means this session is gone. Any other
+        // failure - offline, DNS, a 500, apiFetch's own 15s timeout - says
+        // nothing about the token's validity, and clearing it there meant a
+        // single launch without signal permanently signed the reader out.
+        // The session stays; the next authed request retries it.
+        if (isAuthRejection(err)) {
+          await storeToken(null);
+          await writeSyncBaseline(null);
+        }
       } finally {
         setIsLoading(false);
       }

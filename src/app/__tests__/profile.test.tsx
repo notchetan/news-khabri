@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-
 import { Alert } from "react-native";
 
 import { deleteAccount, fetchMe, putPreferences, signInWithGoogle } from "@/api/auth";
+import { ApiError } from "@/api/client";
 import { AuthProvider } from "@/contexts/auth-context";
 import { LanguagePreferenceProvider } from "@/contexts/language-preference";
 import { ThemePreferenceProvider } from "@/contexts/theme-preference";
@@ -360,9 +361,12 @@ describe("ProfileScreen", () => {
     expect(mockFetchMe).toHaveBeenCalledWith("stored-session-token");
   });
 
+  // "Invalid/expired" means the server said so - a 401. A plain Error here
+  // would be a transport failure, which must NOT clear the session (see the
+  // companion test below, and auth-context.tsx).
   it("clears an invalid/expired stored session rather than staying signed in", async () => {
     mockGetItemAsync.mockResolvedValue("stale-session-token");
-    mockFetchMe.mockRejectedValue(new Error("Not signed in"));
+    mockFetchMe.mockRejectedValue(new ApiError("Failed to fetch account", 401));
 
     await act(async () => {
       renderScreen();
@@ -372,5 +376,21 @@ describe("ProfileScreen", () => {
       expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeTruthy();
     });
     expect(mockDeleteItemAsync).toHaveBeenCalledWith("sessionToken");
+  });
+
+  it("keeps a stored session when the launch check fails for a network reason", async () => {
+    mockGetItemAsync.mockResolvedValue("good-session-token");
+    mockFetchMe.mockRejectedValue(new Error("Network request failed"));
+
+    await act(async () => {
+      renderScreen();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Sign in with Google" })).toBeTruthy();
+    });
+    // Signed-out UI (we never got a user), but the token survives so the next
+    // launch with signal restores the session instead of forcing a re-login.
+    expect(mockDeleteItemAsync).not.toHaveBeenCalled();
   });
 });

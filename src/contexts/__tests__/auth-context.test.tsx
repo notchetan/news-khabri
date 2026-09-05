@@ -13,6 +13,7 @@ import {
   PREFERENCES_BASELINE_KEY,
   useAuth,
 } from "@/contexts/auth-context";
+import { ApiError } from "@/api/client";
 import { SOURCES_STORAGE_KEY } from "@/contexts/sources-preference";
 import { ThemePreferenceProvider, useThemePreference } from "@/contexts/theme-preference";
 
@@ -269,6 +270,49 @@ describe("AuthProvider preference sync", () => {
       expect(await AsyncStorage.getItem(PREFERENCES_BASELINE_KEY)).not.toBeNull();
     });
   });
+
+  // The whole point of ApiError: a token is only destroyed when the server
+  // actually rejects it. Before this, one launch without signal signed the
+  // reader out permanently, with no explanation.
+  it("keeps the session when the launch validation fails for a non-auth reason", async () => {
+    mockGetItemAsync.mockResolvedValue("stored-session-token");
+    mockFetchMe.mockRejectedValue(new Error("Network request failed"));
+
+    const { result } = await renderHook(() => ({ auth: useAuth() }), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.auth.isLoading).toBe(false);
+    });
+    expect(mockDeleteItemAsync).not.toHaveBeenCalled();
+  });
+
+  it("keeps the session on a 500 too - a server fault says nothing about the token", async () => {
+    mockGetItemAsync.mockResolvedValue("stored-session-token");
+    mockFetchMe.mockRejectedValue(new ApiError("Failed to fetch account", 500));
+
+    const { result } = await renderHook(() => ({ auth: useAuth() }), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.auth.isLoading).toBe(false);
+    });
+    expect(mockDeleteItemAsync).not.toHaveBeenCalled();
+  });
+
+  it.each([401, 403])(
+    "clears the session when the server rejects the token with %s",
+    async (status) => {
+      mockGetItemAsync.mockResolvedValue("stored-session-token");
+      mockFetchMe.mockRejectedValue(new ApiError("Failed to fetch account", status));
+
+      const { result } = await renderHook(() => ({ auth: useAuth() }), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.auth.isLoading).toBe(false);
+      });
+      expect(mockDeleteItemAsync).toHaveBeenCalled();
+      expect(result.current.auth.user).toBeNull();
+    }
+  );
 
   // A corrupt sources value threw out of readLocalPreferencesBundle. On the
   // launch path that landed in the session-restore catch and destroyed the

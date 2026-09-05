@@ -29,6 +29,27 @@ type ApiFetchOptions = {
   timeoutMs?: number;
 };
 
+// Thrown for a non-ok response. Carries the HTTP status so a caller can tell
+// "the server rejected this" from "the request never landed" - a plain Error
+// made a 401 and an offline device indistinguishable, which is how a single
+// offline launch used to destroy a stored session (see auth-context.tsx).
+// A transport failure (timeout, DNS, socket) still throws a plain Error with
+// no status, which is exactly the distinction callers need.
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+// True only for a response the server actively rejected as unauthenticated.
+export function isAuthRejection(error: unknown): boolean {
+  return error instanceof ApiError && (error.status === 401 || error.status === 403);
+}
+
 export async function apiFetch<T>(
   path: string,
   opts: ApiFetchOptions
@@ -56,7 +77,7 @@ export async function apiFetch<T>(
       body: body !== undefined ? JSON.stringify(body) : undefined,
       signal: controller.signal,
     });
-    if (!res.ok) throw new Error(errorMessage);
+    if (!res.ok) throw new ApiError(errorMessage, res.status);
     return parseJson ? ((await res.json()) as T) : (undefined as T);
   } finally {
     clearTimeout(timer);
