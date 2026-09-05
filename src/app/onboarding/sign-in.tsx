@@ -2,7 +2,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useEffect } from "react";
-import { Platform, Pressable, StyleSheet } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -55,6 +55,17 @@ export default function OnboardingSignInScreen() {
       <ThemedView
         style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}
       >
+        {/* Scrollable so a small screen at a large font size can still
+            reach the buttons below - this is the one flow every reader
+            has to complete. flexGrow (not flex) on the content block so
+            it still absorbs the slack that keeps the dots aligned across
+            all three screens, without being allowed to shrink below its
+            own content. */}
+        <ScrollView
+          testID="onboarding-scroll"
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+        >
         <ThemedView style={styles.content}>
           <SymbolView
             name="person.crop.circle.badge.checkmark"
@@ -112,15 +123,19 @@ export default function OnboardingSignInScreen() {
             position across every onboarding screen, even this one with its
             extra actions block. */}
         <OnboardingDots total={3} current={2} style={styles.dots} />
+        </ScrollView>
       </ThemedView>
     </GestureDetector>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center" },
+  container: { flex: 1 },
+  // Explicit flex:1 - see AGENTS.md ScrollView-needs-explicit-flex lesson.
+  scrollView: { flex: 1 },
+  scrollContent: { flexGrow: 1, alignItems: "center" },
   content: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: Spacing.five,

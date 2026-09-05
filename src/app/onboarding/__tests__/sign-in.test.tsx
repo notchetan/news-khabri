@@ -144,4 +144,14 @@ describe("OnboardingSignInScreen", () => {
     expect(mockReplace).not.toHaveBeenCalled();
     expect(await AsyncStorage.getItem("hasCompletedOnboarding")).toBeNull();
   });
+
+  // Every reader has to complete this flow; on a small screen at a large
+  // font size the content used to overflow with no way to reach the buttons.
+  it("puts its content in a scroll view so it can never be unreachable", async () => {
+    await act(async () => {
+      renderScreen();
+    });
+
+    expect(screen.getByTestId("onboarding-scroll")).toBeTruthy();
+  });
 });
