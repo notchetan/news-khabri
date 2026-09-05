@@ -73,17 +73,19 @@ const LEGAL_LINKS: { href: "/preferences/about" | "/preferences/privacy" | "/pre
 ];
 
 const FONT_PREVIEW_BASE_SIZE = 15;
-const LARGEST_FONT_SCALE = Math.max(...FONT_SIZE_OPTIONS.map((option) => option.scale));
-// The preview reserves a fixed height so switching font sizes doesn't shift
-// the layout below it. Every locale's fontPreviewText is one short sentence
-// (~40-55 chars), which wraps to at most 2-3 lines even at the largest
-// scale, so 3 lines of worst-case line height is a safe permanent
-// reservation - paired with numberOfLines below so it can't ever exceed it.
-// See docs/preferences-screen.md.
+// The preview used to reserve a fixed 3 lines so switching size wouldn't
+// shift the layout below. That reservation was sized against English (56
+// chars) on a premise that didn't hold - the Indic strings run 101-139
+// chars yet still render in 1-2 lines - so it left ~52pt of permanent dead
+// space under this one section in most locales, which is visible on the
+// screen where every other section sits flush.
+//
+// Sizing to content instead. Changing font size can now nudge what's below
+// by a line, but that happens only while the reader is actively using this
+// control, and it makes the effect of their choice visible. Permanent dead
+// space on every visit is the worse trade. numberOfLines stays as a cap so
+// a pathological string still can't run away with the layout.
 const PREVIEW_MAX_LINES = 3;
-const PREVIEW_MIN_HEIGHT = Math.ceil(
-  FONT_PREVIEW_BASE_SIZE * LARGEST_FONT_SCALE * 1.4 * PREVIEW_MAX_LINES
-);
 
 export default function PreferencesScreen() {
   const { preference, setPreference } = useThemePreference();
@@ -219,7 +221,6 @@ export default function PreferencesScreen() {
             themeColor="textSecondary"
             style={[
               styles.description,
-              { minHeight: PREVIEW_MIN_HEIGHT },
               { fontSize: FONT_PREVIEW_BASE_SIZE * (selectedFontSize?.scale ?? 1) },
             ]}
           >
