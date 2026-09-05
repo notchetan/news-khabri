@@ -1,4 +1,4 @@
-import { apiFetch } from "../client";
+import { apiFetch, ApiError, isAuthRejection } from "../client";
 
 const BASE = "http://localhost:3000";
 
@@ -28,6 +28,41 @@ describe("apiFetch", () => {
     await expect(
       apiFetch("/thing", { errorMessage: "it failed" })
     ).rejects.toThrow("it failed");
+  });
+
+  // Callers need to tell "the server rejected this" from "the request never
+  // landed" - a plain Error for both is how an offline launch used to destroy
+  // a stored session. See auth-context.tsx.
+  it("throws an ApiError carrying the status when the response is not ok", async () => {
+    mockFetch(() => ({ ok: false, status: 401, json: () => Promise.resolve(null) }));
+
+    await expect(apiFetch("/thing", { errorMessage: "nope" })).rejects.toMatchObject({
+      name: "ApiError",
+      message: "nope",
+      status: 401,
+    });
+  });
+
+  it("isAuthRejection is true only for 401/403, never for a transport failure", async () => {
+    for (const [status, expected] of [
+      [401, true],
+      [403, true],
+      [400, false],
+      [500, false],
+      [503, false],
+    ] as const) {
+      mockFetch(() => ({ ok: false, status, json: () => Promise.resolve(null) }));
+      const err = await apiFetch("/thing", { errorMessage: "x" }).catch((e) => e);
+      expect({ status, auth: isAuthRejection(err) }).toEqual({ status, auth: expected });
+    }
+
+    // A network failure never produces an ApiError at all.
+    mockFetch(() => {
+      throw new TypeError("Network request failed");
+    });
+    const netErr = await apiFetch("/thing", { errorMessage: "x" }).catch((e) => e);
+    expect(netErr).not.toBeInstanceOf(ApiError);
+    expect(isAuthRejection(netErr)).toBe(false);
   });
 
   it("adds a bearer header only when a token is passed", async () => {
