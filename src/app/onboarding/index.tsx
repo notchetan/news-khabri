@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { Image, Platform, StyleSheet } from "react-native";
+import { Image, Platform, ScrollView, StyleSheet } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -30,6 +30,17 @@ export default function OnboardingWelcomeScreen() {
       <ThemedView
         style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}
       >
+        {/* Scrollable so a small screen at a large font size can still
+            reach the buttons below - this is the one flow every reader
+            has to complete. flexGrow (not flex) on the content block so
+            it still absorbs the slack that keeps the dots aligned across
+            all three screens, without being allowed to shrink below its
+            own content. */}
+        <ScrollView
+          testID="onboarding-scroll"
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+        >
         <ThemedView style={styles.content}>
           <Image
             source={require("@/assets/images/splash-icon.png")}
@@ -52,17 +63,21 @@ export default function OnboardingWelcomeScreen() {
             onboarding-dots.tsx's own comment: this is what makes the dots
             land at the exact same bottom position on every onboarding
             screen regardless of how tall that screen's own content is,
-            since content's flex:1 absorbs all the leftover space above it. */}
+            since content's flexGrow absorbs all the leftover space above it. */}
         <OnboardingDots total={3} current={0} />
+        </ScrollView>
       </ThemedView>
     </GestureDetector>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center" },
+  container: { flex: 1 },
+  // Explicit flex:1 - see AGENTS.md ScrollView-needs-explicit-flex lesson.
+  scrollView: { flex: 1 },
+  scrollContent: { flexGrow: 1, alignItems: "center" },
   content: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: Spacing.five,

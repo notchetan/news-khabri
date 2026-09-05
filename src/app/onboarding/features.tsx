@@ -1,7 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { SFSymbol, SymbolView } from "expo-symbols";
-import { Platform, StyleSheet, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -66,6 +66,17 @@ export default function OnboardingFeaturesScreen() {
       <ThemedView
         style={[styles.container, { paddingTop: topPadding, paddingBottom: bottomPadding }]}
       >
+        {/* Scrollable so a small screen at a large font size can still
+            reach the buttons below - this is the one flow every reader
+            has to complete. flexGrow (not flex) on the content block so
+            it still absorbs the slack that keeps the dots aligned across
+            all three screens, without being allowed to shrink below its
+            own content. */}
+        <ScrollView
+          testID="onboarding-scroll"
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+        >
         <View style={styles.content}>
           <ThemedText type="subtitle" style={styles.title} accessibilityRole="header">
             {t("onboardingFeaturesTitle")}
@@ -99,15 +110,19 @@ export default function OnboardingFeaturesScreen() {
             comment on why this is what keeps the dots at the same bottom
             position across every onboarding screen. */}
         <OnboardingDots total={3} current={1} />
+        </ScrollView>
       </ThemedView>
     </GestureDetector>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center" },
+  container: { flex: 1 },
+  // Explicit flex:1 - see AGENTS.md ScrollView-needs-explicit-flex lesson.
+  scrollView: { flex: 1 },
+  scrollContent: { flexGrow: 1, alignItems: "center" },
   content: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: "center",
     paddingHorizontal: Spacing.five,
     gap: Spacing.four,
